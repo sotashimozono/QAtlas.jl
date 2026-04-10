@@ -46,8 +46,11 @@ function mean_far(N::Int, J::Float64, h::Float64, i0::Int)
     isempty(rs) && error("no bulk r values fit; choose larger N or smaller i0")
     s = 0.0
     for r in rs
-        s += real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                  N=N, J=J, h=h, i=i0, j=i0 + r, t=0.0))
+        s += real(
+            QAtlas.fetch(
+                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0 + r, t=0.0
+            ),
+        )
     end
     return s / length(rs)
 end
@@ -69,16 +72,22 @@ end
         # σz σz at t = 0
         for i in 1:N, j in i:N
             ED = real(gs' * _op_site(_SZ, i, N) * _op_site(_SZ, j, N) * gs)
-            QAT = real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                       N=N, J=J, h=h, i=i, j=j, t=0.0))
+            QAT = real(
+                QAtlas.fetch(
+                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i, j=j, t=0.0
+                ),
+            )
             @test QAT ≈ ED atol=1e-10
         end
 
         # σx σx at t = 0
         for i in 1:N, j in i:N
             ED = real(gs' * _op_site(_SX, i, N) * _op_site(_SX, j, N) * gs)
-            QAT = real(QAtlas.fetch(:TFIM, :sx_sx_correlation, OBC();
-                       N=N, J=J, h=h, i=i, j=j, t=0.0))
+            QAT = real(
+                QAtlas.fetch(
+                    :TFIM, :sx_sx_correlation, OBC(); N=N, J=J, h=h, i=i, j=j, t=0.0
+                ),
+            )
             @test QAT ≈ ED atol=1e-10
         end
 
@@ -86,10 +95,12 @@ end
         Udag = V'  # = V^†
         for (i, j, t) in [(1, 1, 0.3), (2, 3, 0.7), (1, 4, 1.5), (2, 4, 2.0)]
             Ut = V * Diagonal(exp.(-im * E * t)) * Udag
-            ED = exp(im * E[1] * t) *
-                 (gs' * _op_site(_SZ, i, N) * Ut * _op_site(_SZ, j, N) * gs)
-            QAT = QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                   N=N, J=J, h=h, i=i, j=j, t=t)
+            ED =
+                exp(im * E[1] * t) *
+                (gs' * _op_site(_SZ, i, N) * Ut * _op_site(_SZ, j, N) * gs)
+            QAT = QAtlas.fetch(
+                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i, j=j, t=t
+            )
             @test real(QAT) ≈ real(ED) atol=1e-10
             @test imag(QAT) ≈ imag(ED) atol=1e-10
         end
@@ -150,10 +161,16 @@ end
         errs = Float64[]
         for N in Ns
             i0 = N ÷ 4
-            v1 = real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                       N=N, J=J, h=h, i=i0, j=i0 + 10, t=0.0))
-            v2 = real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                       N=N, J=J, h=h, i=i0, j=i0 + 20, t=0.0))
+            v1 = real(
+                QAtlas.fetch(
+                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0 + 10, t=0.0
+                ),
+            )
+            v2 = real(
+                QAtlas.fetch(
+                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0 + 20, t=0.0
+                ),
+            )
             slope = log2(v2 / v1)         # since 20/10 = 2
             push!(errs, abs(slope - slope_exact))
         end
@@ -181,10 +198,32 @@ end
             pairs = [(8, 10), (12, 14), (16, 20), (20, 24)]
             errs = Float64[]
             for (r1, r2) in pairs
-                v1 = real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                       N=N, J=J, h=h, i=i0, j=i0 + r1, t=0.0))
-                v2 = real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                       N=N, J=J, h=h, i=i0, j=i0 + r2, t=0.0))
+                v1 = real(
+                    QAtlas.fetch(
+                        :TFIM,
+                        :sz_sz_correlation,
+                        OBC();
+                        N=N,
+                        J=J,
+                        h=h,
+                        i=i0,
+                        j=i0 + r1,
+                        t=0.0,
+                    ),
+                )
+                v2 = real(
+                    QAtlas.fetch(
+                        :TFIM,
+                        :sz_sz_correlation,
+                        OBC();
+                        N=N,
+                        J=J,
+                        h=h,
+                        i=i0,
+                        j=i0 + r2,
+                        t=0.0,
+                    ),
+                )
                 slope = (log(abs(v2)) - log(abs(v1))) / (r2 - r1)
                 push!(errs, abs(slope - slope_exact))
             end
@@ -203,9 +242,11 @@ end
         i0 = N ÷ 2
         ts = [2.0, 4.0, 8.0]
         envelope = Float64[
-            abs(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                             N=N, J=J, h=h, i=i0, j=i0, t=t))
-            for t in ts
+            abs(
+                QAtlas.fetch(
+                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0, t=t
+                ),
+            ) for t in ts
         ]
         @test issorted(envelope; rev=true)
         @test envelope[end] > 0.05        # not exponential
@@ -215,8 +256,9 @@ end
     @testset "(σᶻ_i)² = 1 sanity" begin
         N, J, h = 12, 1.0, 0.7
         for i in (1, 4, 8, 12)
-            v = QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                             N=N, J=J, h=h, i=i, j=i, t=0.0)
+            v = QAtlas.fetch(
+                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i, j=i, t=0.0
+            )
             @test real(v) ≈ 1.0 atol=1e-10
             @test abs(imag(v)) < 1e-10
         end
@@ -227,14 +269,16 @@ end
         N, J, h = 10, 1.0, 0.5
         center = 5
         times = [0.0, 0.5, 1.0]
-        C = QAtlas.fetch(:TFIM, :sz_sz_spreading, OBC();
-                         N=N, J=J, h=h, center=center, times=times)
+        C = QAtlas.fetch(
+            :TFIM, :sz_sz_spreading, OBC(); N=N, J=J, h=h, center=center, times=times
+        )
         @test size(C) == (3, N)
 
         # Each entry should match an individual call.
         for (it, t) in enumerate(times), ix in 1:N
-            ref = QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                               N=N, J=J, h=h, i=ix, j=center, t=t)
+            ref = QAtlas.fetch(
+                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=ix, j=center, t=t
+            )
             @test C[it, ix] ≈ ref atol=1e-10
         end
     end

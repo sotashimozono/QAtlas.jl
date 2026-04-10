@@ -17,10 +17,12 @@ using LinearAlgebra: det
     @testset "4×4 closed form" begin
         # Pf(A) = A[1,2] A[3,4] - A[1,3] A[2,4] + A[1,4] A[2,3]
         a, b, c, d, e, f = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0
-        A = [0.0  a    b    c;
-            -a   0.0  d    e;
-            -b  -d    0.0  f;
-            -c  -e   -f    0.0]
+        A = [
+            0.0 a b c;
+            -a 0.0 d e;
+            -b -d 0.0 f;
+            -c -e -f 0.0
+        ]
         @test QAtlas.pfaffian(A) ≈ a * f - b * e + c * d   # = 6 - 10 + 12 = 8
 
         # complex variant
@@ -30,10 +32,12 @@ using LinearAlgebra: det
         dc = 4.0 + 0.5im
         ec = 5.0
         fc = 6.0 + 2im
-        Ac = ComplexF64[0       ac      bc      cc;
-                       -ac      0       dc      ec;
-                       -bc     -dc      0       fc;
-                       -cc     -ec     -fc      0]
+        Ac = ComplexF64[
+            0 ac bc cc;
+            -ac 0 dc ec;
+            -bc -dc 0 fc;
+            -cc -ec -fc 0
+        ]
         @test QAtlas.pfaffian(Ac) ≈ ac * fc - bc * ec + cc * dc
     end
 

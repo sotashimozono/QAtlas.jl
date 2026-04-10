@@ -11,7 +11,10 @@ using Test
         return 42
     end
     function QAtlas.fetch(
-        m::QAtlas.Model{:Dummy}, ::QAtlas.Quantity{:ParamCheck}, ::QAtlas.Infinite; kwargs...
+        m::QAtlas.Model{:Dummy},
+        ::QAtlas.Quantity{:ParamCheck},
+        ::QAtlas.Infinite;
+        kwargs...,
     )
         return m.params[:val] * 2
     end

@@ -194,9 +194,7 @@ function _sz_sz_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real)
     return _sz_sz_corr_from_cached(Σ, R, i, j)
 end
 
-function _sz_sz_corr_from_cached(
-    Σ::AbstractMatrix, R::AbstractMatrix, i::Int, j::Int,
-)
+function _sz_sz_corr_from_cached(Σ::AbstractMatrix, R::AbstractMatrix, i::Int, j::Int)
     RΣ = R * Σ
     idx_t = _sz_majorana_indices(i)
     idx_0 = _sz_majorana_indices(j)
@@ -221,9 +219,7 @@ function _sx_sx_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real)
     return _sx_sx_corr_from_cached(Σ, R, i, j)
 end
 
-function _sx_sx_corr_from_cached(
-    Σ::AbstractMatrix, R::AbstractMatrix, i::Int, j::Int,
-)
+function _sx_sx_corr_from_cached(Σ::AbstractMatrix, R::AbstractMatrix, i::Int, j::Int)
     RΣ = R * Σ
     idx_t = _sx_majorana_indices(i)
     idx_0 = _sx_majorana_indices(j)
@@ -260,7 +256,7 @@ and (per time-step) evolution matrix, so the cost is
 `O(length(times) · N · M³)` with `M = 2(center + N) - 2`.
 """
 function _sz_sz_spreading(
-    N::Int, J::Float64, h::Float64, center::Int, times::AbstractVector{<:Real},
+    N::Int, J::Float64, h::Float64, center::Int, times::AbstractVector{<:Real}
 )
     (1 ≤ center ≤ N) || throw(ArgumentError("center site out of range"))
     hmat = _majorana_ham(N, J, h)
@@ -286,8 +282,15 @@ end
 
 Exact ground-state `⟨σᶻ_i(t) σᶻ_j(0)⟩` for the OBC TFIM.
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:sz_sz_correlation}, ::OBC;
-               i::Int, j::Int, t::Float64, kwargs...)
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:sz_sz_correlation},
+    ::OBC;
+    i::Int,
+    j::Int,
+    t::Float64,
+    kwargs...,
+)
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
@@ -300,8 +303,15 @@ end
 
 Exact ground-state `⟨σˣ_i(t) σˣ_j(0)⟩` for the OBC TFIM.
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:sx_sx_correlation}, ::OBC;
-               i::Int, j::Int, t::Float64, kwargs...)
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:sx_sx_correlation},
+    ::OBC;
+    i::Int,
+    j::Int,
+    t::Float64,
+    kwargs...,
+)
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
@@ -315,8 +325,14 @@ end
 Exact ground-state spreading correlation `C[it, ix] = ⟨σᶻ_ix(t_it) σᶻ_center(0)⟩`
 for all sites `ix ∈ 1:N` and all `t_it ∈ times`.
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:sz_sz_spreading}, ::OBC;
-               center::Int, times::AbstractVector{<:Real}, kwargs...)
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:sz_sz_spreading},
+    ::OBC;
+    center::Int,
+    times::AbstractVector{<:Real},
+    kwargs...,
+)
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
