@@ -78,6 +78,7 @@ function fetch(
     ::OBC;
     beta::Union{Float64,Nothing}=nothing,
     betas::Union{AbstractVector{Float64},Nothing}=nothing,
+    kwargs...,
 )
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
@@ -118,6 +119,7 @@ function fetch(
     ::Infinite;
     beta::Union{Float64,Nothing}=nothing,
     betas::Union{AbstractVector{Float64},Nothing}=nothing,
+    kwargs...,
 )
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
@@ -151,7 +153,7 @@ end
 Central charge of the TFIM critical point (h = J): c = 1/2 (Ising CFT).
 Returns NaN if not at the critical point (|h/J - 1| > 1e-6).
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite)
+function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite; kwargs...)
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
     if abs(h / J - 1.0) > 1e-6
