@@ -217,9 +217,7 @@ Majorana 2-point function
 
 so the body of the Pfaffian assembly is unchanged.
 """
-function _sz_sz_corr(
-    N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real; β::Real=Inf
-)
+function _sz_sz_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real; β::Real=Inf)
     (1 ≤ i ≤ N && 1 ≤ j ≤ N) || throw(ArgumentError("site indices out of range"))
     hmat = _majorana_ham(N, J, h)
     Σ = _majorana_thermal_covariance(hmat, β)
@@ -244,9 +242,7 @@ end
 `⟨σˣ_i(t) σˣ_j(0)⟩_β` for the OBC TFIM.  Reduces to a 4×4 Pfaffian since
 `σˣ_k = -i γ_{2k-1} γ_{2k}`.  `β = Inf` ⇒ ground state.
 """
-function _sx_sx_corr(
-    N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real; β::Real=Inf
-)
+function _sx_sx_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real; β::Real=Inf)
     (1 ≤ i ≤ N && 1 ≤ j ≤ N) || throw(ArgumentError("site indices out of range"))
     hmat = _majorana_ham(N, J, h)
     Σ = _majorana_thermal_covariance(hmat, β)
@@ -291,8 +287,7 @@ and (per time-step) evolution matrix, so the cost is
 `O(length(times) · N · M³)` with `M = 2(center + N) - 2`.
 """
 function _sz_sz_spreading(
-    N::Int, J::Float64, h::Float64, center::Int, times::AbstractVector{<:Real};
-    β::Real=Inf,
+    N::Int, J::Float64, h::Float64, center::Int, times::AbstractVector{<:Real}; β::Real=Inf
 )
     (1 ≤ center ≤ N) || throw(ArgumentError("center site out of range"))
     hmat = _majorana_ham(N, J, h)
@@ -320,8 +315,12 @@ If both `i` and `j` are given, returns a single value (wrapped in a 1×1
 matrix); otherwise returns the full N×N matrix of equal-time correlators.
 """
 function _sz_sz_static_thermal(
-    N::Int, J::Float64, h::Float64, β::Real;
-    i::Union{Int,Nothing}=nothing, j::Union{Int,Nothing}=nothing,
+    N::Int,
+    J::Float64,
+    h::Float64,
+    β::Real;
+    i::Union{Int,Nothing}=nothing,
+    j::Union{Int,Nothing}=nothing,
 )
     hmat = _majorana_ham(N, J, h)
     Σ = _majorana_thermal_covariance(hmat, β)

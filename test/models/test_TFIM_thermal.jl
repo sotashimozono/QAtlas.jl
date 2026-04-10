@@ -111,10 +111,30 @@ end
         # this works in any phase since it does not rely on β being finite.
         for h_phase in (0.5, 1.0, 1.5)
             for r in 1:4
-                v_th = QAtlas.fetch(:TFIM, :zz_static_thermal, OBC();
-                                    N=10, J=1.0, h=h_phase, beta=Inf, i=2, j=2 + r)
-                v_gs = real(QAtlas.fetch(:TFIM, :sz_sz_correlation, OBC();
-                                         N=10, J=1.0, h=h_phase, i=2, j=2 + r, t=0.0))
+                v_th = QAtlas.fetch(
+                    :TFIM,
+                    :zz_static_thermal,
+                    OBC();
+                    N=10,
+                    J=1.0,
+                    h=h_phase,
+                    beta=Inf,
+                    i=2,
+                    j=2 + r,
+                )
+                v_gs = real(
+                    QAtlas.fetch(
+                        :TFIM,
+                        :sz_sz_correlation,
+                        OBC();
+                        N=10,
+                        J=1.0,
+                        h=h_phase,
+                        i=2,
+                        j=2 + r,
+                        t=0.0,
+                    ),
+                )
                 @test v_th ≈ v_gs atol=1e-12
             end
         end
@@ -141,8 +161,9 @@ end
         @test abs(c_hi) < 1e-6
 
         # Transverse magnetisation at β → 0: m_x → 0 (Curie regime)
-        mx_hi = QAtlas.fetch(:TFIM, :transverse_magnetization, OBC();
-                             N=N, J=J, h=h, beta=β_high)
+        mx_hi = QAtlas.fetch(
+            :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β_high
+        )
         @test abs(mx_hi) < 1e-3
 
         # Same in the thermodynamic limit.
@@ -178,13 +199,16 @@ end
 
             # χ_xx from numerical derivative of m_x w.r.t. h
             δh = 1e-4
-            mp = QAtlas.fetch(:TFIM, :transverse_magnetization, OBC();
-                              N=N, J=J, h=h + δh, beta=β)
-            mm = QAtlas.fetch(:TFIM, :transverse_magnetization, OBC();
-                              N=N, J=J, h=h - δh, beta=β)
+            mp = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h + δh, beta=β
+            )
+            mm = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h - δh, beta=β
+            )
             χ_num = (mp - mm) / (2 * δh)
-            χ_an = QAtlas.fetch(:TFIM, :transverse_susceptibility, OBC();
-                                N=N, J=J, h=h, beta=β)
+            χ_an = QAtlas.fetch(
+                :TFIM, :transverse_susceptibility, OBC(); N=N, J=J, h=h, beta=β
+            )
             @test χ_an ≈ χ_num rtol=5e-3
         end
     end
@@ -205,13 +229,16 @@ end
             @test c_an ≈ c_num rtol=1e-3
 
             δh = 1e-4
-            mp = QAtlas.fetch(:TFIM, :transverse_magnetization, Infinite();
-                              J=J, h=h + δh, beta=β)
-            mm = QAtlas.fetch(:TFIM, :transverse_magnetization, Infinite();
-                              J=J, h=h - δh, beta=β)
+            mp = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, Infinite(); J=J, h=h + δh, beta=β
+            )
+            mm = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, Infinite(); J=J, h=h - δh, beta=β
+            )
             χ_num = (mp - mm) / (2 * δh)
-            χ_an = QAtlas.fetch(:TFIM, :transverse_susceptibility, Infinite();
-                                J=J, h=h, beta=β)
+            χ_an = QAtlas.fetch(
+                :TFIM, :transverse_susceptibility, Infinite(); J=J, h=h, beta=β
+            )
             @test χ_an ≈ χ_num rtol=5e-3
         end
     end
@@ -229,8 +256,9 @@ end
             f = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β)
             s = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β)
             c = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β)
-            mx = QAtlas.fetch(:TFIM, :transverse_magnetization, OBC();
-                              N=N, J=J, h=h, beta=β)
+            mx = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β
+            )
 
             @test ε ≈ ed.ε atol=1e-10
             @test f ≈ ed.f atol=1e-10
@@ -250,8 +278,9 @@ end
             for i in 1:N, j in i:N
                 op = _op_site(_SZ, i, N) * _op_site(_SZ, j, N)
                 ed_val = real(tr(ρ * op))
-                qa_val = QAtlas.fetch(:TFIM, :zz_static_thermal, OBC();
-                                      N=N, J=J, h=h, beta=β, i=i, j=j)
+                qa_val = QAtlas.fetch(
+                    :TFIM, :zz_static_thermal, OBC(); N=N, J=J, h=h, beta=β, i=i, j=j
+                )
                 @test qa_val ≈ ed_val atol=1e-10
             end
         end
@@ -270,8 +299,9 @@ end
             M1 = real(tr(ρ * Mz))
             χ_ed = β * (M2 - M1^2) / N
 
-            χ_qa = QAtlas.fetch(:TFIM, :longitudinal_susceptibility, OBC();
-                                N=N, J=J, h=h, beta=β)
+            χ_qa = QAtlas.fetch(
+                :TFIM, :longitudinal_susceptibility, OBC(); N=N, J=J, h=h, beta=β
+            )
             @test χ_qa ≈ χ_ed atol=1e-10
         end
     end
@@ -290,13 +320,15 @@ end
             f_obc = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β)
             s_obc = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β)
             c_obc = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β)
-            m_obc = QAtlas.fetch(:TFIM, :transverse_magnetization, OBC();
-                                 N=N, J=J, h=h, beta=β)
+            m_obc = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β
+            )
             f_inf = QAtlas.fetch(:TFIM, :free_energy, Infinite(); J=J, h=h, beta=β)
             s_inf = QAtlas.fetch(:TFIM, :entropy, Infinite(); J=J, h=h, beta=β)
             c_inf = QAtlas.fetch(:TFIM, :specific_heat, Infinite(); J=J, h=h, beta=β)
-            m_inf = QAtlas.fetch(:TFIM, :transverse_magnetization, Infinite();
-                                 J=J, h=h, beta=β)
+            m_inf = QAtlas.fetch(
+                :TFIM, :transverse_magnetization, Infinite(); J=J, h=h, beta=β
+            )
             push!(errs_f, abs(f_obc - f_inf))
             push!(errs_s, abs(s_obc - s_inf))
             push!(errs_c, abs(c_obc - c_inf))

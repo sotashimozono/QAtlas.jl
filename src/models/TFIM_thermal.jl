@@ -47,7 +47,8 @@ couplings `J` (Z-Z coupling) and `h` (transverse field):
 
     Λ(k) = 2 √(J² + h² - 2 J h cos k).
 """
-@inline _tfim_dispersion(k::Real, J::Real, h::Real) = 2 * sqrt(J^2 + h^2 - 2 * J * h * cos(k))
+@inline _tfim_dispersion(k::Real, J::Real, h::Real) =
+    2 * sqrt(J^2 + h^2 - 2 * J * h * cos(k))
 
 # Kernel `g(βλ/2)` style helpers — the integrands are written in terms of `λ` and `β` only.
 # A small helper avoids overflow in `log(2 cosh(x))` for large `|x|`.
