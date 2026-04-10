@@ -1,7 +1,7 @@
 ENV["GKSwstype"] = "100"
 
 using QAtlas, Test
-const dirs = ["core/", "universalities/"]
+const dirs = ["core/", "universalities/", "models/"]
 
 const FIG_BASE = joinpath(pkgdir(QAtlas), "docs", "src", "assets")
 const PATHS = Dict()

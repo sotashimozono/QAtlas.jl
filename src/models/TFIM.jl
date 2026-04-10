@@ -72,9 +72,14 @@ Required model params: `N` (Int), `J` (Float64), `h` (Float64, transverse field)
 
 Uses the exact BdG formula:  ⟨H⟩ = -Σₙ (Λₙ/2) tanh(β Λₙ / 2)
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:energy}, ::OBC;
-               beta::Union{Float64,Nothing}=nothing,
-               betas::Union{AbstractVector{Float64},Nothing}=nothing)
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:energy},
+    ::OBC;
+    beta::Union{Float64,Nothing}=nothing,
+    betas::Union{AbstractVector{Float64},Nothing}=nothing,
+    kwargs...,
+)
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
@@ -108,18 +113,26 @@ where the PBC dispersion is  Λ(k) = 2√(J² + h² - 2Jh cos k).
 
 Uses adaptive Gauss-Kronrod quadrature (QuadGK).
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:energy}, ::Infinite;
-               beta::Union{Float64,Nothing}=nothing,
-               betas::Union{AbstractVector{Float64},Nothing}=nothing)
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:energy},
+    ::Infinite;
+    beta::Union{Float64,Nothing}=nothing,
+    betas::Union{AbstractVector{Float64},Nothing}=nothing,
+    kwargs...,
+)
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
-    _energy_at_beta = β -> begin
-        result, _ = quadgk(k -> begin
-            Λk = 2sqrt(J^2 + h^2 - 2J * h * cos(k))
-            (Λk / 2) * tanh(β * Λk / 2)
-        end, 0.0, π; rtol=1e-10)
-        -(1 / π) * result
-    end
+    _energy_at_beta =
+        β -> begin
+            result, _ = quadgk(
+                k -> begin
+                    Λk = 2sqrt(J^2 + h^2 - 2J * h * cos(k))
+                    (Λk / 2) * tanh(β * Λk / 2)
+                end, 0.0, π; rtol=1e-10
+            )
+            -(1 / π) * result
+        end
     if betas !== nothing
         return [_energy_at_beta(β) for β in betas]
     elseif beta !== nothing
@@ -140,7 +153,7 @@ end
 Central charge of the TFIM critical point (h = J): c = 1/2 (Ising CFT).
 Returns NaN if not at the critical point (|h/J - 1| > 1e-6).
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite)
+function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite; kwargs...)
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
     if abs(h / J - 1.0) > 1e-6

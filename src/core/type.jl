@@ -51,5 +51,8 @@ function fetch(
     )
 end
 function fetch(m::Symbol, q::Symbol, bc::BoundaryCondition=Infinite(); kwargs...)
-    return fetch(Model(m; kwargs...), Quantity(q), bc)
+    # Forward kwargs to both Model construction and the fetch dispatch:
+    # `Model` stores them all in `params`, and the concrete `fetch`
+    # method is free to read either from `params` or from kwargs.
+    return fetch(Model(m; kwargs...), Quantity(q), bc; kwargs...)
 end

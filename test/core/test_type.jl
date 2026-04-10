@@ -2,17 +2,25 @@ using Test
 
 @testset "QAtlas.jl Core Architecture Tests" begin
     # --- 1. test of multiple dispatch ---
+    # Dispatch methods accept `kwargs...` so the Symbol-based convenience
+    # wrapper `fetch(:Dummy, :Answer; …)` can forward arbitrary keyword
+    # arguments without triggering MethodError on extra params.
     function QAtlas.fetch(
-        m::QAtlas.Model{:Dummy}, ::QAtlas.Quantity{:Answer}, ::QAtlas.Infinite
+        m::QAtlas.Model{:Dummy}, ::QAtlas.Quantity{:Answer}, ::QAtlas.Infinite; kwargs...
     )
         return 42
     end
     function QAtlas.fetch(
-        m::QAtlas.Model{:Dummy}, ::QAtlas.Quantity{:ParamCheck}, ::QAtlas.Infinite
+        m::QAtlas.Model{:Dummy},
+        ::QAtlas.Quantity{:ParamCheck},
+        ::QAtlas.Infinite;
+        kwargs...,
     )
         return m.params[:val] * 2
     end
-    function QAtlas.fetch(::QAtlas.Model{:Dummy}, ::QAtlas.Quantity{:Answer}, ::QAtlas.OBC)
+    function QAtlas.fetch(
+        ::QAtlas.Model{:Dummy}, ::QAtlas.Quantity{:Answer}, ::QAtlas.OBC; kwargs...
+    )
         return "Open Boundary"
     end
 

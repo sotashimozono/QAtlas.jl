@@ -8,11 +8,13 @@ export fetch
 # --- Core Implementation ---
 include("core/alias.jl")
 include("core/type.jl")
+include("core/pfaffian.jl")
 
 # --- Universality Classes ---
 include("universalities/E8.jl")
 
 # --- Models ---
 include("models/TFIM.jl")
+include("models/TFIM_dynamics.jl")
 
 end # module QAtlas

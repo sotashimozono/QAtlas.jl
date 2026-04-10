@@ -34,6 +34,15 @@ end
 ]
 @register_aliases canonicalize_quantity :central_charge [:c, :cc, :CentralCharge]
 @register_aliases canonicalize_quantity :zz_corr [:ZZ, :zzcorr, :szsz]
+@register_aliases canonicalize_quantity :sz_sz_correlation [
+    :szsz_correlation, :zz_correlation_rt, :sz_sz_rt
+]
+@register_aliases canonicalize_quantity :sx_sx_correlation [
+    :sxsx_correlation, :xx_correlation_rt, :sx_sx_rt
+]
+@register_aliases canonicalize_quantity :sz_sz_spreading [
+    :szsz_spreading, :zz_spreading, :sz_sz_lightcone
+]
 
 # Model Aliases
 @register_aliases canonicalize_model :TFIM [
