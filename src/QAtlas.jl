@@ -16,5 +16,6 @@ include("universalities/E8.jl")
 # --- Models ---
 include("models/TFIM.jl")
 include("models/TFIM_dynamics.jl")
+include("models/TFIM_thermal.jl")
 
 end # module QAtlas

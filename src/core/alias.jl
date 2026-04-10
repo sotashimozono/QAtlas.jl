@@ -44,6 +44,30 @@ end
     :szsz_spreading, :zz_spreading, :sz_sz_lightcone
 ]
 
+# Thermal observables (TFIM_thermal.jl + TFIM_dynamics.jl thermal extensions)
+@register_aliases canonicalize_quantity :free_energy [
+    :F, :f, :FreeEnergy, :free_energy_density, :helmholtz_free_energy
+]
+@register_aliases canonicalize_quantity :entropy [:S, :EntropyDensity, :entropy_density]
+@register_aliases canonicalize_quantity :specific_heat [
+    :Cv, :cv, :SpecificHeat, :heat_capacity
+]
+@register_aliases canonicalize_quantity :transverse_magnetization [
+    :mx, :Mx, :TransverseMagnetization, :sx_expect, :magnetization_x
+]
+@register_aliases canonicalize_quantity :transverse_susceptibility [
+    :chi_xx, :χ_xx, :TransverseSusceptibility, :susceptibility_x
+]
+@register_aliases canonicalize_quantity :longitudinal_susceptibility [
+    :chi_zz, :χ_zz, :LongitudinalSusceptibility, :susceptibility_z, :uniform_susceptibility
+]
+@register_aliases canonicalize_quantity :zz_static_thermal [
+    :zz_static, :sz_sz_static, :static_zz_thermal
+]
+@register_aliases canonicalize_quantity :zz_structure_factor [
+    :S_zz, :Szz, :static_structure_factor
+]
+
 # Model Aliases
 @register_aliases canonicalize_model :TFIM [
     :TransverseFieldIsingModel, :transverseFieldIsingModel

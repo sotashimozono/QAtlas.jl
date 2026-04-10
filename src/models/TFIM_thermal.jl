@@ -1,0 +1,248 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Transverse Field Ising Model — exact finite-temperature thermodynamics
+#
+# Hamiltonian:
+#   H = -J Σᵢ σᶻᵢσᶻᵢ₊₁  -  h Σᵢ σˣᵢ
+#
+# All observables in this file are derived from the free-fermion (BdG)
+# diagonalisation of the JW-mapped quadratic Hamiltonian.  The single-particle
+# dispersion in the thermodynamic limit is
+#
+#   Λ(k) = 2 √(J² + h² - 2 J h cos k),       k ∈ [0, π]
+#
+# The grand-canonical free-fermion partition function then gives
+#
+#   log Z / N = (1/π) ∫₀^π dk · log( 2 cosh(β Λ(k)/2) )
+#
+# from which all thermodynamic potentials follow as standard derivatives.
+#
+# For OBC finite N the same expressions hold with the integral replaced by
+# a sum over the N positive BdG quasiparticle energies returned by
+# `_tfim_bdg_spectrum(N, J, h)` in `TFIM.jl`.
+#
+# Quantities exposed via `fetch`:
+#
+#   :free_energy              f(β)        = -T log Z / N
+#   :entropy                  s(β)        = β (ε - f)
+#   :specific_heat            c_v(β)      = ∂ε/∂T
+#   :transverse_magnetization m_x(β)      = ⟨σˣ_i⟩
+#   :transverse_susceptibility χ_xx(β)    = ∂m_x/∂h
+#
+# All five are implemented for both `OBC` (per-site, exact at finite N) and
+# `Infinite` (per-site, exact in the thermodynamic limit).
+# ─────────────────────────────────────────────────────────────────────────────
+
+using LinearAlgebra: eigvals, Symmetric
+using QuadGK: quadgk
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Internal: Bogoliubov building blocks
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    _tfim_dispersion(k, J, h) -> Float64
+
+Single-particle BdG quasiparticle energy at momentum `k` for the TFIM with
+couplings `J` (Z-Z coupling) and `h` (transverse field):
+
+    Λ(k) = 2 √(J² + h² - 2 J h cos k).
+"""
+@inline _tfim_dispersion(k::Real, J::Real, h::Real) =
+    2 * sqrt(J^2 + h^2 - 2 * J * h * cos(k))
+
+# Kernel `g(βλ/2)` style helpers — the integrands are written in terms of `λ` and `β` only.
+# A small helper avoids overflow in `log(2 cosh(x))` for large `|x|`.
+@inline function _logcosh2(x::Real)
+    # log(2 cosh(x)) = |x| + log(1 + exp(-2|x|))
+    a = abs(x)
+    return a + log1p(exp(-2 * a))
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Thermodynamic potentials — Infinite (per-site)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    _tfim_thermo_infinite(quantity, J, h, β) -> Float64
+
+Compute one of the per-site thermodynamic potentials of the infinite TFIM at
+inverse temperature `β`.  `quantity` is a `Symbol` from
+`(:free_energy, :entropy, :specific_heat, :transverse_magnetization,
+ :transverse_susceptibility)`.
+
+The integrals are evaluated via adaptive Gauss-Kronrod quadrature.
+"""
+function _tfim_thermo_infinite(quantity::Symbol, J::Real, h::Real, β::Real)
+    integrand = if quantity === :free_energy
+        # f = -(1/πβ) ∫ log(2 cosh(βΛ/2)) dk
+        k -> begin
+            Λk = _tfim_dispersion(k, J, h)
+            _logcosh2(β * Λk / 2)
+        end
+    elseif quantity === :entropy
+        # s = (1/π) ∫ [log(2 cosh(βΛ/2)) - (βΛ/2) tanh(βΛ/2)] dk
+        k -> begin
+            Λk = _tfim_dispersion(k, J, h)
+            x = β * Λk / 2
+            _logcosh2(x) - x * tanh(x)
+        end
+    elseif quantity === :specific_heat
+        # c_v = (1/π) ∫ (βΛ/2)² sech²(βΛ/2) dk
+        k -> begin
+            Λk = _tfim_dispersion(k, J, h)
+            x = β * Λk / 2
+            x^2 * sech(x)^2
+        end
+    elseif quantity === :transverse_magnetization
+        # m_x = (2/π) ∫ ((h - J cos k)/Λ) tanh(βΛ/2) dk
+        k -> begin
+            A = h - J * cos(k)
+            Λk = _tfim_dispersion(k, J, h)
+            (A / Λk) * tanh(β * Λk / 2)
+        end
+    elseif quantity === :transverse_susceptibility
+        # χ_xx = (2/π) ∫ [ (1/Λ - 4A²/Λ³) tanh(βΛ/2) + (2β A²/Λ²) sech²(βΛ/2) ] dk
+        k -> begin
+            A = h - J * cos(k)
+            Λk = _tfim_dispersion(k, J, h)
+            (1 / Λk - 4 * A^2 / Λk^3) * tanh(β * Λk / 2) +
+            (2 * β * A^2 / Λk^2) * sech(β * Λk / 2)^2
+        end
+    else
+        error("Unknown thermal quantity: $quantity")
+    end
+
+    val, _ = quadgk(integrand, 0.0, π; rtol=1e-10)
+
+    if quantity === :free_energy
+        return -val / (π * β)
+    elseif quantity === :transverse_magnetization || quantity === :transverse_susceptibility
+        return (2 / π) * val
+    else  # entropy, specific_heat
+        return val / π
+    end
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Thermodynamic potentials — OBC finite N (per-site)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    _tfim_thermo_obc(quantity, N, J, h, β) -> Float64
+
+Per-site thermodynamic potential for the OBC finite-N TFIM, computed by summing
+the contribution of each BdG quasiparticle mode.
+
+The transverse magnetisation and its susceptibility require the full
+single-particle Bogoliubov coefficients, not just the spectrum, so this routine
+diagonalises the BdG matrix internally to obtain them.
+"""
+function _tfim_thermo_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::Real)
+    if quantity === :free_energy
+        Λ = _tfim_bdg_spectrum(N, J, h)
+        # f/N = -(1/Nβ) Σ log(2 cosh(βΛ/2))
+        return -sum(λ -> _logcosh2(β * λ / 2), Λ) / (N * β)
+    elseif quantity === :entropy
+        Λ = _tfim_bdg_spectrum(N, J, h)
+        return sum(Λ) do λ
+            x = β * λ / 2
+            _logcosh2(x) - x * tanh(x)
+        end / N
+    elseif quantity === :specific_heat
+        Λ = _tfim_bdg_spectrum(N, J, h)
+        return sum(λ -> begin
+            x = β * λ / 2
+            x^2 * sech(x)^2
+        end, Λ) / N
+    elseif quantity === :transverse_magnetization || quantity === :transverse_susceptibility
+        return _tfim_transverse_obc(quantity, N, J, h, β)
+    else
+        error("Unknown thermal quantity: $quantity")
+    end
+end
+
+"""
+    _tfim_transverse_obc(quantity, N, J, h, β) -> Float64
+
+Compute `m_x` or `χ_xx` per site for OBC finite N by direct site-resolved BdG
+expectation.  Uses the matrix exponential formula
+
+    Σ(β) = -i tanh(β/2 · i h_BdG)
+
+(see `TFIM_dynamics.jl`) and identifies
+
+    ⟨σˣ_i⟩ = Σ[2i-1, 2i].
+
+The transverse susceptibility is obtained by central numerical differentiation
+of the magnetisation with respect to `h`.
+"""
+function _tfim_transverse_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::Real)
+    function _mx_avg(h_)
+        hmat = _majorana_ham(N, J, h_)
+        Σ = _majorana_thermal_covariance(hmat, β)
+        return sum(_sx_expect(Σ, i) for i in 1:N) / N
+    end
+
+    if quantity === :transverse_magnetization
+        return _mx_avg(h)
+    else  # :transverse_susceptibility
+        δ = max(1e-4, abs(h) * 1e-4)
+        return (_mx_avg(h + δ) - _mx_avg(h - δ)) / (2 * δ)
+    end
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# fetch dispatch
+# ═══════════════════════════════════════════════════════════════════════════════
+
+const _THERMAL_QUANTITIES = (
+    :free_energy,
+    :entropy,
+    :specific_heat,
+    :transverse_magnetization,
+    :transverse_susceptibility,
+)
+
+for q in _THERMAL_QUANTITIES
+    @eval begin
+        """
+            fetch(model::Model{:TFIM}, ::Quantity{$($(QuoteNode(q)))}, ::Infinite;
+                  beta::Float64, kwargs...)
+
+        Per-site `$($(string(q)))` of the TFIM in the thermodynamic limit at
+        inverse temperature `beta`.  Uses adaptive Gauss-Kronrod quadrature
+        over the BdG dispersion `Λ(k) = 2√(J² + h² − 2Jh cos k)`.
+        """
+        function fetch(
+            model::Model{:TFIM},
+            ::Quantity{$(QuoteNode(q))},
+            ::Infinite;
+            beta::Float64,
+            kwargs...,
+        )
+            J = Float64(model.params[:J])
+            h = Float64(model.params[:h])
+            return _tfim_thermo_infinite($(QuoteNode(q)), J, h, beta)
+        end
+
+        """
+            fetch(model::Model{:TFIM}, ::Quantity{$($(QuoteNode(q)))}, ::OBC;
+                  beta::Float64, kwargs...)
+
+        Per-site `$($(string(q)))` of the OBC TFIM with `N` sites at inverse
+        temperature `beta`.  Computed exactly via the BdG diagonalisation.
+        """
+        function fetch(
+            model::Model{:TFIM},
+            ::Quantity{$(QuoteNode(q))},
+            ::OBC;
+            beta::Float64,
+            kwargs...,
+        )
+            N = Int(model.params[:N])
+            J = Float64(model.params[:J])
+            h = Float64(model.params[:h])
+            return _tfim_thermo_obc($(QuoteNode(q)), N, J, h, beta)
+        end
+    end
+end

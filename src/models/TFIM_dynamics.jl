@@ -99,6 +99,31 @@ function _majorana_covariance_gs(h::AbstractMatrix{<:Real})
 end
 
 """
+    _majorana_thermal_covariance(h::AbstractMatrix, β::Real) -> Matrix{Float64}
+
+Thermal-equilibrium Majorana covariance at inverse temperature `β`.  The
+T = 0 ground-state formula `Σ_GS = -i sign(i h)` generalises to
+
+    Σ(β) = -i tanh((β/2) · i h)
+
+so that `⟨γ_a γ_b⟩_β = δ_{ab} + i Σ(β)_{ab}`.  In the canonical 2×2 BdG
+block this gives the off-diagonal entry `tanh(βΛ/2)`, recovering the
+Fermi–Dirac population of each quasiparticle and reducing to `±1` as
+`β → ∞`.
+
+`β = Inf` falls back to `_majorana_covariance_gs`.
+"""
+function _majorana_thermal_covariance(h::AbstractMatrix{<:Real}, β::Real)
+    isinf(β) && return _majorana_covariance_gs(h)
+    M = im .* h
+    F = eigen(Hermitian((M + M') / 2))
+    s = tanh.((β / 2) .* F.values)
+    sM = F.vectors * Diagonal(s) * F.vectors'
+    Σ = real(-im .* sM)
+    return (Σ - Σ') / 2
+end
+
+"""
     _majorana_evolution(h::AbstractMatrix, t::Real) -> Matrix{Float64}
 
 `exp(h * t)` for a real antisymmetric `h`, returned as a real
@@ -178,18 +203,24 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    _sz_sz_corr(N, J, h, i, j, t) -> ComplexF64
+    _sz_sz_corr(N, J, h, i, j, t; β = Inf) -> ComplexF64
 
-`⟨GS| σᶻ_i(t) σᶻ_j(0) |GS⟩` for the OBC TFIM.
+`⟨σᶻ_i(t) σᶻ_j(0)⟩_β` for the OBC TFIM at inverse temperature `β`
+(default `Inf` ⇒ ground state).
 
 Implementation: Wick / Pfaffian over the `(2i-1) + (2j-1) = 2(i+j)-2`
 Majorana operators constituting the product.  The overall phase is
-`i^{i+j-2}` (from the two `-i^{k-1}` factors in each `σᶻ_k`).
+`(-i)^{i+j-2}`.  The thermal generalisation enters only through the
+Majorana 2-point function
+
+    ⟨γ_a γ_b⟩_β = δ_{ab} + i Σ(β)_{ab},   Σ(β) = -i tanh((β/2) i h),
+
+so the body of the Pfaffian assembly is unchanged.
 """
-function _sz_sz_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real)
+function _sz_sz_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real; β::Real=Inf)
     (1 ≤ i ≤ N && 1 ≤ j ≤ N) || throw(ArgumentError("site indices out of range"))
     hmat = _majorana_ham(N, J, h)
-    Σ = _majorana_covariance_gs(hmat)
+    Σ = _majorana_thermal_covariance(hmat, β)
     R = _majorana_evolution(hmat, t)
     return _sz_sz_corr_from_cached(Σ, R, i, j)
 end
@@ -206,15 +237,15 @@ function _sz_sz_corr_from_cached(Σ::AbstractMatrix, R::AbstractMatrix, i::Int, 
 end
 
 """
-    _sx_sx_corr(N, J, h, i, j, t) -> ComplexF64
+    _sx_sx_corr(N, J, h, i, j, t; β = Inf) -> ComplexF64
 
-`⟨GS| σˣ_i(t) σˣ_j(0) |GS⟩` for the OBC TFIM.  Reduces to a 4×4
-Pfaffian since `σˣ_k = -i γ_{2k-1} γ_{2k}`.
+`⟨σˣ_i(t) σˣ_j(0)⟩_β` for the OBC TFIM.  Reduces to a 4×4 Pfaffian since
+`σˣ_k = -i γ_{2k-1} γ_{2k}`.  `β = Inf` ⇒ ground state.
 """
-function _sx_sx_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real)
+function _sx_sx_corr(N::Int, J::Float64, h::Float64, i::Int, j::Int, t::Real; β::Real=Inf)
     (1 ≤ i ≤ N && 1 ≤ j ≤ N) || throw(ArgumentError("site indices out of range"))
     hmat = _majorana_ham(N, J, h)
-    Σ = _majorana_covariance_gs(hmat)
+    Σ = _majorana_thermal_covariance(hmat, β)
     R = _majorana_evolution(hmat, t)
     return _sx_sx_corr_from_cached(Σ, R, i, j)
 end
@@ -256,11 +287,11 @@ and (per time-step) evolution matrix, so the cost is
 `O(length(times) · N · M³)` with `M = 2(center + N) - 2`.
 """
 function _sz_sz_spreading(
-    N::Int, J::Float64, h::Float64, center::Int, times::AbstractVector{<:Real}
+    N::Int, J::Float64, h::Float64, center::Int, times::AbstractVector{<:Real}; β::Real=Inf
 )
     (1 ≤ center ≤ N) || throw(ArgumentError("center site out of range"))
     hmat = _majorana_ham(N, J, h)
-    Σ = _majorana_covariance_gs(hmat)
+    Σ = _majorana_thermal_covariance(hmat, β)
     nt = length(times)
     C = zeros(ComplexF64, nt, N)
     for (it, t) in enumerate(times)
@@ -273,14 +304,84 @@ function _sz_sz_spreading(
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Static (equal-time) thermal correlators and structure factor
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    _sz_sz_static_thermal(N, J, h, β; i = nothing, j = nothing) -> Matrix{Float64}
+
+Static `⟨σᶻ_i σᶻ_j⟩_β` for the OBC TFIM at inverse temperature `β`.
+If both `i` and `j` are given, returns a single value (wrapped in a 1×1
+matrix); otherwise returns the full N×N matrix of equal-time correlators.
+"""
+function _sz_sz_static_thermal(
+    N::Int,
+    J::Float64,
+    h::Float64,
+    β::Real;
+    i::Union{Int,Nothing}=nothing,
+    j::Union{Int,Nothing}=nothing,
+)
+    hmat = _majorana_ham(N, J, h)
+    Σ = _majorana_thermal_covariance(hmat, β)
+    R = Matrix{Float64}(I, size(hmat)...)
+    if i !== nothing && j !== nothing
+        v = real(_sz_sz_corr_from_cached(Σ, R, i, j))
+        return fill(v, 1, 1)
+    end
+    C = zeros(Float64, N, N)
+    for a in 1:N, b in a:N
+        v = real(_sz_sz_corr_from_cached(Σ, R, a, b))
+        C[a, b] = v
+        C[b, a] = v
+    end
+    return C
+end
+
+"""
+    _zz_static_structure_factor(N, J, h, β, q) -> Float64
+
+`S_zz(q, β) = (1/N) Σ_{i,j} e^{-i q (i-j)} ⟨σᶻ_i σᶻ_j⟩_β` evaluated by direct
+double sum from the thermal Pfaffian correlator.  For OBC the lattice lacks
+translation invariance so this is the boundary-aware definition; in the bulk
+of a long enough chain it converges to the translation-invariant value.
+"""
+function _zz_static_structure_factor(N::Int, J::Float64, h::Float64, β::Real, q::Real)
+    C = _sz_sz_static_thermal(N, J, h, β)
+    s = 0.0 + 0.0im
+    for i in 1:N, j in 1:N
+        s += exp(-im * q * (i - j)) * C[i, j]
+    end
+    return real(s) / N
+end
+
+"""
+    _zz_uniform_susceptibility(N, J, h, β) -> Float64
+
+Uniform (q = 0) longitudinal susceptibility per site,
+
+    χ_zz(β) = (β/N) Σ_{i,j} ⟨σᶻ_i σᶻ_j⟩_β,
+
+obtained from a finite-temperature direct double sum (assumes ⟨σᶻ⟩_β = 0 in
+the OBC ground manifold of the TFIM, which holds for any `h ≠ 0` finite N).
+This is the static *isothermal* susceptibility — the fluctuation-dissipation
+form `χ = β · ⟨M²⟩_c / N` for the magnetisation `M = Σᵢ σᶻᵢ`.
+"""
+function _zz_uniform_susceptibility(N::Int, J::Float64, h::Float64, β::Real)
+    C = _sz_sz_static_thermal(N, J, h, β)
+    return β * sum(C) / N
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # fetch dispatch
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
     fetch(model::Model{:TFIM}, ::Quantity{:sz_sz_correlation}, ::OBC;
-          i::Int, j::Int, t::Float64) -> ComplexF64
+          i::Int, j::Int, t::Float64, beta::Float64 = Inf) -> ComplexF64
 
-Exact ground-state `⟨σᶻ_i(t) σᶻ_j(0)⟩` for the OBC TFIM.
+Exact `⟨σᶻ_i(t) σᶻ_j(0)⟩_β` for the OBC TFIM.  `beta = Inf` (the default)
+gives the ground-state result.
 """
 function fetch(
     model::Model{:TFIM},
@@ -289,19 +390,20 @@ function fetch(
     i::Int,
     j::Int,
     t::Float64,
+    beta::Real=Inf,
     kwargs...,
 )
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
-    return _sz_sz_corr(N, J, h, i, j, t)
+    return _sz_sz_corr(N, J, h, i, j, t; β=beta)
 end
 
 """
     fetch(model::Model{:TFIM}, ::Quantity{:sx_sx_correlation}, ::OBC;
-          i::Int, j::Int, t::Float64) -> ComplexF64
+          i::Int, j::Int, t::Float64, beta::Float64 = Inf) -> ComplexF64
 
-Exact ground-state `⟨σˣ_i(t) σˣ_j(0)⟩` for the OBC TFIM.
+Exact `⟨σˣ_i(t) σˣ_j(0)⟩_β` for the OBC TFIM.
 """
 function fetch(
     model::Model{:TFIM},
@@ -310,20 +412,21 @@ function fetch(
     i::Int,
     j::Int,
     t::Float64,
+    beta::Real=Inf,
     kwargs...,
 )
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
-    return _sx_sx_corr(N, J, h, i, j, t)
+    return _sx_sx_corr(N, J, h, i, j, t; β=beta)
 end
 
 """
     fetch(model::Model{:TFIM}, ::Quantity{:sz_sz_spreading}, ::OBC;
-          center::Int, times::AbstractVector{<:Real}) -> Matrix{ComplexF64}
+          center::Int, times::AbstractVector{<:Real}, beta::Float64 = Inf) -> Matrix{ComplexF64}
 
-Exact ground-state spreading correlation `C[it, ix] = ⟨σᶻ_ix(t_it) σᶻ_center(0)⟩`
-for all sites `ix ∈ 1:N` and all `t_it ∈ times`.
+Exact spreading correlation `C[it, ix] = ⟨σᶻ_ix(t_it) σᶻ_center(0)⟩_β` for all
+sites `ix ∈ 1:N` and `t_it ∈ times`.
 """
 function fetch(
     model::Model{:TFIM},
@@ -331,10 +434,78 @@ function fetch(
     ::OBC;
     center::Int,
     times::AbstractVector{<:Real},
+    beta::Real=Inf,
     kwargs...,
 )
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
-    return _sz_sz_spreading(N, J, h, center, times)
+    return _sz_sz_spreading(N, J, h, center, times; β=beta)
+end
+
+"""
+    fetch(model::Model{:TFIM}, ::Quantity{:zz_static_thermal}, ::OBC;
+          beta::Float64, [i::Int, j::Int]) -> Matrix{Float64} or Float64
+
+Static (equal-time) thermal correlator `⟨σᶻ_i σᶻ_j⟩_β` for the OBC TFIM.
+With both `i` and `j` given returns a scalar; otherwise returns the full
+N×N matrix.
+"""
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:zz_static_thermal},
+    ::OBC;
+    beta::Float64,
+    i::Union{Int,Nothing}=nothing,
+    j::Union{Int,Nothing}=nothing,
+    kwargs...,
+)
+    N = Int(model.params[:N])
+    J = Float64(model.params[:J])
+    h = Float64(model.params[:h])
+    if i !== nothing && j !== nothing
+        return _sz_sz_static_thermal(N, J, h, beta; i=i, j=j)[1, 1]
+    end
+    return _sz_sz_static_thermal(N, J, h, beta)
+end
+
+"""
+    fetch(model::Model{:TFIM}, ::Quantity{:zz_structure_factor}, ::OBC;
+          beta::Float64, q::Real) -> Float64
+
+Static structure factor `S_zz(q, β)` for the OBC TFIM at wave vector `q`.
+"""
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:zz_structure_factor},
+    ::OBC;
+    beta::Float64,
+    q::Real,
+    kwargs...,
+)
+    N = Int(model.params[:N])
+    J = Float64(model.params[:J])
+    h = Float64(model.params[:h])
+    return _zz_static_structure_factor(N, J, h, beta, q)
+end
+
+"""
+    fetch(model::Model{:TFIM}, ::Quantity{:longitudinal_susceptibility}, ::OBC;
+          beta::Float64) -> Float64
+
+Static uniform longitudinal (`q = 0`) susceptibility per site,
+
+    χ_zz(β) = (β/N) Σ_{i,j} ⟨σᶻ_i σᶻ_j⟩_β.
+"""
+function fetch(
+    model::Model{:TFIM},
+    ::Quantity{:longitudinal_susceptibility},
+    ::OBC;
+    beta::Float64,
+    kwargs...,
+)
+    N = Int(model.params[:N])
+    J = Float64(model.params[:J])
+    h = Float64(model.params[:h])
+    return _zz_uniform_susceptibility(N, J, h, beta)
 end
