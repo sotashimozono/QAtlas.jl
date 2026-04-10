@@ -74,7 +74,8 @@ Uses the exact BdG formula:  ⟨H⟩ = -Σₙ (Λₙ/2) tanh(β Λₙ / 2)
 """
 function fetch(model::Model{:TFIM}, ::Quantity{:energy}, ::OBC;
                beta::Union{Float64,Nothing}=nothing,
-               betas::Union{AbstractVector{Float64},Nothing}=nothing)
+               betas::Union{AbstractVector{Float64},Nothing}=nothing,
+               kwargs...)
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
@@ -110,7 +111,8 @@ Uses adaptive Gauss-Kronrod quadrature (QuadGK).
 """
 function fetch(model::Model{:TFIM}, ::Quantity{:energy}, ::Infinite;
                beta::Union{Float64,Nothing}=nothing,
-               betas::Union{AbstractVector{Float64},Nothing}=nothing)
+               betas::Union{AbstractVector{Float64},Nothing}=nothing,
+               kwargs...)
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
     _energy_at_beta = β -> begin
@@ -140,7 +142,7 @@ end
 Central charge of the TFIM critical point (h = J): c = 1/2 (Ising CFT).
 Returns NaN if not at the critical point (|h/J - 1| > 1e-6).
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite)
+function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite; kwargs...)
     J = Float64(model.params[:J])
     h = Float64(model.params[:h])
     if abs(h / J - 1.0) > 1e-6
