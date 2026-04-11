@@ -1,6 +1,6 @@
 name = "QAtlas"
 uuid = "2bd488d2-d3e6-46ee-afb3-5515643db0c7"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["sota shimozono <shimozono-sota631@g.ecc.u-tokyo.ac.jp>"]
 
 [deps]
@@ -12,12 +12,13 @@ julia = "1.10"
 QuadGK = "2.11.2"
 
 [extras]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Lattice2D = "e8031020-b7ff-4f1d-bee4-f79aea4cf140"
 LatticeCore = "84b1cbd8-bc58-4618-bc4f-b46a399f49f1"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Lattice2D", "LatticeCore"]
+test = ["Test", "Lattice2D", "LatticeCore", "ForwardDiff"]
 
 [sources]
 Lattice2D = {url = "https://github.com/sotashimozono/Lattice2D.jl.git", rev = "v0.2.4"}
