@@ -20,3 +20,4 @@ test = ["Test", "Lattice2D"]
 
 [sources]
 Lattice2D = {url = "https://github.com/sotashimozono/Lattice2D.jl.git", rev = "v0.2.4"}
+LatticeCore = {url = "https://github.com/sotashimozono/LatticeCore.jl.git", rev = "v0.8.1"}
