@@ -136,7 +136,9 @@ consistent under this convention.
     L. Onsager, Phys. Rev. 65, 117 (1944).
     B. M. McCoy and T. T. Wu, "The Two-Dimensional Ising Model" (1973).
 """
-function fetch(::IsingSquare, ::PartitionFunction; Lx::Int, Ly::Int, β::Float64, J::Float64=1.0)
+function fetch(
+    ::IsingSquare, ::PartitionFunction; Lx::Int, Ly::Int, β::Float64, J::Float64=1.0
+)
     T = _ising_sq_transfer_matrix(Ly, β, J)
     λs = eigvals(Symmetric(T))
     return sum(λ^Lx for λ in λs)

@@ -34,7 +34,7 @@ function exact_partition(lat, J::Float64, β::Float64)
     N = num_sites(lat)
     bond_pairs = [(b.i, b.j) for b in bonds(lat)]
     Z = 0.0
-    for σ_idx in 0:(2^N - 1)
+    for σ_idx in 0:(2 ^ N - 1)
         σ = Int[((σ_idx >> j) & 1) == 1 ? 1 : -1 for j in 0:(N - 1)]
         E = -J * sum(σ[i] * σ[j] for (i, j) in bond_pairs)
         Z += exp(-β * E)
