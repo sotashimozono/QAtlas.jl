@@ -24,7 +24,9 @@ using QAtlas, Test
         for β in [0.1, 0.5, 1.0, 5.0]
             for (Lx, Ly) in [(2, 2), (2, 3), (3, 3)]
                 N = Lx * Ly
-                Z = QAtlas.fetch(IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β, J=0.0)
+                Z = QAtlas.fetch(
+                    IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β, J=0.0
+                )
                 @test Z ≈ 2.0^N atol = 1e-8
             end
         end
@@ -47,7 +49,8 @@ using QAtlas, Test
         for (Lx, Ly) in [(2, 2), (3, 3)]
             betas = [0.0, 0.1, 0.5, 1.0, 2.0]
             Zs = [
-                QAtlas.fetch(IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β) for β in betas
+                QAtlas.fetch(IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β) for
+                β in betas
             ]
             for k in 1:(length(Zs) - 1)
                 @test Zs[k] <= Zs[k + 1]
