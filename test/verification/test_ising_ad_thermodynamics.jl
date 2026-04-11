@@ -40,7 +40,7 @@ function _direct_moments(lat, J::Float64, β::Float64)
     E1 = 0.0
     E2 = 0.0
     S1 = 0.0  # ⟨Σ σ_i σ_j⟩ (no J factor)
-    for σ_idx in 0:(2^N - 1)
+    for σ_idx in 0:(2 ^ N - 1)
         σ = Int[((σ_idx >> j) & 1) == 1 ? 1 : -1 for j in 0:(N - 1)]
         bond_sum = sum(σ[i] * σ[j] for (i, j) in bond_pairs)
         E = -J * bond_sum
@@ -63,23 +63,19 @@ const J_ISING = 1.0
             for β in [0.1, 0.3, 0.5, 1.0]
                 # --- AD from transfer matrix ---
                 #   E = -∂(log Z)/∂β
-                E_ad = -ForwardDiff.derivative(
-                    βv -> _log_Z_tm(Lx, Ly, βv, J_ISING), β
-                )
+                E_ad = -ForwardDiff.derivative(βv -> _log_Z_tm(Lx, Ly, βv, J_ISING), β)
 
                 #   C_v = β² · ∂²(log Z)/∂β²
                 d2logZ_dβ2 = ForwardDiff.derivative(
-                    βo -> ForwardDiff.derivative(
-                        βi -> _log_Z_tm(Lx, Ly, βi, J_ISING), βo
-                    ),
+                    βo -> ForwardDiff.derivative(βi -> _log_Z_tm(Lx, Ly, βi, J_ISING), βo),
                     β,
                 )
                 Cv_ad = β^2 * d2logZ_dβ2
 
                 #   ⟨Σ σσ⟩ = (1/β) · ∂(log Z)/∂J
-                bond_sum_ad = (1 / β) * ForwardDiff.derivative(
-                    Jv -> _log_Z_tm(Lx, Ly, β, Jv), J_ISING
-                )
+                bond_sum_ad =
+                    (1 / β) *
+                    ForwardDiff.derivative(Jv -> _log_Z_tm(Lx, Ly, β, Jv), J_ISING)
 
                 # --- Direct ensemble averages ---
                 E_direct, E2_direct, bond_sum_direct = _direct_moments(lat, J_ISING, β)

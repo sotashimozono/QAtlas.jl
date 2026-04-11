@@ -152,9 +152,7 @@ against direct ensemble averages.
     L. Onsager, Phys. Rev. 65, 117 (1944).
     B. M. McCoy and T. T. Wu, "The Two-Dimensional Ising Model" (1973).
 """
-function fetch(
-    ::IsingSquare, ::PartitionFunction; Lx::Int, Ly::Int, β::Real, J::Real=1.0
-)
+function fetch(::IsingSquare, ::PartitionFunction; Lx::Int, Ly::Int, β::Real, J::Real=1.0)
     T = _ising_sq_transfer_matrix(Ly, β, J)
     return tr(T^Lx)
 end
