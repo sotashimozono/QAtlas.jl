@@ -22,7 +22,7 @@ const J_ISING = 1.0
         @testset "$(Lx)×$(Ly) square PBC" begin
             for β in [0.0, 0.1, 0.2, 0.44, 1.0, 2.0]
                 Z_bf = exact_partition(lat, J_ISING, β)
-                Z_tm = fetch(
+                Z_tm = QAtlas.fetch(
                     IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β, J=J_ISING
                 )
                 @test Z_tm ≈ Z_bf rtol = 1e-10
