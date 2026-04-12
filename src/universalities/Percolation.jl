@@ -17,14 +17,7 @@ Critical exponents of the ordinary (site/bond) percolation universality class.
 """
 function fetch(::Universality{:Percolation}, ::CriticalExponents; d::Int, kwargs...)
     if d == 2
-        return (
-            α=-2 // 3,
-            β=5 // 36,
-            γ=43 // 18,
-            δ=91 // 5,
-            ν=4 // 3,
-            η=5 // 24,
-        )
+        return (α=-2 // 3, β=5 // 36, γ=43 // 18, δ=91 // 5, ν=4 // 3, η=5 // 24)
     elseif d == 3
         return (
             α=-0.625,

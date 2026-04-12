@@ -32,15 +32,7 @@ Critical exponents of the Ising universality class (Z₂ symmetry).
 """
 function fetch(::Universality{:Ising}, ::CriticalExponents; d::Int, kwargs...)
     if d == 2
-        return (
-            α=0 // 1,
-            β=1 // 8,
-            γ=7 // 4,
-            δ=15 // 1,
-            ν=1 // 1,
-            η=1 // 4,
-            c=1 // 2,
-        )
+        return (α=0 // 1, β=1 // 8, γ=7 // 4, δ=15 // 1, ν=1 // 1, η=1 // 4, c=1 // 2)
     elseif d == 3
         # Conformal bootstrap: Kos, Poland, Simmons-Duffin, Vichi (2016)
         return (

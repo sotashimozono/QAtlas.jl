@@ -16,14 +16,7 @@ Exact critical exponents of the 3-state Potts model in d=2 (S₃ symmetry).
 """
 function fetch(::Universality{:Potts3}, ::CriticalExponents; d::Int=2, kwargs...)
     if d == 2
-        return (
-            α=1 // 3,
-            β=1 // 9,
-            γ=13 // 9,
-            δ=14 // 1,
-            ν=5 // 6,
-            η=4 // 15,
-        )
+        return (α=1 // 3, β=1 // 9, γ=13 // 9, δ=14 // 1, ν=5 // 6, η=4 // 15)
     end
     return error("Potts3 universality: only d=2 implemented; got d=$d.")
 end
@@ -37,14 +30,7 @@ second-order with logarithmic corrections.
 """
 function fetch(::Universality{:Potts4}, ::CriticalExponents; d::Int=2, kwargs...)
     if d == 2
-        return (
-            α=2 // 3,
-            β=1 // 12,
-            γ=7 // 6,
-            δ=15 // 1,
-            ν=2 // 3,
-            η=1 // 4,
-        )
+        return (α=2 // 3, β=1 // 12, γ=7 // 6, δ=15 // 1, ν=2 // 3, η=1 // 4)
     end
     return error("Potts4 universality: only d=2 implemented; got d=$d.")
 end
