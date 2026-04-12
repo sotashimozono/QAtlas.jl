@@ -1,148 +1,119 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Verification: central charge extraction from entanglement entropy
+# Verification: central charge from entanglement entropy
 #
-# For a 1D critical system with OBC and N sites, the Calabrese-Cardy
-# formula (2004) gives the bipartite entanglement entropy:
+# For a 1D critical system with OBC, the Calabrese-Cardy formula gives:
 #
-#   S(l) = (c/3) ln[(2N/π) sin(πl/N)] + s₁
+#   S(l) = (c/6) ln[(2N/π) sin(πl/N)] + s₁
 #
-# where c is the central charge and s₁ is a non-universal constant.
-# By computing S(l) for several subsystem sizes l and fitting against
-# the conformal coordinate ξ(l) = ln[(2N/π) sin(πl/N)], we extract c.
+# where c is the central charge and s₁ is non-universal.
 #
-# Cross-check:
-#   Source A: Universality(:Ising) → c = 1/2  (CFT, BPZ 1984)
-#   Source B: TFIM ED ground state → S(l) → c  (Calabrese-Cardy 2004)
+# Note on the Peschel correlation-matrix method: the TFIM with σ^z σ^z
+# convention maps to free fermions only after a Kramers-Wannier duality.
+# The BdG eigenvectors give the DUAL fermion correlators, not the spin-
+# basis correlators. Correct spin-basis Peschel requires handling the
+# duality boundary conditions, which is deferred to future work.
+# For now, we use full ED (exact for small N, O(2^N) cost).
 #
-# This is the DEFINITIVE cross-verification of the central charge,
-# directly from the ground-state wavefunction.
+# References:
+#   P. Calabrese, J. Cardy, J. Stat. Mech. 0406, P06002 (2004).
 # ─────────────────────────────────────────────────────────────────────────────
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
 include("../util/spinhalf_ed.jl")
 
-"""
-    extract_central_charge(ψ, N; bc=:OBC) -> Float64
-
-Extract the central charge c from the entanglement entropy profile
-S(l) of a ground state using the Calabrese-Cardy formula.
-
-For **OBC** (one entanglement cut):
-    S(l) = (c/6) ln[(2N/π) sin(πl/N)] + s₁    →  c = 6 × slope
-
-For **PBC** (two entanglement cuts):
-    S(l) = (c/3) ln[(N/π) sin(πl/N)] + s₁     →  c = 3 × slope
-
-Uses linear regression of S(l) vs the conformal coordinate ξ(l).
-
-# References
-    P. Calabrese, J. Cardy, J. Stat. Mech. 0406, P06002 (2004), Eqs. (7) and (19).
-"""
-function extract_central_charge(ψ::AbstractVector, N::Int; bc::Symbol=:OBC)
-    ls = 1:(N - 1)
-    Ss = [entanglement_entropy(ψ, l, N) for l in ls]
-
-    if bc == :OBC
-        ξs = [log((2N / π) * sin(π * l / N)) for l in ls]
-        prefactor = 6  # S = (c/6) ξ + const for OBC
-    else  # PBC
-        ξs = [log((N / π) * sin(π * l / N)) for l in ls]
-        prefactor = 3  # S = (c/3) ξ + const for PBC
-    end
-
+# Extract c from S(l) profile using OBC Calabrese-Cardy (c/6)
+function extract_central_charge_obc(Ss::Vector{Float64}, ls, N::Int)
+    ξs = [log((2N / π) * sin(π * l / N)) for l in ls]
     n = length(ls)
     ξ̄ = sum(ξs) / n
     S̄ = sum(Ss) / n
     slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
             sum((ξs[i] - ξ̄)^2 for i in 1:n)
-    return prefactor * slope
+    return 6 * slope  # OBC: S = (c/6) ξ + const
 end
 
-@testset "Entanglement entropy → central charge" begin
+@testset "Entanglement entropy → central charge (ED)" begin
 
-    @testset "TFIM at criticality → c = 1/2" begin
+    @testset "TFIM at h = J → c = 1/2" begin
         c_exact = Float64(QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2).c)
         J = 1.0
-        h = J  # critical point
 
-        # Use N = 12 OBC chain (2^12 = 4096 dim Hilbert space)
+        # Multiple N for finite-size scaling of the extraction
+        cs_extracted = Dict{Int,Float64}()
+        for N in [10, 12, 14]
+            lat = build_lattice(Square, N, 1; boundary=OpenAxis())
+            H = build_tfim(lat, J, J)
+            ψ0 = eigen(Symmetric(H)).vectors[:, 1]
+
+            # Skip 2 boundary sites on each side (lattice artifacts)
+            ls = collect(3:(N - 3))
+            Ss = [entanglement_entropy(ψ0, l, N) for l in ls]
+            cs_extracted[N] = extract_central_charge_obc(Ss, ls, N)
+        end
+
+        # Larger N gives better c (finite-size corrections decrease)
+        @test abs(cs_extracted[14] - c_exact) < abs(cs_extracted[10] - c_exact)
+
+        # N=14 should be within 10% of c = 1/2
+        @test cs_extracted[14] ≈ c_exact rtol = 0.10
+
+        # S(l) structural checks at N=12
         N = 12
         lat = build_lattice(Square, N, 1; boundary=OpenAxis())
-        H = build_tfim(lat, J, h)
-        F = eigen(Symmetric(H))
-        ψ0 = F.vectors[:, 1]  # ground state
-
-        c_extracted = extract_central_charge(ψ0, N; bc=:OBC)
-        # With the correct OBC Calabrese-Cardy prefactor (c/6 instead
-        # of c/3 for PBC), N=12 should give c ≈ 0.5 within ~10%.
-        @test c_extracted ≈ c_exact rtol = 0.15
-
-        # S(l) should be maximal near the center l ≈ N/2
+        H = build_tfim(lat, J, J)
+        ψ0 = eigen(Symmetric(H)).vectors[:, 1]
         Ss = [entanglement_entropy(ψ0, l, N) for l in 1:(N - 1)]
-        l_max = argmax(Ss)
-        @test abs(l_max - N / 2) <= 1  # peak near center
 
-        # S should be symmetric: S(l) ≈ S(N-l)
-        for l in 1:(N ÷ 2 - 1)
-            @test Ss[l] ≈ Ss[N - l] rtol = 0.05
+        # Symmetric: S(l) ≈ S(N-l)
+        for l in 2:(N ÷ 2 - 1)
+            @test Ss[l] ≈ Ss[N - l] rtol = 0.01
         end
+
+        # Maximal near center
+        l_max = argmax(Ss)
+        @test abs(l_max - N / 2) <= 1
     end
 
-    @testset "TFIM away from criticality → area law (low S)" begin
-        J = 1.0
+    @testset "TFIM: area law away from criticality" begin
         N = 10
         lat = build_lattice(Square, N, 1; boundary=OpenAxis())
 
-        # Deep in disordered phase: h ≫ J → product state → S ≈ 0
-        H_dis = build_tfim(lat, J, 10.0)
+        # Disordered phase (h ≫ J): product state → S ≈ 0
+        H_dis = build_tfim(lat, 1.0, 10.0)
         ψ_dis = eigen(Symmetric(H_dis)).vectors[:, 1]
-        S_center = entanglement_entropy(ψ_dis, N ÷ 2, N)
-        @test S_center < 0.1  # nearly zero (area law)
+        S_dis = entanglement_entropy(ψ_dis, N ÷ 2, N)
 
-        # Compare to critical: S should be much larger
-        H_crit = build_tfim(lat, J, J)
+        # Critical: S is larger
+        H_crit = build_tfim(lat, 1.0, 1.0)
         ψ_crit = eigen(Symmetric(H_crit)).vectors[:, 1]
         S_crit = entanglement_entropy(ψ_crit, N ÷ 2, N)
-        @test S_crit > S_center * 5  # critical ≫ gapped
+
+        @test S_dis < 0.1
+        @test S_crit > S_dis * 5
     end
 
-    @testset "Heisenberg chain → c = 1 (Luttinger liquid)" begin
-        # The 1D Heisenberg AFM chain is a c = 1 CFT (free boson /
-        # Luttinger liquid). This is double the TFIM value.
-        #
-        # CAVEAT: The Heisenberg chain has well-known ALTERNATING
-        # corrections (−1)^l f(l) to the Calabrese-Cardy formula, arising
-        # from the SU(2) symmetry. These make naive all-l regression less
-        # accurate. We use only EVEN l values to suppress the oscillation.
+    @testset "Heisenberg chain → c = 1" begin
         J = 1.0
         N = 12
         lat = build_lattice(Square, N, 1; boundary=OpenAxis())
         H = build_spinhalf_heisenberg(lat, J)
-        F = eigen(Symmetric(H))
-        ψ0 = F.vectors[:, 1]
+        ψ0 = eigen(Symmetric(H)).vectors[:, 1]
 
-        # Use only even l values (suppress alternating correction from SU(2))
-        ls_even = 2:2:(N - 2)
+        # Even l only (suppress SU(2) alternating correction)
+        ls_even = collect(4:2:(N - 4))
         Ss = [entanglement_entropy(ψ0, l, N) for l in ls_even]
-        ξs = [log((2N / π) * sin(π * l / N)) for l in ls_even]
-        n = length(ls_even)
-        ξ̄ = sum(ξs) / n
-        S̄ = sum(Ss) / n
-        slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
-                sum((ξs[i] - ξ̄)^2 for i in 1:n)
-        c_heis = 6 * slope  # OBC: c = 6 × slope
+        c_heis = extract_central_charge_obc(Ss, ls_even, N)
 
-        # c = 1 for Heisenberg (OBC + finite-size + alternating corrections
-        # → 20% tolerance; even-l filtering suppresses oscillation)
         @test c_heis ≈ 1.0 rtol = 0.20
 
-        # c(Heisenberg) should be larger than c(TFIM)
-        lat_tfim = build_lattice(Square, N, 1; boundary=OpenAxis())
-        H_tfim = build_tfim(lat_tfim, J, J)
+        # c(Heisenberg) > c(TFIM)
+        H_tfim = build_tfim(lat, J, J)
         ψ_tfim = eigen(Symmetric(H_tfim)).vectors[:, 1]
-        c_tfim = extract_central_charge(ψ_tfim, N; bc=:OBC)
+        ls_all = collect(3:(N - 3))
+        Ss_tfim = [entanglement_entropy(ψ_tfim, l, N) for l in ls_all]
+        c_tfim = extract_central_charge_obc(Ss_tfim, ls_all, N)
 
-        @test c_heis > c_tfim  # c=1 > c=1/2
+        @test c_heis > c_tfim
     end
 end

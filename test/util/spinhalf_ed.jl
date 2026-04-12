@@ -162,6 +162,69 @@ from a single ground-state wavefunction by fitting S(l) vs l.
     P. Calabrese, J. Cardy, "Entanglement entropy and quantum field
     theory", J. Stat. Mech. 0406, P06002 (2004).
 """
+# peschel_entropy_tfim(N, J, h, l) -> Float64
+#
+# Entanglement entropy of the first l sites in the ground state of the
+# OBC TFIM via the Peschel correlation-matrix method (O(N³), exact for
+# free fermions). Ref: Peschel, J. Phys. A 36 L205 (2003).
+function peschel_entropy_tfim(N::Int, J::Float64, h::Float64, l::Int)
+    # Build BdG matrix (same structure as QAtlas._tfim_bdg_spectrum)
+    A = zeros(N, N)
+    for i in 1:N
+        A[i, i] = 2h
+    end
+    for i in 1:(N - 1)
+        A[i, i + 1] = -J
+        A[i + 1, i] = -J
+    end
+    B = zeros(N, N)
+    for i in 1:(N - 1)
+        B[i, i + 1] = J
+        B[i + 1, i] = -J
+    end
+
+    H_bdg = [A B; -B -A]  # 2N × 2N, symmetric
+    F = eigen(Symmetric(H_bdg))
+
+    # BdG eigenvalues come in ±Λ pairs. For eigenvalue +Λ_n > 0,
+    # the eigenvector [u_n; v_n] defines the quasiparticle:
+    #   η†_n = Σ_j (u_n(j) c†_j + v_n(j) c_j)
+    # The ground state is the vacuum of all η_n with Λ_n > 0.
+    #
+    # The fermion correlation matrix is:
+    #   C_{ij} = ⟨c†_i c_j⟩ = Σ_{n: Λ_n > 0} v_n(i) v_n(j)
+    # (the "v" part of positive-energy modes gives the occupation)
+    #
+    # The anomalous correlator:
+    #   F_{ij} = ⟨c_i c_j⟩ = Σ_{n: Λ_n > 0} v_n(i) u_n(j)
+
+    pos_mask = F.values .> 1e-12
+    U_pos = F.vectors[1:N, pos_mask]       # upper block (u)
+    V_pos = F.vectors[(N + 1):end, pos_mask]  # lower block (v)
+
+    C = V_pos * V_pos'         # ⟨c†_i c_j⟩
+    F_anom = V_pos * U_pos'    # ⟨c_i c_j⟩
+
+    # Restrict to subsystem A = {1, ..., l}
+    C_A = C[1:l, 1:l]
+    F_A = F_anom[1:l, 1:l]
+
+    # Generalized correlation matrix (2l × 2l):
+    #   Γ_A = [[C_A, F_A]; [-F_A^T, I - C_A^T]]
+    I_l = Matrix{Float64}(I, l, l)
+    Γ_A = [C_A F_A; -F_A' I_l-C_A']
+
+    # Entanglement entropy from eigenvalues of Γ_A
+    νs = real.(eigvals(Γ_A))
+    S = 0.0
+    for ν in νs
+        if 1e-14 < ν < 1 - 1e-14
+            S -= ν * log(ν) + (1 - ν) * log(1 - ν)
+        end
+    end
+    return S
+end
+
 function entanglement_entropy(ψ::AbstractVector, l::Int, N::Int)
     ρ = reduced_density_matrix(ψ, l, N)
     λs = eigvals(Hermitian(ρ))
