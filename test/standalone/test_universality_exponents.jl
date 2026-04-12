@@ -1,16 +1,36 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Standalone test: universality class critical exponents
 #
-# Verify exact (rational) exponents for each universality class and
-# check standard scaling relations between them.
+# Verify exact (rational) and numerical exponents, and check standard
+# scaling relations.
 # ─────────────────────────────────────────────────────────────────────────────
 
 using QAtlas, Test
 
-@testset "Universality: 2D Ising critical exponents" begin
-    e = QAtlas.fetch(Ising2D(), CriticalExponents())
+# ─────────────── Helper: check scaling relations on exact exponents ───────────
 
-    # Exact rational values
+function check_scaling_relations(e; d::Int=0)
+    @test e.α + 2 * e.β + e.γ == 2                 # Rushbrooke
+    @test e.γ == e.β * (e.δ - 1)                    # Widom
+    @test e.γ == e.ν * (2 - e.η)                    # Fisher
+    if d > 0
+        @test 2 - e.α ≈ d * e.ν atol = 1e-10       # Josephson (hyperscaling)
+    end
+end
+
+function check_scaling_relations_approx(e; d::Int=0)
+    @test e.α + 2 * e.β + e.γ ≈ 2 atol = 0.01      # Rushbrooke
+    @test e.γ ≈ e.β * (e.δ - 1) atol = 0.01         # Widom
+    @test e.γ ≈ e.ν * (2 - e.η) atol = 0.01         # Fisher
+    if d > 0
+        @test 2 - e.α ≈ d * e.ν atol = 0.01         # Josephson
+    end
+end
+
+# ═══════════════════ Exact universality classes (Rational) ═══════════════════
+
+@testset "Universality: 2D Ising (exact)" begin
+    e = QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2)
     @test e.β == 1 // 8
     @test e.ν == 1 // 1
     @test e.γ == 7 // 4
@@ -18,38 +38,119 @@ using QAtlas, Test
     @test e.δ == 15 // 1
     @test e.α == 0 // 1
     @test e.c == 1 // 2
-
-    # Standard scaling relations (must hold exactly for rational exponents)
-    @test e.α + 2 * e.β + e.γ == 2               # Rushbrooke
-    @test e.γ == e.β * (e.δ - 1)                  # Widom
-    @test e.γ == e.ν * (2 - e.η)                  # Fisher
-    @test 2 - e.α == 2 * e.ν                      # Josephson (d=2: dν = 2-α)
+    check_scaling_relations(e; d=2)
 end
 
-@testset "Universality: KPZ 1+1D scaling exponents" begin
-    e = QAtlas.fetch(KPZ1D(), CriticalExponents())
-
-    @test e.β_growth == 1 // 3
-    @test e.α_rough == 1 // 2
-    @test e.z == 3 // 2
-
-    # KPZ scaling relations
-    @test e.α_rough + e.z == 2                    # Galilean invariance
-    @test e.β_growth == e.α_rough / e.z           # β = α / z
+@testset "Universality: backward compat Ising2D()" begin
+    e_old = QAtlas.fetch(Ising2D(), CriticalExponents())
+    e_new = QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2)
+    @test e_old == e_new
 end
 
-@testset "Universality: Mean-field critical exponents" begin
+@testset "Universality: Mean-field (exact)" begin
     e = QAtlas.fetch(MeanField(), CriticalExponents())
-
     @test e.β == 1 // 2
     @test e.ν == 1 // 2
     @test e.γ == 1 // 1
     @test e.η == 0 // 1
     @test e.δ == 3 // 1
     @test e.α == 0 // 1
+    check_scaling_relations(e)
+end
 
-    # Scaling relations (hold at mean-field level)
-    @test e.α + 2 * e.β + e.γ == 2               # Rushbrooke
-    @test e.γ == e.β * (e.δ - 1)                  # Widom
-    @test e.γ == e.ν * (2 - e.η)                  # Fisher
+@testset "Universality: Ising d≥4 = Mean-field" begin
+    e_mf = QAtlas.fetch(MeanField(), CriticalExponents())
+    for d in [4, 5, 100]
+        e = QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=d)
+        @test e == e_mf
+    end
+end
+
+@testset "Universality: 2D Percolation (exact)" begin
+    e = QAtlas.fetch(Universality(:Percolation), CriticalExponents(); d=2)
+    @test e.α == -2 // 3
+    @test e.β == 5 // 36
+    @test e.γ == 43 // 18
+    @test e.δ == 91 // 5
+    @test e.ν == 4 // 3
+    @test e.η == 5 // 24
+    check_scaling_relations(e; d=2)
+end
+
+@testset "Universality: 3-state Potts d=2 (exact)" begin
+    e = QAtlas.fetch(Universality(:Potts3), CriticalExponents(); d=2)
+    @test e.β == 1 // 9
+    @test e.ν == 5 // 6
+    @test e.η == 4 // 15
+    @test e.δ == 14 // 1
+    check_scaling_relations(e; d=2)
+end
+
+@testset "Universality: 4-state Potts d=2 (exact)" begin
+    e = QAtlas.fetch(Universality(:Potts4), CriticalExponents(); d=2)
+    @test e.β == 1 // 12
+    @test e.ν == 2 // 3
+    @test e.η == 1 // 4
+    @test e.δ == 15 // 1
+    check_scaling_relations(e; d=2)
+end
+
+@testset "Universality: KPZ 1+1D (exact growth exponents)" begin
+    e = QAtlas.fetch(Universality(:KPZ), GrowthExponents(); d=1)
+    @test e.β_growth == 1 // 3
+    @test e.α_rough == 1 // 2
+    @test e.z == 3 // 2
+    @test e.α_rough + e.z == 2              # Galilean invariance
+    @test e.β_growth == e.α_rough / e.z     # β = α / z
+end
+
+@testset "Universality: KPZ1D() backward compat" begin
+    e_old = QAtlas.fetch(KPZ1D(), CriticalExponents())
+    e_new = QAtlas.fetch(Universality(:KPZ), GrowthExponents(); d=1)
+    @test e_old == e_new
+end
+
+# ═══════════════ Numerical universality classes (Float64 + _err) ═════════════
+
+@testset "Universality: 3D Ising (conformal bootstrap)" begin
+    e = QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=3)
+    @test 0.10 < e.β < 0.35
+    @test 0.60 < e.ν < 0.65
+    @test e.β_err > 0
+    @test e.ν_err > 0
+    check_scaling_relations_approx(e; d=3)
+end
+
+@testset "Universality: 3D XY (conformal bootstrap)" begin
+    e = QAtlas.fetch(Universality(:XY), CriticalExponents(); d=3)
+    @test 0.34 < e.β < 0.36
+    @test 0.66 < e.ν < 0.68
+    @test e.β_err > 0
+    check_scaling_relations_approx(e; d=3)
+end
+
+@testset "Universality: 3D Heisenberg" begin
+    e = QAtlas.fetch(Universality(:Heisenberg), CriticalExponents(); d=3)
+    @test 0.36 < e.β < 0.38
+    @test 0.70 < e.ν < 0.72
+    @test e.β_err > 0
+    check_scaling_relations_approx(e; d=3)
+end
+
+@testset "Universality: XY d=2 is BKT" begin
+    e = QAtlas.fetch(Universality(:XY), CriticalExponents(); d=2)
+    @test e.η == 1 // 4
+end
+
+@testset "Universality: Heisenberg d=2 → Mermin-Wagner error" begin
+    @test_throws ErrorException QAtlas.fetch(
+        Universality(:Heisenberg), CriticalExponents(); d=2
+    )
+end
+
+@testset "Universality: 3D Percolation (numerical)" begin
+    e = QAtlas.fetch(Universality(:Percolation), CriticalExponents(); d=3)
+    @test 0.40 < e.β < 0.45
+    @test 0.85 < e.ν < 0.90
+    @test e.β_err > 0
 end
