@@ -1,0 +1,9 @@
+# Classical Models
+
+Classical statistical mechanics models solved by exact methods
+(transfer matrix, Kramers--Wannier duality, Onsager / Yang formulas).
+
+## Contents
+
+- [2D Ising on the Square Lattice](ising-square.md) -- partition
+  function, Onsager $T_c$, Yang magnetization $M(T)$
