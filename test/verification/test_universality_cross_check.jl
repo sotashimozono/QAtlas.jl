@@ -206,9 +206,7 @@ end
         Z_above = QAtlas.fetch(
             IsingSquare(), PartitionFunction(); Lx=Ly, Ly=Ly, β=βc * 1.01, J=J
         )
-        Z_at = QAtlas.fetch(
-            IsingSquare(), PartitionFunction(); Lx=Ly, Ly=Ly, β=βc, J=J
-        )
+        Z_at = QAtlas.fetch(IsingSquare(), PartitionFunction(); Lx=Ly, Ly=Ly, β=βc, J=J)
         Z_below = QAtlas.fetch(
             IsingSquare(), PartitionFunction(); Lx=Ly, Ly=Ly, β=βc * 0.99, J=J
         )
@@ -254,8 +252,9 @@ end
     n = length(hs)
     x̄ = sum(log_dhs) / n
     ȳ = sum(log_gaps) / n
-    slope = sum((log_dhs[i] - x̄) * (log_gaps[i] - ȳ) for i in 1:n) /
-            sum((log_dhs[i] - x̄)^2 for i in 1:n)
+    slope =
+        sum((log_dhs[i] - x̄) * (log_gaps[i] - ȳ) for i in 1:n) /
+        sum((log_dhs[i] - x̄)^2 for i in 1:n)
     @test slope ≈ νz_expected rtol = 0.05
 end
 
@@ -281,15 +280,11 @@ end
     Tc = QAtlas.fetch(IsingSquare(), CriticalTemperature(); J=J)
     Lx, Ly = 4, 4  # small lattice for transfer matrix
 
-    log_Z(β) = log(QAtlas.fetch(
-        IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β, J=J
-    ))
+    log_Z(β) = log(QAtlas.fetch(IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β, J=J))
 
     # Compute C(β) = β² d²(log Z)/dβ² via nested ForwardDiff
     function specific_heat(β)
-        d2 = ForwardDiff.derivative(
-            βo -> ForwardDiff.derivative(βi -> log_Z(βi), βo), β
-        )
+        d2 = ForwardDiff.derivative(βo -> ForwardDiff.derivative(βi -> log_Z(βi), βo), β)
         return β^2 * d2
     end
 
