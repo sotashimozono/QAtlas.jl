@@ -10,9 +10,10 @@ export IsingSquare, PartitionFunction
 
 # --- Quantum Models ---
 export Graphene, TightBindingSpectrum
-# NOTE: `Kagome` and `Lieb` are NOT exported — they conflict with
-# Lattice2D's topology types of the same name. Access them as
-# `QAtlas.Kagome()` / `QAtlas.Lieb()` in code that also uses `Lattice2D`.
+# NOTE: `Kagome`, `Lieb`, `Triangular` are NOT exported — they conflict
+# with Lattice2D's topology types of the same name. Access them as
+# `QAtlas.Kagome()` / `QAtlas.Lieb()` / `QAtlas.Triangular()` in code
+# that also uses `Lattice2D`.
 export Heisenberg1D, ExactSpectrum
 
 # --- Core Implementation ---
@@ -31,6 +32,7 @@ include("models/classical/IsingSquare.jl")
 include("models/quantum/tightbinding/Graphene.jl")
 include("models/quantum/tightbinding/Kagome.jl")
 include("models/quantum/tightbinding/Lieb.jl")
+include("models/quantum/tightbinding/Triangular.jl")
 include("models/quantum/Heisenberg.jl")
 
 end # module QAtlas
