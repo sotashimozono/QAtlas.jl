@@ -18,6 +18,7 @@ include(joinpath(@__DIR__, "util", "classical_partition.jl"))
 include(joinpath(@__DIR__, "util", "tight_binding.jl"))
 include(joinpath(@__DIR__, "util", "spinhalf_ed.jl"))
 include(joinpath(@__DIR__, "util", "bloch.jl"))
+include(joinpath(@__DIR__, "util", "tfim_dense_ed.jl"))
 
 @testset "tests" begin
     test_args = copy(ARGS)
