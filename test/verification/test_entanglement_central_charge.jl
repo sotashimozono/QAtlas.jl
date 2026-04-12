@@ -28,13 +28,11 @@ function extract_central_charge_obc(Ss::Vector{Float64}, ls, N::Int)
     n = length(ls)
     ξ̄ = sum(ξs) / n
     S̄ = sum(Ss) / n
-    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
-            sum((ξs[i] - ξ̄)^2 for i in 1:n)
+    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
     return 6 * slope  # OBC: S = (c/6) ξ + const
 end
 
 @testset "Entanglement entropy → central charge (ED)" begin
-
     @testset "TFIM at h = J → c = 1/2" begin
         c_exact = Float64(QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2).c)
         J = 1.0
