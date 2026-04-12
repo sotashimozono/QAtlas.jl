@@ -1,54 +1,49 @@
-# QAtlas.jl — 設計ドキュメント
+# QAtlas.jl — Internal Design Notes
 
-量子多体モデルの厳密解・解析的結果を一元管理するカタログパッケージの設計ノート。
+Internal notes for QAtlas development. NOT user-facing documentation
+(that lives in `docs/src/`).
 
-## 掲載方針
+## Current State (v0.12.6)
 
-| カテゴリ | 掲載条件 |
-|---------|---------|
-| 厳密解・解析的結果 | 積極的に掲載。導出の概要または参考文献を付記する |
-| 数値計算結果 | 査読済み論文または well-known preprint の reference とセットでのみ掲載 |
-| 未検証の推測 | 掲載しない |
+### What's implemented
 
-## クイックスタート
+**Models** (src/):
+- IsingSquare: partition function (transfer matrix), T_c (Onsager), M(T) (Yang)
+- TFIM: BdG spectrum (OBC, Infinite), thermal observables, dynamics, correlators
+- Heisenberg1D: dimer spectrum, 4-site PBC, Bethe ansatz e₀
+- Tight-binding: Graphene, Kagome, Lieb, Triangular (hardcoded Bloch)
 
-```julia
-using QAtlas
+**Universality classes** (src/universalities/):
+- Universality{C} parametric type with dimension d keyword
+- Ising (d=2 exact, d=3 bootstrap, MF), Percolation, Potts 3/4, KPZ, XY, Heisenberg, MF
+- E8 mass ratios
 
-# TFIM の熱力学極限エネルギー（β=2.0）
-fetch(:TFIM, :energy; J=1.0, h=0.5, beta=2.0)
+**Test infrastructure** (test/util/):
+- classical_partition.jl: brute-force 2^N enumeration
+- tight_binding.jl: real-space TB Hamiltonian from bonds
+- spinhalf_ed.jl: Kronecker embed, build_heisenberg, build_tfim, entanglement entropy
+- bloch.jl: generic Bloch builder from unit cell
 
-# 有限サイズ OBC
-fetch(:TFIM, :energy, OBC(); J=1.0, h=1.0, N=16, beta=3.0)
+**Test suites** (850+ tests):
+- standalone/: special values, scaling relations, Bethe ansatz
+- verification/: Lattice2D cross-check (8 topologies), AD thermodynamics, gap closure, entanglement, disordered, universality cross-checks
 
-# E8 質量比
-fetch(:E8, :mass_ratios)
-```
+**Documentation** (docs/src/, 46 pages):
+- Zettelkasten calc/ notes (15 atomic derivation notes)
+- Model pages, universality pages, verification philosophy, methods (Physical/Computational)
 
-エイリアスが使えます：
+### Two API styles coexist
 
-```julia
-fetch(:TFIM, :E; ...)        # :energy の別名
-fetch(:TFIM, :ee; ...)       # :entanglement_entropy の別名
-```
+1. **Old style**: `Model{:TFIM}` + `Quantity{:energy}` + `OBC()` — used by TFIM, E8
+2. **New style**: simple struct tags (`IsingSquare()`, `Universality(:Ising)`) — used by new models
 
-## ページ一覧
+No immediate plan to unify; both work. New additions should use the simple struct style.
 
-### API・設計
+## Pages in this directory
 
-- [api.md](api.md) — 型階層・fetch インターフェース・関数群・拡張方法
-
-### モデル別結果カタログ
-
-- [models/TFIM.md](models/TFIM.md) — 横磁場イジングモデル（実装済み）
-- [models/XXZ.md](models/XXZ.md) — XXZ モデル（将来）
-
-### 普遍クラス
-
-- [universalities/E8.md](universalities/E8.md) — E8 例外代数の質量スペクトル（実装済み）
-- [universalities/IsingCFT.md](universalities/IsingCFT.md) — Ising CFT (c=1/2)
-
-### 開発ガイド
-
-- [testing.md](testing.md) — テスト哲学・example-based testing の方針
-- [roadmap.md](roadmap.md) — 将来モデル・数値データ方針・API 再設計案
+- [roadmap.md](roadmap.md) — future models, open issues, development priorities
+- [documentation-design.md](documentation-design.md) — docs architecture blueprint
+- [api.md](api.md) — API type hierarchy (mostly stable, see note about two styles)
+- [testing.md](testing.md) — test philosophy (superseded by docs/src/verification/)
+- [models/](models/) — model-specific notes (partially superseded by docs/src/models/)
+- [universalities/](universalities/) — universality notes (superseded by docs/src/universalities/)
