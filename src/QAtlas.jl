@@ -10,6 +10,7 @@ export IsingSquare, PartitionFunction
 
 # --- Quantum Models ---
 export Graphene, TightBindingSpectrum
+export Heisenberg1D, ExactSpectrum
 
 # --- Core Implementation ---
 include("core/alias.jl")
@@ -25,5 +26,6 @@ include("models/TFIM_dynamics.jl")
 include("models/TFIM_thermal.jl")
 include("models/classical/IsingSquare.jl")
 include("models/quantum/Graphene.jl")
+include("models/quantum/Heisenberg.jl")
 
 end # module QAtlas
