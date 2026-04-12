@@ -20,7 +20,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/spinhalf_ed.jl")
 
 # Extract c from S(l) profile using OBC Calabrese-Cardy (c/6)
 function extract_central_charge_obc(Ss::Vector{Float64}, ls, N::Int)

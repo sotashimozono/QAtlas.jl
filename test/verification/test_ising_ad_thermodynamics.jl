@@ -19,7 +19,6 @@
 
 using QAtlas, Lattice2D, ForwardDiff, Test
 
-include("../util/classical_partition.jl")
 
 # log Z as a generic function of (β, J) so ForwardDiff.Dual propagates.
 function _log_Z_tm(Lx::Int, Ly::Int, β, J)

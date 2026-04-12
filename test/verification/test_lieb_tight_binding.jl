@@ -17,7 +17,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/tight_binding.jl")
 
 const T_HOP = 1.0
 

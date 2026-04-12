@@ -18,7 +18,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, ForwardDiff, Test
 
-include("../util/spinhalf_ed.jl")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. Yang magnetization → β = 1/8

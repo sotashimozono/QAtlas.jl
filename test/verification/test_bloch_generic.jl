@@ -13,7 +13,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/bloch.jl")
 
 @testset "Generic Bloch TB vs hardcoded formulas" begin
     test_sizes = [(3, 3), (3, 4), (4, 4)]
@@ -58,7 +57,6 @@ include("../util/bloch.jl")
 
     @testset "Generic builder = real-space ED (honeycomb sanity)" begin
         # Triple cross-check: generic Bloch = hardcoded Bloch = real-space ED
-        include("../util/tight_binding.jl")
         lat = build_lattice(Honeycomb, 3, 3)
         H = build_tight_binding(lat, 1.0)
         λ_real = sort(eigvals(Symmetric(H)))
