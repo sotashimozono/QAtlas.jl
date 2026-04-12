@@ -54,9 +54,7 @@ const T_HOP = 1.0
         #   (1,2)                                  → +3 (K)
         #   (2,1)                                  → +3 (K′)
         # Sorted: [-6, 0×6, 3, 3]
-        λ = QAtlas.fetch(
-            QAtlas.Triangular(), TightBindingSpectrum(); Lx=3, Ly=3, t=1.0
-        )
+        λ = QAtlas.fetch(QAtlas.Triangular(), TightBindingSpectrum(); Lx=3, Ly=3, t=1.0)
         @test λ ≈ [-6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 3.0] atol = 1e-12
     end
 
@@ -76,22 +74,16 @@ const T_HOP = 1.0
     @testset "Frustration: spectrum NOT symmetric about zero" begin
         # Unlike honeycomb / Lieb (bipartite), the triangular band is
         # asymmetric: min = -6, max = +3 (not ±6).
-        λ = QAtlas.fetch(
-            QAtlas.Triangular(), TightBindingSpectrum(); Lx=6, Ly=6, t=1.0
-        )
+        λ = QAtlas.fetch(QAtlas.Triangular(), TightBindingSpectrum(); Lx=6, Ly=6, t=1.0)
         @test minimum(λ) ≈ -6.0 atol = 1e-10
         @test maximum(λ) ≈ +3.0 atol = 1e-10
         @test !(sort(λ) ≈ sort(-λ))  # not chiral-symmetric
     end
 
     @testset "t scaling: λ(t) = t · λ(1)" begin
-        λ1 = QAtlas.fetch(
-            QAtlas.Triangular(), TightBindingSpectrum(); Lx=4, Ly=4, t=1.0
-        )
+        λ1 = QAtlas.fetch(QAtlas.Triangular(), TightBindingSpectrum(); Lx=4, Ly=4, t=1.0)
         for t in (0.5, 2.0, 3.7)
-            λt = QAtlas.fetch(
-                QAtlas.Triangular(), TightBindingSpectrum(); Lx=4, Ly=4, t=t
-            )
+            λt = QAtlas.fetch(QAtlas.Triangular(), TightBindingSpectrum(); Lx=4, Ly=4, t=t)
             @test λt ≈ t .* λ1 rtol = 1e-12
         end
     end
