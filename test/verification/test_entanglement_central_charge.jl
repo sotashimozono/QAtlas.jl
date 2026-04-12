@@ -54,13 +54,11 @@ function extract_central_charge(ψ::AbstractVector, N::Int; bc::Symbol=:OBC)
     n = length(ls)
     ξ̄ = sum(ξs) / n
     S̄ = sum(Ss) / n
-    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
-            sum((ξs[i] - ξ̄)^2 for i in 1:n)
+    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
     return prefactor * slope
 end
 
 @testset "Entanglement entropy → central charge" begin
-
     @testset "TFIM at criticality → c = 1/2" begin
         c_exact = Float64(QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2).c)
         J = 1.0
@@ -129,8 +127,8 @@ end
         n = length(ls_even)
         ξ̄ = sum(ξs) / n
         S̄ = sum(Ss) / n
-        slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
-                sum((ξs[i] - ξ̄)^2 for i in 1:n)
+        slope =
+            sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
         c_heis = 6 * slope  # OBC: c = 6 × slope
 
         # c = 1 for Heisenberg (OBC + finite-size + alternating corrections
