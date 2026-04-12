@@ -81,9 +81,21 @@ function fetch(::Heisenberg1D, ::ExactSpectrum; N::Int, J::Real=1.0, bc::Symbol=
         #   E = -2J ×1 (singlet), -J ×3 (triplet), 0 ×7, +J ×5 (quintet)
         return sort([
             -2J,
-            -J, -J, -J,
-            zero(J), zero(J), zero(J), zero(J), zero(J), zero(J), zero(J),
-            J, J, J, J, J,
+            -J,
+            -J,
+            -J,
+            zero(J),
+            zero(J),
+            zero(J),
+            zero(J),
+            zero(J),
+            zero(J),
+            zero(J),
+            J,
+            J,
+            J,
+            J,
+            J,
         ])
     end
     return error(

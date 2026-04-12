@@ -28,9 +28,7 @@ include("../util/spinhalf_ed.jl")
         for J in (1.0, 0.5, 2.0, -1.0)
             H = build_spinhalf_heisenberg(lat, J)
             λ_ed = sort(eigvals(Symmetric(H)))
-            λ_exact = QAtlas.fetch(
-                Heisenberg1D(), ExactSpectrum(); N=4, J=J, bc=:PBC
-            )
+            λ_exact = QAtlas.fetch(Heisenberg1D(), ExactSpectrum(); N=4, J=J, bc=:PBC)
             @test length(λ_ed) == 16
             @test length(λ_exact) == 16
             @test λ_ed ≈ λ_exact atol = 1e-12
