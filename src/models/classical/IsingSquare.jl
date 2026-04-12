@@ -156,3 +156,80 @@ function fetch(::IsingSquare, ::PartitionFunction; Lx::Int, Ly::Int, β::Real, J
     T = _ising_sq_transfer_matrix(Ly, β, J)
     return tr(T^Lx)
 end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Dispatch tags: Onsager + Yang exact results
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    CriticalTemperature
+
+Dispatch tag for the exact critical temperature of a classical model.
+"""
+struct CriticalTemperature end
+
+"""
+    SpontaneousMagnetization
+
+Dispatch tag for the spontaneous magnetization of a classical model
+as a function of temperature.
+"""
+struct SpontaneousMagnetization end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# fetch: Onsager critical temperature
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    fetch(::IsingSquare, ::CriticalTemperature; J=1.0) -> Float64
+
+Exact critical temperature of the 2D Ising model on the square lattice:
+
+    T_c = 2J / ln(1 + √2) ≈ 2.269 J
+
+Equivalently, the critical reduced coupling is K_c = J/T_c = ln(1+√2)/2,
+or sinh(2K_c) = 1.
+
+# References
+    L. Onsager, "Crystal Statistics. I.", Phys. Rev. 65, 117 (1944).
+"""
+function fetch(::IsingSquare, ::CriticalTemperature; J::Real=1.0)
+    return 2J / log(1 + sqrt(2))
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# fetch: Yang spontaneous magnetization
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    fetch(::IsingSquare, ::SpontaneousMagnetization; β, J=1.0) -> Float64
+
+Exact spontaneous magnetization of the 2D Ising model on the infinite
+square lattice:
+
+    M(T) = (1 − sinh⁻⁴(2βJ))^{1/8}    for T < T_c  (i.e. sinh(2βJ) > 1)
+    M(T) = 0                            for T ≥ T_c
+
+The critical exponent β = 1/8 is visible in the approach M → 0 as
+T → T_c⁻.
+
+Special values:
+- T = 0 (β → ∞): M = 1 (fully ordered)
+- T = T_c: M = 0 (onset of disorder)
+
+# Arguments
+- `β::Real`: inverse temperature (β = 1/(k_B T))
+- `J::Real`: Ising coupling constant (default 1.0; J > 0 ferromagnetic)
+
+# References
+    C. N. Yang, "The spontaneous magnetization of a two-dimensional Ising
+    model", Phys. Rev. 85, 808 (1952).
+"""
+function fetch(::IsingSquare, ::SpontaneousMagnetization; β::Real, J::Real=1.0)
+    s = sinh(2 * β * J)
+    if s <= 1.0  # T ≥ T_c
+        return 0.0
+    else
+        return (1 - s^(-4))^(1 / 8)
+    end
+end

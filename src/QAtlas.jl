@@ -6,7 +6,7 @@ export AbstractQuantity, Quantity
 export fetch
 
 # --- Classical Models ---
-export IsingSquare, PartitionFunction
+export IsingSquare, PartitionFunction, CriticalTemperature, SpontaneousMagnetization
 
 # --- Quantum Models ---
 export Graphene, TightBindingSpectrum
@@ -22,7 +22,11 @@ include("core/type.jl")
 include("core/pfaffian.jl")
 
 # --- Universality Classes ---
+export Ising2D, KPZ1D, MeanField, CriticalExponents
 include("universalities/E8.jl")
+include("universalities/Ising2D.jl")
+include("universalities/KPZ.jl")
+include("universalities/MeanField.jl")
 
 # --- Models ---
 include("models/TFIM.jl")
