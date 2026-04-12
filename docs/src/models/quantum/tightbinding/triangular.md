@@ -109,4 +109,4 @@ exactly 2 eigenvalues sit at $+3t$.
   classical Ising antiferromagnet frustration problem on the triangular
   lattice (Wannier 1950).
 - **Methods**: Computed via the
-  [Bloch Hamiltonian](../../methods/bloch-hamiltonian/index.md) method.
+  [Bloch Hamiltonian](../../../methods/bloch-hamiltonian/index.md) method.

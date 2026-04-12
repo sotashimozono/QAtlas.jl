@@ -29,14 +29,14 @@ fermionic anti-commutation: $\{c_i, c^\dagger_j\} = \delta_{ij}$.
 - **Convention dependence**: $\sigma^z\sigma^z$ and $\sigma^x\sigma^x$
   conventions produce different fermion Hamiltonians — one may be
   free while the other is interacting. See
-  [TFIM calculation](../calc/jw-tfim-bdg.md) for how the
+  [TFIM calculation](../../calc/jw-tfim-bdg.md) for how the
   Kramers-Wannier duality resolves this.
 
 ## Applications in QAtlas
 
 | Model | Calculation note | Result |
 | ----- | ---------------- | ------ |
-| [TFIM](../models/quantum/tfim.md) | [JW-TFIM-BdG](../calc/jw-tfim-bdg.md) | BdG quasiparticle spectrum |
+| [TFIM](../../models/quantum/tfim.md) | [JW-TFIM-BdG](../../calc/jw-tfim-bdg.md) | BdG quasiparticle spectrum |
 | Heisenberg | (interacting after JW — not directly solvable) | Bethe ansatz instead |
 | Kitaev chain | (planned) | Topological phase boundary |
 

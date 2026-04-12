@@ -117,4 +117,4 @@ $\{\alpha = 0,\, \beta = 1/8,\, \gamma = 7/4,\, \delta = 15,\,
 ## Used by
 
 - [Ising Universality Class](../universalities/ising.md)
-- [test/standalone/test\_universality\_exponents.jl](../../test/standalone/test_universality_exponents.jl)
+- `test/standalone/test_universality_exponents.jl`

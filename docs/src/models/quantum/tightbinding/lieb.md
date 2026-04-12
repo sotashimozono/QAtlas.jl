@@ -65,7 +65,7 @@ $$N_{E=0} = L_x L_y + \begin{cases} 2 & \text{if both } L_x, L_y \text{ even} \\
 
 ### Derivation
 
-See **[Bloch Lieb Flat Band](../../calc/bloch-lieb-flat-band.md)** for
+See **[Bloch Lieb Flat Band](../../../calc/bloch-lieb-flat-band.md)** for
 the derivation of $H(\mathbf{k})$, the closed-form eigenvalues, and
 the proof that $E = 0$ is an exact eigenvalue at every momentum.
 
@@ -113,4 +113,4 @@ the proof that $E = 0$ is an exact eigenvalue at every momentum.
   flat-band mechanism with the Lieb lattice (flat band at $E = 0$,
   hub vs rim sublattice imbalance).
 - **Methods**: Computed via the
-  [Bloch Hamiltonian](../../methods/bloch-hamiltonian/index.md) method.
+  [Bloch Hamiltonian](../../../methods/bloch-hamiltonian/index.md) method.

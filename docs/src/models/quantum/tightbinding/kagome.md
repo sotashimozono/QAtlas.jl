@@ -66,7 +66,7 @@ total degeneracy of $L_x L_y + 1$.
 
 ### Derivation
 
-See **[Bloch Kagome Flat Band](../../calc/bloch-kagome-flat-band.md)**
+See **[Bloch Kagome Flat Band](../../../calc/bloch-kagome-flat-band.md)**
 for the derivation of $H(\mathbf{k})$ and the proof that one
 eigenvalue is identically $+2t$.
 
@@ -110,4 +110,4 @@ eigenvalue is identically $+2t$.
   frustration, while the Lieb flat band arises from bipartite sublattice
   imbalance.
 - **Methods**: Computed via the
-  [Bloch Hamiltonian](../../methods/bloch-hamiltonian/index.md) method.
+  [Bloch Hamiltonian](../../../methods/bloch-hamiltonian/index.md) method.
