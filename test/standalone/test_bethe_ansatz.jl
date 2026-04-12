@@ -18,8 +18,8 @@ using QAtlas, Test
 
     # J scaling
     for Jval in (0.5, 2.0, 3.7)
-        @test QAtlas.fetch(Heisenberg1D(), GroundStateEnergyDensity(); J=Jval) ≈
-              Jval * e0 rtol = 1e-14
+        @test QAtlas.fetch(Heisenberg1D(), GroundStateEnergyDensity(); J=Jval) ≈ Jval * e0 rtol =
+            1e-14
     end
 
     # Consistency with finite-size spectra:
