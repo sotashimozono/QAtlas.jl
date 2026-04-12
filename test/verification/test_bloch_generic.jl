@@ -21,9 +21,7 @@ include("../util/bloch.jl")
     @testset "Honeycomb (Graphene)" begin
         for (Lx, Ly) in test_sizes
             λ_generic = bloch_tb_spectrum(Honeycomb, Lx, Ly, 1.0)
-            λ_atlas = QAtlas.fetch(
-                Graphene(), TightBindingSpectrum(); Lx=Lx, Ly=Ly, t=1.0
-            )
+            λ_atlas = QAtlas.fetch(Graphene(), TightBindingSpectrum(); Lx=Lx, Ly=Ly, t=1.0)
             @test λ_generic ≈ λ_atlas atol = 1e-10
         end
     end

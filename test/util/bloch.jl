@@ -42,9 +42,7 @@ periodic topology that `Lattice2D` supports.
 # Return
 A sorted `Vector{Float64}` of length `n_sub · Lx · Ly`.
 """
-function bloch_tb_spectrum(
-    Topology::Type{<:AbstractTopology{2}}, Lx::Int, Ly::Int, t::Real
-)
+function bloch_tb_spectrum(Topology::Type{<:AbstractTopology{2}}, Lx::Int, Ly::Int, t::Real)
     uc = get_unit_cell(Topology)
     nsub = length(uc.sublattice_positions)
     eigs = Float64[]
