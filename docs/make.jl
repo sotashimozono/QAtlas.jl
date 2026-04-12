@@ -66,11 +66,15 @@ makedocs(;
         ],
         "Methods" => [
             "methods/index.md",
-            "Transfer Matrix" => "methods/transfer-matrix/index.md",
-            "Bloch Hamiltonian" => "methods/bloch-hamiltonian/index.md",
-            "Exact Diagonalization" => "methods/exact-diagonalization/index.md",
-            "Automatic Differentiation" => "methods/automatic-differentiation/index.md",
-            "Calabrese-Cardy" => "methods/calabrese-cardy/index.md",
+            "Physical" => [
+                "Transfer Matrix" => "methods/transfer-matrix/index.md",
+                "Bloch Hamiltonian" => "methods/bloch-hamiltonian/index.md",
+                "Calabrese-Cardy" => "methods/calabrese-cardy/index.md",
+            ],
+            "Computational" => [
+                "Exact Diagonalization" => "methods/exact-diagonalization/index.md",
+                "Automatic Differentiation" => "methods/automatic-differentiation/index.md",
+            ],
         ],
     ],
 )
