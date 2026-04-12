@@ -22,11 +22,7 @@
 #      converge to the Infinite values, and the deviation shrinks with N.
 # =============================================================================
 
-
 # ---- ED helpers (small N only) ---------------------------------------------
-
-
-
 
 # Per-site thermodynamic averages from the dense spectrum at temperature β.
 function _ed_thermo(N, J, h, β)

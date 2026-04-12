@@ -11,11 +11,6 @@
 #      with the analytically known correlation length.
 # =============================================================================
 
-
-
-
-
-
 # Average of ⟨σᶻ_i σᶻ_{i+r}⟩ over a band of bulk r values, used as a
 # numerical estimate of the long-range plateau (in the ordered phase).
 function mean_far(N::Int, J::Float64, h::Float64, i0::Int)
