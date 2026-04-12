@@ -11,6 +11,14 @@
 
 **QAtlas** (QUAntum Reference Table for Exact Tests) is a Julia package providing a curated dictionary of **rigorous results** in quantum and statistical physics. Every stored value is traced to a specific publication and cross-validated against independent calculations.
 
+> **Status and Disclaimer**
+>
+> This package is under active development with AI-assisted code generation. While all stored values cite specific publications and are cross-checked against independent numerical computations (exact diagonalization, brute-force enumeration, automatic differentiation), **the maintainer has not personally verified every derivation in equal depth**.
+>
+> Results that the maintainer can independently derive and has verified line-by-line (TFIM exact solution, Onsager critical temperature, Yang magnetization, Heisenberg dimer) carry the highest confidence. Other results (tight-binding Bloch formulas for various lattices, numerical universality exponents transcribed from the literature, E8 mass ratios) are tested against independent computations but the underlying derivations have not been checked by hand.
+>
+> **If you use QAtlas values in a publication, please verify them against the cited original references.** If you find a discrepancy, please open an issue.
+
 ## Quick Start
 
 ```julia
