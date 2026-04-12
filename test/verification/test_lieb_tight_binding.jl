@@ -17,7 +17,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-
 const T_HOP = 1.0
 
 expected_zero_count(Lx, Ly) = Lx * Ly + (iseven(Lx) && iseven(Ly) ? 2 : 0)

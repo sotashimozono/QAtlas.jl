@@ -13,7 +13,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-
 @testset "Heisenberg dimer (N=2) — ED vs exact spectrum" begin
     # A 2-site OBC chain: build_lattice(Square, 2, 1) with OBC in y drops
     # the (0, 1) connection; only the single (1, 0) bond survives.

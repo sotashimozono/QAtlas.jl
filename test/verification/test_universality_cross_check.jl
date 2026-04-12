@@ -18,7 +18,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, ForwardDiff, Test
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. Yang magnetization → β = 1/8
 #

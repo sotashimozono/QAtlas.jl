@@ -19,7 +19,6 @@
 
 using QAtlas, Lattice2D, ForwardDiff, Test
 
-
 # log Z as a generic function of (β, J) so ForwardDiff.Dual propagates.
 function _log_Z_tm(Lx::Int, Ly::Int, β, J)
     return log(QAtlas.fetch(IsingSquare(), PartitionFunction(); Lx=Lx, Ly=Ly, β=β, J=J))

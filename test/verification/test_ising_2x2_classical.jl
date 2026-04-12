@@ -11,7 +11,6 @@
 
 using QAtlas, Lattice2D, Test
 
-
 const J_ISING = 1.0
 
 @testset "IsingSquare — transfer-matrix vs brute-force" begin

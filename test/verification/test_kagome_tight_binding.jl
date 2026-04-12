@@ -16,7 +16,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-
 const T_HOP = 1.0
 
 @testset "Kagome TB — real-space vs Bloch closed form" begin

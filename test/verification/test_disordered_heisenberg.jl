@@ -17,7 +17,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Random, Test
 
-
 """
     build_random_heisenberg(lat, J_bonds) -> Matrix{Float64}
 

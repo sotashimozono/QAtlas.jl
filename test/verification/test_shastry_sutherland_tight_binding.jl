@@ -14,7 +14,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-
 const T_HOP = 1.0
 
 @testset "ShastrySutherland TB — generic Bloch vs real-space ED" begin

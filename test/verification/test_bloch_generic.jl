@@ -13,7 +13,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-
 @testset "Generic Bloch TB vs hardcoded formulas" begin
     test_sizes = [(3, 3), (3, 4), (4, 4)]
 
