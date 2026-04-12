@@ -14,7 +14,7 @@ export Graphene, TightBindingSpectrum
 # with Lattice2D's topology types of the same name. Access them as
 # `QAtlas.Kagome()` / `QAtlas.Lieb()` / `QAtlas.Triangular()` in code
 # that also uses `Lattice2D`.
-export Heisenberg1D, ExactSpectrum
+export Heisenberg1D, ExactSpectrum, GroundStateEnergyDensity
 
 # --- Core Implementation ---
 include("core/alias.jl")

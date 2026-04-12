@@ -1,6 +1,12 @@
 ENV["GKSwstype"] = "100"
 
-using QAtlas, Test
+using QAtlas, Test, LinearAlgebra
+
+# Use all available BLAS threads for dense eigensolves (ED).
+# On multi-core machines this dramatically speeds up eigvals/eigen.
+const N_BLAS = min(Sys.CPU_THREADS, 64)
+BLAS.set_num_threads(N_BLAS)
+println("BLAS threads: $(BLAS.get_num_threads()) / $(Sys.CPU_THREADS) cores")
 const dirs = ["core/", "universalities/", "models/", "standalone/", "verification/"]
 
 const FIG_BASE = joinpath(pkgdir(QAtlas), "docs", "src", "assets")
