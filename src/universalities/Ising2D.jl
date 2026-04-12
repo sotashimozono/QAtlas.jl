@@ -1,10 +1,27 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Ising universality class — exact (d=2) and numerical (d=3) exponents
 #
-# References:
-#   d=2: Belavin, Polyakov, Zamolodchikov, Nucl. Phys. B 241, 333 (1984).
-#   d=3: Kos, Poland, Simmons-Duffin, Vichi, JHEP 08, 036 (2016)
-#         — conformal bootstrap bounds.
+# d=2 exponent provenance (each value individually sourced):
+#   α = 0  : Onsager (1944) Phys. Rev. 65, 117 — exact specific heat
+#            shows ln|T−Tc| divergence, hence α = 0.
+#   β = 1/8: Yang (1952) Phys. Rev. 85, 808 — spontaneous magnetization
+#            M(T) = (1−sinh⁻⁴(2βJ))^{1/8} gives β = 1/8 directly.
+#   γ = 7/4: Fisher (1964) J. Math. Phys. 5, 944 — susceptibility.
+#            Also follows from scaling relation γ = β(δ−1) = (1/8)(14).
+#   η = 1/4: Kadanoff (1966) Physics 2, 263; Fisher (1964) — anomalous
+#            dimension from correlation function G(r) ~ r^{-1/4} at Tc.
+#   δ = 15 : Derived from scaling relation δ = 1 + γ/β = 1 + 14 = 15.
+#            Independently verified via exact lattice calculations.
+#   ν = 1  : den Nijs (1979) J. Phys. A 12, 1857 — Coulomb gas mapping.
+#            Also follows from Josephson relation 2−α = dν → ν = 1 (d=2).
+#   c = 1/2: Belavin, Polyakov, Zamolodchikov (1984) Nucl. Phys. B 241,
+#            333 — the 2D Ising CFT is the minimal model M(3,4) with
+#            central charge c = 1/2.
+#
+# d=3 numerical provenance:
+#   All values from Kos, Poland, Simmons-Duffin, Vichi (2016) JHEP 08,
+#   036, Table 2 ("3d Ising" row) — conformal bootstrap rigorous bounds.
+#   These are currently the most precise known estimates.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Backward-compatible alias — delegates to Universality{:Ising} with d=2

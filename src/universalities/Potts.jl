@@ -4,9 +4,18 @@
 # The q-state Potts model generalizes the Ising model (q=2).
 # For d=2, exact exponents are known for q ≤ 4 via Coulomb gas / CFT.
 #
-# References:
-#   R. J. Baxter, "Exactly Solved Models in Statistical Mechanics" (1982).
-#   B. Nienhuis, J. Stat. Phys. 34, 731 (1984).
+# Exponent provenance (both q=3 and q=4):
+#   General Potts exponent formulas in terms of the Coulomb gas coupling g:
+#     den Nijs (1979) J. Phys. A 12, 1857.
+#     Nienhuis (1982) Phys. Rev. Lett. 49, 1062.
+#     Nienhuis (1984) J. Stat. Phys. 34, 731 — comprehensive review.
+#   The coupling g is related to q by q = 2 + 2cos(2πg).
+#     q=3: g = 5/6. q=4: g = 2/3 (marginal, logarithmic corrections).
+#   Critical temperature (exact):
+#     Baxter (1973) J. Phys. C 6, L445: T_c = J/ln(1 + √q).
+#   Textbook compilation:
+#     Baxter, "Exactly Solved Models in Statistical Mechanics" (1982),
+#     Ch. 12 (Potts model).
 # ─────────────────────────────────────────────────────────────────────────────
 
 """
