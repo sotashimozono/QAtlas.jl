@@ -28,11 +28,11 @@ quantum-classical mapping (1+1D quantum ↔ 2D classical).
 QAtlas supports three boundary conditions for the TFIM, each with
 different physical content:
 
-| BC | `fetch` argument | BdG size | Physical setting |
-| -- | ---------------- | -------- | ---------------- |
-| OBC | `OBC()` | $2N \times 2N$ (numerical) | Open chain, $N$ sites, $N-1$ bonds |
-| PBC | (not directly supported) | — | Ring of $N$ sites, $N$ bonds |
-| Infinite | `Infinite()` | $k$-integral | Thermodynamic limit, PBC $N \to \infty$ |
+| BC       | `fetch` argument         | BdG size                   | Physical setting                        |
+| -------- | ------------------------ | -------------------------- | --------------------------------------- |
+| OBC      | `OBC()`                  | $2N \times 2N$ (numerical) | Open chain, $N$ sites, $N-1$ bonds      |
+| PBC      | (not directly supported) | —                          | Ring of $N$ sites, $N$ bonds            |
+| Infinite | `Infinite()`             | $k$-integral               | Thermodynamic limit, PBC $N \to \infty$ |
 
 **OBC**: The BdG matrix is diagonalized numerically. Boundary effects
 include the Z₂ tunneling splitting in the ordered phase and the
@@ -77,10 +77,10 @@ at inverse temperature $\beta$ is:
 $$\langle H \rangle = -\sum_n \frac{\Lambda_n}{2} \tanh\!\left(\frac{\beta \Lambda_n}{2}\right)$$
 
 !!! note "Thermodynamic limit"
-    For PBC in the $N \to \infty$ limit, the quasiparticle dispersion
-    is $\Lambda(k) = 2\sqrt{J^2 + h^2 - 2Jh\cos k}$, and the energy
-    per site becomes a $k$-integral evaluated by Gauss-Kronrod
-    quadrature (QuadGK.jl).
+For PBC in the $N \to \infty$ limit, the quasiparticle dispersion
+is $\Lambda(k) = 2\sqrt{J^2 + h^2 - 2Jh\cos k}$, and the energy
+per site becomes a $k$-integral evaluated by Gauss-Kronrod
+quadrature (QuadGK.jl).
 
 ### References
 
@@ -89,7 +89,7 @@ $$\langle H \rangle = -\sum_n \frac{\Lambda_n}{2} \tanh\!\left(\frac{\beta \Lamb
 - E. Lieb, T. Schultz, D. Mattis, "Two Soluble Models of an
   Antiferromagnetic Chain", Ann. Phys. **16**, 407 (1961) — JW
   transformation for spin chains.
-- S. Sachdev, *Quantum Phase Transitions*, Cambridge University Press
+- S. Sachdev, _Quantum Phase Transitions_, Cambridge University Press
   (2011), Ch. 5 — pedagogical treatment.
 
 ### QAtlas API
@@ -107,10 +107,10 @@ E_β = QAtlas.fetch(:TFIM, :energy, OBC(); N=16, J=1.0, h=0.5, beta=2.0)
 
 ### Verification
 
-| Test file | Method | What is checked |
-|-----------|--------|-----------------|
-| `test_tfim_gap_closure.jl` | Dense ED via `build_tfim` | $E_0^{\text{ED}} = E_0^{\text{BdG}}$ for $N = 4, 6, 8$ |
-| `test_universality_cross_check.jl` | BdG at $N = 200$ | $E_0/N \to -4J/\pi$ at $h = J$ |
+| Test file                          | Method                    | What is checked                                        |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------ |
+| `test_tfim_gap_closure.jl`         | Dense ED via `build_tfim` | $E_0^{\text{ED}} = E_0^{\text{BdG}}$ for $N = 4, 6, 8$ |
+| `test_universality_cross_check.jl` | BdG at $N = 200$          | $E_0/N \to -4J/\pi$ at $h = J$                         |
 
 ---
 
@@ -121,11 +121,11 @@ E_β = QAtlas.fetch(:TFIM, :energy, OBC(); N=16, J=1.0, h=0.5, beta=2.0)
 At inverse temperature $\beta$ and for $N$ sites (OBC), the following
 quantities are computed from the BdG spectrum $\{\Lambda_n\}$:
 
-| Quantity | Formula | Symbol |
-|----------|---------|--------|
-| Free energy | $F = -\frac{1}{\beta}\sum_n \ln\!\left[2\cosh\!\left(\frac{\beta\Lambda_n}{2}\right)\right]$ | `:free_energy` |
-| Entropy | $S = \beta(\langle H \rangle - F)$ | `:entropy` |
-| Specific heat | $C_v = -\beta^2 \frac{\partial \langle H \rangle}{\partial \beta}$ | `:specific_heat` |
+| Quantity      | Formula                                                                                  | Symbol           |
+| ------------- | ---------------------------------------------------------------------------------------- | ---------------- |
+| Free energy   | $F = -\frac{1}{\beta}\sum_n \ln\left[2\cosh\left(\frac{\beta\Lambda_n}{2}\right)\right]$ | `:free_energy`   |
+| Entropy       | $S = \beta(\langle H \rangle - F)$                                                       | `:entropy`       |
+| Specific heat | $C_v = -\beta^2 \frac{\partial \langle H \rangle}{\partial \beta}$                       | `:specific_heat` |
 
 ### Derivation
 
@@ -139,7 +139,7 @@ thermodynamic quantities are obtained by appropriate $\beta$-derivatives.
 
 ### References
 
-- S. Sachdev, *Quantum Phase Transitions* (2011), Ch. 5.3.
+- S. Sachdev, _Quantum Phase Transitions_ (2011), Ch. 5.3.
 - QAtlas: `src/models/TFIM_thermal.jl` — full implementation.
 
 ### QAtlas API
@@ -152,8 +152,8 @@ Cv = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=16, J=1.0, h=0.5, beta=2.0)
 
 ### Verification
 
-| Test file | Method | What is checked |
-|-----------|--------|-----------------|
+| Test file              | Method                 | What is checked                                       |
+| ---------------------- | ---------------------- | ----------------------------------------------------- |
 | `test_TFIM_thermal.jl` | Dense ED ($N \leq 10$) | Exact match of $F$, $S$, $C_v$ against independent ED |
 
 ---
@@ -188,7 +188,7 @@ with dynamic exponent $z = 1$.
 ### References
 
 - P. Pfeuty, Ann. Phys. **57**, 79 (1970), Eq. (3.6).
-- S. Sachdev, *Quantum Phase Transitions* (2011), §5.5.
+- S. Sachdev, _Quantum Phase Transitions_ (2011), §5.5.
 
 ### QAtlas API
 
@@ -201,11 +201,11 @@ gap = minimum(Λ)
 
 ### Verification
 
-| Test file | Method | What is checked |
-|-----------|--------|-----------------|
-| `test_tfim_gap_closure.jl` | Dense ED ($N = 4$–$12$) | Gap shrinks with $N$ at $h = J$ |
-| `test_tfim_gap_closure.jl` | ED | Ordered-phase gap is Z₂ tunneling ($< 10^{-3}$ for $N=6$) |
-| `test_universality_cross_check.jl` | BdG ($N = 200$) | $\Delta \approx 2|h-J|$; $\nu z = 1$ from log-log regression |
+| Test file                          | Method                  | What is checked                                           |
+| ---------------------------------- | ----------------------- | --------------------------------------------------------- | --- | -------------------------------------- |
+| `test_tfim_gap_closure.jl`         | Dense ED ($N = 4$–$12$) | Gap shrinks with $N$ at $h = J$                           |
+| `test_tfim_gap_closure.jl`         | ED                      | Ordered-phase gap is Z₂ tunneling ($< 10^{-3}$ for $N=6$) |
+| `test_universality_cross_check.jl` | BdG ($N = 200$)         | $\Delta \approx 2                                         | h-J | $; $\nu z = 1$ from log-log regression |
 
 ---
 
@@ -227,14 +227,14 @@ procedure.
 ### Physical Context
 
 !!! note "Peschel method limitation"
-    The TFIM is a free-fermion system, so in principle $S(l)$ can be
-    computed in $O(N^3)$ via the Peschel correlation-matrix method.
-    However, QAtlas's $\sigma^z\sigma^z$ convention maps to free fermions
-    only after [Kramers-Wannier duality](../../calc/kramers-wannier-duality.md),
-    and the BdG eigenvectors give **dual-fermion** correlators, not
-    spin-basis correlators. QAtlas therefore uses full
-    [exact diagonalization](../../methods/exact-diagonalization/index.md)
-    for entanglement entropy.
+The TFIM is a free-fermion system, so in principle $S(l)$ can be
+computed in $O(N^3)$ via the Peschel correlation-matrix method.
+However, QAtlas's $\sigma^z\sigma^z$ convention maps to free fermions
+only after [Kramers-Wannier duality](../../calc/kramers-wannier-duality.md),
+and the BdG eigenvectors give **dual-fermion** correlators, not
+spin-basis correlators. QAtlas therefore uses full
+[exact diagonalization](../../methods/exact-diagonalization/index.md)
+for entanglement entropy.
 
 ### References
 
@@ -255,11 +255,11 @@ S_l = entanglement_entropy(ψ₀, l, N)
 
 ### Verification
 
-| Test file | Method | What is checked |
-|-----------|--------|-----------------|
+| Test file                             | Method             | What is checked                               |
+| ------------------------------------- | ------------------ | --------------------------------------------- |
 | `test_entanglement_central_charge.jl` | ED ($N = 10$–$16$) | $c_{\text{extracted}} \approx 0.5$ within 10% |
-| `test_entanglement_central_charge.jl` | ED | $S(l)$ symmetric, maximal at $l = N/2$ |
-| `test_entanglement_central_charge.jl` | ED ($h \gg J$) | Area law: $S \approx 0$ in disordered phase |
+| `test_entanglement_central_charge.jl` | ED                 | $S(l)$ symmetric, maximal at $l = N/2$        |
+| `test_entanglement_central_charge.jl` | ED ($h \gg J$)     | Area law: $S \approx 0$ in disordered phase   |
 
 ---
 
