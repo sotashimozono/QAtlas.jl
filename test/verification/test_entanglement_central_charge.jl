@@ -39,9 +39,12 @@ end
         c_exact = Float64(QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2).c)
         J = 1.0
 
-        # Multiple N for finite-size scaling of the extraction
+        # Multiple N for finite-size scaling of the extraction.
+        # N=16 requires 2^16 × 2^16 dense matrix (~32GB) but is feasible
+        # on machines with ≥64GB RAM and multi-threaded BLAS.
         cs_extracted = Dict{Int,Float64}()
-        for N in [10, 12, 14]
+        Ns_test = Sys.total_memory() > 50_000_000_000 ? [10, 12, 14, 16] : [10, 12, 14]
+        for N in Ns_test
             lat = build_lattice(Square, N, 1; boundary=OpenAxis())
             H = build_tfim(lat, J, J)
             ψ0 = eigen(Symmetric(H)).vectors[:, 1]
@@ -53,10 +56,12 @@ end
         end
 
         # Larger N gives better c (finite-size corrections decrease)
-        @test abs(cs_extracted[14] - c_exact) < abs(cs_extracted[10] - c_exact)
+        N_max = maximum(keys(cs_extracted))
+        @test abs(cs_extracted[N_max] - c_exact) < abs(cs_extracted[10] - c_exact)
 
-        # N=14 should be within 10% of c = 1/2
-        @test cs_extracted[14] ≈ c_exact rtol = 0.10
+        # Largest N should be within 10% of c = 1/2
+        # (N=16 should be even better, ~5%)
+        @test cs_extracted[N_max] ≈ c_exact rtol = 0.10
 
         # S(l) structural checks at N=12
         N = 12
