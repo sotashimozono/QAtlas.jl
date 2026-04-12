@@ -27,7 +27,52 @@ makedocs(;
         assets=["assets/favicon.ico", "assets/custom.css"],
     ),
     modules=[QAtlas],
-    pages=["Home" => "index.md"],
+    pages=[
+        "Home" => "index.md",
+        "Models" => [
+            "models/index.md",
+            "Classical" => [
+                "models/classical/index.md",
+                "Ising Square" => "models/classical/ising-square.md",
+            ],
+            "Quantum" => [
+                "models/quantum/index.md",
+                "TFIM" => "models/quantum/tfim.md",
+                "Heisenberg" => "models/quantum/heisenberg.md",
+                "Tight-Binding" => [
+                    "models/quantum/tightbinding/index.md",
+                    "Graphene" => "models/quantum/tightbinding/graphene.md",
+                    "Kagome" => "models/quantum/tightbinding/kagome.md",
+                    "Lieb" => "models/quantum/tightbinding/lieb.md",
+                    "Triangular" => "models/quantum/tightbinding/triangular.md",
+                ],
+            ],
+        ],
+        "Universality Classes" => [
+            "universalities/index.md",
+            "Ising" => "universalities/ising.md",
+            "Percolation" => "universalities/percolation.md",
+            "Potts" => "universalities/potts.md",
+            "KPZ" => "universalities/kpz.md",
+            "XY / Heisenberg" => "universalities/on-models.md",
+            "Mean-Field" => "universalities/mean-field.md",
+            "E8" => "universalities/e8.md",
+        ],
+        "Verification" => [
+            "verification/index.md",
+            "Cross-Checks" => "verification/cross-checks.md",
+            "Entanglement" => "verification/entanglement.md",
+            "Disordered" => "verification/disordered.md",
+        ],
+        "Methods" => [
+            "methods/index.md",
+            "Transfer Matrix" => "methods/transfer-matrix/index.md",
+            "Bloch Hamiltonian" => "methods/bloch-hamiltonian/index.md",
+            "Exact Diagonalization" => "methods/exact-diagonalization/index.md",
+            "Automatic Differentiation" => "methods/automatic-differentiation/index.md",
+            "Calabrese-Cardy" => "methods/calabrese-cardy/index.md",
+        ],
+    ],
 )
 
 deploydocs(; repo="github.com/sotashimozono/QAtlas.jl.git", devbranch="main")
