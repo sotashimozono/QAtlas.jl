@@ -22,11 +22,16 @@ include("core/type.jl")
 include("core/pfaffian.jl")
 
 # --- Universality Classes ---
-export Ising2D, KPZ1D, MeanField, CriticalExponents
+export Universality, CriticalExponents, GrowthExponents
+export Ising2D, KPZ1D, MeanField  # backward-compatible aliases
+include("universalities/Universality.jl")
 include("universalities/E8.jl")
+include("universalities/MeanField.jl")
 include("universalities/Ising2D.jl")
 include("universalities/KPZ.jl")
-include("universalities/MeanField.jl")
+include("universalities/Percolation.jl")
+include("universalities/Potts.jl")
+include("universalities/ONModel.jl")
 
 # --- Models ---
 include("models/TFIM.jl")
