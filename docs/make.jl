@@ -90,6 +90,9 @@ makedocs(;
             "Calabrese-Cardy OBC/PBC" => "calc/calabrese-cardy-obc-vs-pbc.md",
             "AD from ln Z" => "calc/ad-thermodynamics-from-z.md",
             "Scaling Relations" => "calc/ising-scaling-relations.md",
+            "Ising CFT Operators" => "calc/ising-cft-primary-operators.md",
+            "Ising CFT + σ → E8" => "calc/ising-cft-magnetic-perturbation.md",
+            "E8 Mass Derivation" => "calc/e8-mass-spectrum-derivation.md",
         ],
     ],
 )
