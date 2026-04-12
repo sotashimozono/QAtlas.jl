@@ -1,97 +1,161 @@
-# ロードマップ
+# Roadmap and Open Issues
 
-## 数値データ掲載方針
+## Remaining Issues
 
-数値結果を QAtlas に掲載する場合は以下を必須とする:
+### Physics accuracy of documentation
 
-1. 査読済み論文 or well-known preprint（arXiv）の明示的な reference
-2. 測定量・値・不確かさ・測定条件のセット記述
-3. 実験値か数値計算かの区別を明記
+The `docs/src/calc/` derivation notes provide overview-level arguments
+for each result. Several notes — especially around E8 and integrable
+field theory — describe **what** is true and **why** it matters, but
+do not contain the full calculation. Specific gaps:
 
-掲載例（将来）:
-```
-CoNb₂O₆ での E8 質量比 m₂/m₁
-  値: 1.619 ± 0.015（実験）
-  条件: 横磁場 Bc = 5.5T 近傍
-  出典: Coldea et al., Science 327, 177 (2010)
-```
+- `calc/e8-mass-spectrum-derivation.md`: the S-matrix bootstrap
+  equations are stated but not solved. The actual derivation requires
+  the CDD factor construction and minimal form factor program
+  (Zamolodchikov 1989, Fateev 1994).
+- `calc/ising-cft-magnetic-perturbation.md`: Zamolodchikov's proof
+  that 8 conserved charges survive the σ perturbation is cited but not
+  reproduced. This requires counting integrals of motion order by order
+  in perturbation theory.
+- `calc/yang-magnetization-toeplitz.md`: the Toeplitz determinant
+  evaluation via Szegő's theorem is described at a high level but the
+  asymptotic analysis is not shown.
 
-## 将来追加するモデル
+These are candidates for deeper `calc/` sub-notes when expertise is
+available.
 
-現在の主な関心モデルとその既知の厳密解:
+### Peschel method for σ^z σ^z TFIM
 
-| モデル | 解法 | 実装可能な物理量 | 優先度 |
-|--------|------|----------------|--------|
-| **KitaevChain** | JW + BdG（TFIM と同構造） | エネルギー、ギャップ、位相相境界、エッジモード | 高 |
-| **Heisenberg (XXX)** | Bethe ansatz | 基底状態エネルギー密度、スピン波速度 | 高 |
-| **XXZ** | Bethe ansatz | エネルギー、Luttinger 液体パラメータ | 中 |
-| **KitaevHoneycomb** | Kitaev (2006) の解析的解法 | 基底状態相図、ギャップ | 中 |
-| **TFIML (TFIM+L)** | QFT 摂動論（E8 との接続） | 質量ギャップの λ 依存性 | 中 |
-| **自由フェルミオン鎖** | 解析的 | 単粒子スペクトル、エンタングルメント | 低 |
+The BdG eigenvectors for the TFIM in the σ^z σ^z convention give
+**dual-fermion** correlators (Kramers-Wannier dual), not spin-basis
+correlators. Computing the spin-basis entanglement entropy via the
+Peschel correlation-matrix method requires proper handling of the
+duality boundary conditions.
 
-### KitaevChain の詳細
+Current workaround: full ED (O(2^N), N ≤ 16 with 128GB RAM).
 
-```
-H = -μ Σᵢ (cᵢ†cᵢ - 1/2) - t Σᵢ (cᵢ†cᵢ₊₁ + h.c.) - Δ Σᵢ (cᵢcᵢ₊₁ + h.c.)
-```
+Resolution path: implement the duality-aware Peschel method, or switch
+to the σ^x σ^x convention for the entanglement-specific code path.
 
-- TFIM と同じ JW + BdG 解法 → TFIM の実装を流用可能
-- トポロジカル相（\|μ\| < 2t, Δ≠0）でマヨラナエッジモードが出現
-- 位相相境界: \|μ\| = 2t（Δ≠0 のとき）
-- 参考: Kitaev, *Phys. Usp.* 44, 131 (2001)
+### Central charge extraction precision
 
-### KitaevHoneycomb の詳細
+Current: c = 1/2 within ~10% at N=14 (TFIM), c = 1 within ~20% at
+N=12 (Heisenberg, even-l filtering).
 
-```
-H = -Jₓ Σ_{x-links} σˣᵢσˣⱼ - Jᵧ Σ_{y-links} σʸᵢσʸⱼ - Jᵤ Σ_{z-links} σᶻᵢσᶻⱼ
-```
+The OBC Calabrese-Cardy formula already includes the log-sin finite-size
+correction. Remaining errors come from:
 
-- Majorana フェルミオン表示で厳密に解ける（2D）
-- 相図: A 相（トポロジカル）/ B 相（ギャップレス）
-- 参考: Kitaev, *Ann. Phys.* 321, 2 (2006)
+1. Lattice discretization (irrelevant operators, O(1/N))
+2. Boundary effects not captured by the strip conformal mapping
+3. For Heisenberg: SU(2) alternating corrections (-1)^l f(l)
 
-## 将来のサブモジュール案
+Potential improvements:
+- Use PBC chains (eliminate boundary corrections) — requires PBC ED or
+  fixing the Peschel method
+- Include subleading corrections in the fit model
+- Larger N via sparse Lanczos (ground state only)
 
-| モジュール | 内容 | 優先度 | 備考 |
-|-----------|------|--------|------|
-| **ExactDiag.jl** | 小 N の厳密対角化（参照値として） | 中 | QAtlas のテストに使える |
-| **QMC.jl** | 量子モンテカルロの数値結果 | 低 | reference 要件が高い |
+### Bond counting convention for small PBC lattices
 
-## API 設計の再検討
+Lattice2D's `bonds(lat)` double-counts bonds when Lx = 2 or Ly = 2
+with PBC (each edge is traversed in both directions). The transfer
+matrix and brute-force enumeration use the same convention, so results
+agree — but the effective coupling is doubled compared to larger
+lattices. This is documented but can surprise new contributors.
 
-現行設計: `Model{S}(params::Dict{Symbol,Any})`
+### Two API styles
 
-```julia
-fetch(:TFIM, :energy; J=1.0, h=0.5, beta=2.0)
-```
+The old `Model{:TFIM}` + `Quantity{:energy}` style and the new simple
+struct style (`IsingSquare()`, `Universality(:Ising)`) coexist. No
+immediate plan to unify, but new models should use the simple struct
+style. A future refactor could migrate TFIM/E8 to the new style.
 
-**検討中の代替案: 具体的構造体ベース**
+## Future Directions
 
-```julia
-# 各モデルが固有の struct を持つ
-struct TFIM <: AbstractModel
-    J::Float64
-    h::Float64
-end
+### Near-term (infrastructure exists)
 
-fetch(TFIM(J=1.0, h=0.5), :energy; beta=2.0)
-```
+**Sparse ED for larger N** (N = 18–22):
+- `build_tfim` and `build_spinhalf_heisenberg` currently produce dense
+  matrices. Sparse construction + iterative Lanczos (Arpack.jl or
+  KrylovKit.jl) would enable ground state computation at N ~ 20.
+- This would improve central charge extraction significantly
+  (c precision scales as 1/N).
+- Estimated effort: small (sparse matrix fill + `eigsolve` call).
 
-**メリット:**
-- パラメータの型チェックがコンパイル時に行われる
-- FiniteTemperature.jl の `TFIM`, `TFIML` との統一が容易
-- IDE の補完が効く
+**More universality classes from Wikipedia table**:
+- Directed percolation (d=1,2,3: numerical, d≥4: MF)
+- Self-avoiding walk (d=2: exact, d=3: numerical)
+- Conserved directed percolation (Manna class)
+- Tricritical Ising (c = 7/10)
+- These are all data-entry tasks with the `Universality{C}` framework.
 
-**デメリット:**
-- モデルごとに struct 定義が必要
-- 現行コードとの互換性が失われる
+**Finite-size scaling util** (`test/util/fss.jl`):
+- Systematic extraction of critical exponents from ED data at multiple
+  N values. Binder cumulant crossing, data collapse, etc.
+- Would make the universality cross-checks more rigorous.
 
-**TOML パラメータファイル連携（長期課題）:**
-configs/*.toml から直接 Model オブジェクトを生成できるようにすると、
-FiniteTemperature.jl のパイプラインと QAtlas の参照値比較が自動化できる。
+### Medium-term (requires new packages or significant work)
 
-```julia
-# 将来のイメージ
-spec = load_p1_spec("configs/phase1.toml")
-e_ref = fetch(spec.model, :energy; beta=spec.beta_max)
-```
+**ITensors.jl DMRG benchmarks**:
+- Compare DMRG ground state energy against QAtlas exact values
+  (Heisenberg Bethe ansatz, TFIM BdG).
+- Requires ITensors.jl as a test dependency.
+- Goal: QAtlas as the "ground truth" for tensor network benchmarks.
+
+**Disordered systems — quantitative IRFP**:
+- Extract c_eff = ln 2 from the random TFIM at the Fisher IRFP
+  with proper disorder averaging (100+ realizations, N ~ 14).
+- Random singlet phase of the Heisenberg chain: verify the
+  log-averaged correlation function exponent.
+- Harris criterion test: compare clean α to disorder relevance.
+
+**Anderson localization** (1D TB + random on-site potential):
+- All states localized in 1D (exact result).
+- Localization length ξ ∝ 1/W² for weak disorder.
+- Can use existing `build_tight_binding` + random diagonal.
+
+**Entanglement entropy for free fermions** (Peschel done right):
+- Implement the correlation-matrix method for the σ^x σ^x convention
+  TFIM (direct JW, no KW duality needed).
+- O(N³) computation enables N ~ 1000 for precise c extraction.
+
+### Long-term (research-level)
+
+**TFIM + longitudinal field (TFIML)**:
+- Numerical verification of E8 mass ratios on finite chains.
+- Requires computing the excitation spectrum (not just ground state)
+  of the TFIML Hamiltonian and identifying the 8 stable particles.
+- Connection to `src/universalities/E8.jl`.
+
+**2D models on Lattice2D**:
+- Classical Monte Carlo verification of Onsager T_c, Yang M(T) via
+  Lattice2DMonteCarlo.
+- Finite-size scaling of the Binder cumulant crossing → extract ν.
+- Requires fixing the Lattice2DMonteCarlo LatticeCore compat issue.
+
+**Bethe ansatz beyond ground state**:
+- XXZ chain: Luttinger liquid parameter K, spin-wave velocity.
+- Heisenberg: des Cloizeaux-Pearson dispersion ε(k) = (π/2)|sin k|.
+- Finite-temperature Bethe ansatz (TBA) for thermodynamic quantities.
+
+**Kitaev models**:
+- Kitaev chain (1D): topological phase boundary, Majorana edge modes.
+  Same BdG framework as TFIM.
+- Kitaev honeycomb (2D): exact Majorana solution, A/B phase diagram.
+  Requires 2D lattice Majorana implementation.
+
+**Detailed E8 derivation**:
+- Fill in the missing calculation steps in `calc/e8-mass-spectrum-derivation.md`:
+  bootstrap equation solution, CDD factors, minimal form factors.
+- Requires expertise in integrable field theory.
+
+## Development Practices
+
+- **Version bump**: patch per PR, minor for significant features.
+- **Testing**: 3-tier (standalone, verification, cross-verification).
+  Every `src/` value must have independent test verification.
+- **Documentation**: Zettelkasten `calc/` notes for derivations, linked
+  from model/method/universality pages.
+- **Citations**: each stored value traces to a specific paper + equation.
+- **BLAS threading**: `runtests.jl` sets `BLAS.set_num_threads(Sys.CPU_THREADS)`.
+- **Adaptive sizing**: ED tests use larger N when RAM > 50GB.

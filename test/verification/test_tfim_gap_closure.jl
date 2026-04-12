@@ -13,8 +13,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/spinhalf_ed.jl")
-
 @testset "TFIM — ED ground state vs BdG analytical" begin
     for N in [4, 6, 8]
         lat = build_lattice(Square, N, 1; boundary=OpenAxis())

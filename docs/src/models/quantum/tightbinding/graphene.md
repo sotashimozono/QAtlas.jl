@@ -46,7 +46,7 @@ $n \in \{0, \ldots, L_y - 1\}$.
 
 ### Derivation
 
-See **[Bloch Honeycomb Dispersion](../../calc/bloch-honeycomb-dispersion.md)**
+See **[Bloch Honeycomb Dispersion](../../../calc/bloch-honeycomb-dispersion.md)**
 for the full derivation of $|f(\mathbf{k})|^2$ from the unit-cell
 geometry.
 
@@ -96,5 +96,5 @@ exactly 4 zero eigenvalues.
   lattices, the honeycomb has no flat band -- both bands are fully
   dispersive.
 - **Methods**: Computed via the
-  [Bloch Hamiltonian](../../methods/bloch-hamiltonian/index.md)
+  [Bloch Hamiltonian](../../../methods/bloch-hamiltonian/index.md)
   method; the generic builder provides an independent cross-check.

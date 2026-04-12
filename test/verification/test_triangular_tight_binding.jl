@@ -18,8 +18,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/tight_binding.jl")
-
 const T_HOP = 1.0
 
 @testset "Triangular TB — real-space vs Bloch closed form" begin

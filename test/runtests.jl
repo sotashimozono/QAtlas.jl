@@ -1,6 +1,6 @@
 ENV["GKSwstype"] = "100"
 
-using QAtlas, Test, LinearAlgebra
+using QAtlas, Test, LinearAlgebra, Lattice2D, ForwardDiff, Random
 
 # Use all available BLAS threads for dense eigensolves (ED).
 # On multi-core machines this dramatically speeds up eigvals/eigen.
@@ -12,6 +12,13 @@ const dirs = ["core/", "universalities/", "models/", "standalone/", "verificatio
 const FIG_BASE = joinpath(pkgdir(QAtlas), "docs", "src", "assets")
 const PATHS = Dict()
 mkpath.(values(PATHS))
+
+# Load all test utilities ONCE to avoid method-overwrite warnings.
+include(joinpath(@__DIR__, "util", "classical_partition.jl"))
+include(joinpath(@__DIR__, "util", "tight_binding.jl"))
+include(joinpath(@__DIR__, "util", "spinhalf_ed.jl"))
+include(joinpath(@__DIR__, "util", "bloch.jl"))
+include(joinpath(@__DIR__, "util", "tfim_dense_ed.jl"))
 
 @testset "tests" begin
     test_args = copy(ARGS)

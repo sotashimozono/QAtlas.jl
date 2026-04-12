@@ -13,8 +13,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/spinhalf_ed.jl")
-
 @testset "Heisenberg 4-site PBC — ED vs exact spectrum" begin
     # 4-site PBC ring via Lattice2D: PBC in x, OBC in y (drops the
     # (0,1) connection since Ly = 1).

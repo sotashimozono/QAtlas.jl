@@ -17,8 +17,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Random, Test
 
-include("../util/spinhalf_ed.jl")
-
 """
     build_random_heisenberg(lat, J_bonds) -> Matrix{Float64}
 

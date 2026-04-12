@@ -10,9 +10,6 @@
 
 using QAtlas, Lattice2D, LinearAlgebra, Test
 
-include("../util/bloch.jl")
-include("../util/tight_binding.jl")
-
 const T_HOP = 1.0
 
 @testset "UnionJack TB — generic Bloch vs real-space ED" begin
