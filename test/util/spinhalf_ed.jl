@@ -116,3 +116,60 @@ function build_spinhalf_heisenberg(lat, J::Real)
     end
     return H
 end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Entanglement entropy
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    reduced_density_matrix(ψ, l, N) -> Matrix{Float64}
+
+Compute the reduced density matrix ρ_A = tr_B |ψ⟩⟨ψ| for the first
+`l` sites (subsystem A) of an `N`-site spin-1/2 state `ψ`.
+
+The state vector `ψ` has length 2^N (full Hilbert space). The result
+is a 2^l × 2^l density matrix.
+
+The Hilbert space is decomposed as H = H_A ⊗ H_B with dim_A = 2^l,
+dim_B = 2^(N−l). The state is reshaped into a (dim_A, dim_B) matrix
+and ρ_A = M M†.
+"""
+function reduced_density_matrix(ψ::AbstractVector, l::Int, N::Int)
+    @assert length(ψ) == 2^N
+    @assert 1 <= l < N
+    dim_A = 2^l
+    dim_B = 2^(N - l)
+    M = reshape(ψ, dim_A, dim_B)
+    return M * M'
+end
+
+"""
+    entanglement_entropy(ψ, l, N) -> Float64
+
+Von Neumann entanglement entropy S(l) = −tr(ρ_A ln ρ_A) for the
+bipartition of an N-site state ψ into subsystem A (sites 1:l) and
+subsystem B (sites l+1:N).
+
+For a critical 1D system of length N with OBC, the Calabrese-Cardy
+formula predicts:
+
+    S(l) = (c/3) ln[(2N/π) sin(πl/N)] + const
+
+where c is the central charge. This formula enables extraction of c
+from a single ground-state wavefunction by fitting S(l) vs l.
+
+# References
+    P. Calabrese, J. Cardy, "Entanglement entropy and quantum field
+    theory", J. Stat. Mech. 0406, P06002 (2004).
+"""
+function entanglement_entropy(ψ::AbstractVector, l::Int, N::Int)
+    ρ = reduced_density_matrix(ψ, l, N)
+    λs = eigvals(Hermitian(ρ))
+    S = 0.0
+    for λ in λs
+        if λ > 1e-15
+            S -= λ * log(λ)
+        end
+    end
+    return S
+end
