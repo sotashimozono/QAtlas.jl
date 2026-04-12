@@ -4,14 +4,15 @@
 
 The one-dimensional transverse-field Ising model is one of the simplest
 quantum many-body systems exhibiting a quantum phase transition. It is
-exactly solvable via Jordan-Wigner transformation followed by
-Bogoliubov-de Gennes (BdG) diagonalization.
+exactly solvable via [Jordan-Wigner transformation](../../methods/jordan-wigner/index.md)
+followed by Bogoliubov-de Gennes (BdG) diagonalization.
 
 $$H = -J \sum_{i} \sigma^z_i \sigma^z_{i+1} - h \sum_{i} \sigma^x_i$$
 
 **Parameters**: Ising coupling $J$ (default 1.0), transverse field $h$.
 
 **Phase diagram**:
+
 - $h/J < 1$: Ferromagnetic ordered phase ($\langle \sigma^z \rangle \neq 0$)
 - $h/J = 1$: Quantum critical point ([Ising CFT, $c = 1/2$](../../universalities/ising.md))
 - $h/J > 1$: Quantum paramagnetic phase ($\langle \sigma^z \rangle = 0$)
@@ -19,6 +20,28 @@ $$H = -J \sum_{i} \sigma^z_i \sigma^z_{i+1} - h \sum_{i} \sigma^x_i$$
 **Universality**: The critical point belongs to the
 [2D Ising universality class](../../universalities/ising.md) via the
 quantum-classical mapping (1+1D quantum ↔ 2D classical).
+
+---
+
+## Boundary Conditions
+
+QAtlas supports three boundary conditions for the TFIM, each with
+different physical content:
+
+| BC | `fetch` argument | BdG size | Physical setting |
+| -- | ---------------- | -------- | ---------------- |
+| OBC | `OBC()` | $2N \times 2N$ (numerical) | Open chain, $N$ sites, $N-1$ bonds |
+| PBC | (not directly supported) | — | Ring of $N$ sites, $N$ bonds |
+| Infinite | `Infinite()` | $k$-integral | Thermodynamic limit, PBC $N \to \infty$ |
+
+**OBC**: The BdG matrix is diagonalized numerically. Boundary effects
+include the Z₂ tunneling splitting in the ordered phase and the
+boundary energy correction $O(1/N)$ at criticality. See
+[gap analysis](#energy-gap-and-quantum-phase-transition) for details.
+
+**Infinite**: The quasiparticle dispersion
+$\Lambda(k) = 2\sqrt{J^2 + h^2 - 2Jh\cos k}$ is integrated over
+the Brillouin zone using Gauss-Kronrod quadrature (QuadGK.jl).
 
 ---
 
@@ -37,20 +60,19 @@ $$\langle H \rangle(\beta) = -\sum_{n=1}^{N} \frac{\Lambda_n}{2} \tanh\!\left(\f
 
 ### Derivation
 
-The Jordan-Wigner transformation maps the spin chain to spinless
-fermions. In the resulting quadratic Hamiltonian, the BdG matrix is
+The TFIM is solved exactly via the
+[Jordan-Wigner transformation](../../methods/jordan-wigner/index.md),
+which maps the spin chain to free fermions after a
+[Kramers-Wannier duality](../../calc/kramers-wannier-duality.md) step.
+The full derivation — including why the duality is needed for the
+$\sigma^z\sigma^z$ convention and the explicit construction of the
+BdG matrix — is given in the calculation note
+**[JW-TFIM-BdG](../../calc/jw-tfim-bdg.md)**.
 
-$$H_{\text{BdG}} = \begin{pmatrix} A & B \\ -B & -A \end{pmatrix}$$
-
-where $A$ is a tridiagonal symmetric matrix ($A_{ii} = 2h$,
-$A_{i,i+1} = -J$) and $B$ is antisymmetric ($B_{i,i+1} = J$,
-$B_{i+1,i} = -J$). The matrix $H_{\text{BdG}}$ is real symmetric
-(despite appearances — see [Transfer Matrix: derivation](../../methods/transfer-matrix/derivation.md)
-for the proof). Its eigenvalues come in $\pm\Lambda_n$ pairs, and the
-positive eigenvalues $\Lambda_n > 0$ are the quasiparticle energies.
-
-The total energy at inverse temperature $\beta$ follows from the
-free-fermion partition function:
+The result is a $2N \times 2N$ real symmetric BdG matrix whose
+eigenvalues come in $\pm\Lambda_n$ pairs. The positive eigenvalues
+$\Lambda_n > 0$ are the quasiparticle energies, and the total energy
+at inverse temperature $\beta$ is:
 
 $$\langle H \rangle = -\sum_n \frac{\Lambda_n}{2} \tanh\!\left(\frac{\beta \Lambda_n}{2}\right)$$
 
@@ -193,36 +215,31 @@ gap = minimum(Λ)
 
 At the critical point $h = J$, the entanglement entropy of a
 subsystem of $l$ consecutive sites in an $N$-site OBC chain obeys
-the Calabrese-Cardy formula:
+the [Calabrese-Cardy formula](../../methods/calabrese-cardy/index.md):
 
 $$S(l) = \frac{c}{6}\ln\!\left[\frac{2N}{\pi}\sin\!\left(\frac{\pi l}{N}\right)\right] + s_1$$
 
-with central charge $c = 1/2$ (Ising CFT).
+with central charge $c = 1/2$ (Ising CFT). See the
+[Calabrese-Cardy method page](../../methods/calabrese-cardy/index.md)
+for the general formula, OBC vs PBC prefactors, and extraction
+procedure.
 
 ### Physical Context
 
-!!! warning "OBC prefactor"
-    For **OBC** the prefactor is $c/6$ (one entanglement cut), not
-    $c/3$ (PBC, two cuts). Using the wrong prefactor halves the
-    extracted $c$.
-
-!!! note "Peschel method"
-    The TFIM is a free-fermion system, so in principle the entanglement
-    entropy can be computed in $O(N^3)$ time via the Peschel
-    correlation-matrix method (Peschel, 2003). However, the QAtlas
-    TFIM uses the $\sigma^z\sigma^z$ convention, which maps to free
-    fermions only after a Kramers-Wannier duality. The BdG
-    eigenvectors give the **dual-fermion** correlation matrix, not
-    the spin-basis correlators. Correct spin-basis Peschel requires
-    handling the duality boundary conditions — this is a known
-    limitation and is deferred to future work.
+!!! note "Peschel method limitation"
+    The TFIM is a free-fermion system, so in principle $S(l)$ can be
+    computed in $O(N^3)$ via the Peschel correlation-matrix method.
+    However, QAtlas's $\sigma^z\sigma^z$ convention maps to free fermions
+    only after [Kramers-Wannier duality](../../calc/kramers-wannier-duality.md),
+    and the BdG eigenvectors give **dual-fermion** correlators, not
+    spin-basis correlators. QAtlas therefore uses full
+    [exact diagonalization](../../methods/exact-diagonalization/index.md)
+    for entanglement entropy.
 
 ### References
 
-- P. Calabrese, J. Cardy, "Entanglement entropy and quantum field
-  theory", J. Stat. Mech. **0406**, P06002 (2004), Eq. (19) (OBC).
-- I. Peschel, "Calculation of reduced density matrices from
-  correlation functions", J. Phys. A **36**, L205 (2003).
+- P. Calabrese, J. Cardy, J. Stat. Mech. **0406**, P06002 (2004), Eq. (19).
+- I. Peschel, J. Phys. A **36**, L205 (2003).
 
 ### QAtlas API
 

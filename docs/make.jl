@@ -69,12 +69,18 @@ makedocs(;
             "Physical" => [
                 "Transfer Matrix" => "methods/transfer-matrix/index.md",
                 "Bloch Hamiltonian" => "methods/bloch-hamiltonian/index.md",
+                "Jordan-Wigner" => "methods/jordan-wigner/index.md",
                 "Calabrese-Cardy" => "methods/calabrese-cardy/index.md",
             ],
             "Computational" => [
                 "Exact Diagonalization" => "methods/exact-diagonalization/index.md",
                 "Automatic Differentiation" => "methods/automatic-differentiation/index.md",
             ],
+        ],
+        "Derivation Notes" => [
+            "JW → TFIM BdG" => "calc/jw-tfim-bdg.md",
+            "Kramers-Wannier Duality" => "calc/kramers-wannier-duality.md",
+            "Transfer Matrix Split" => "calc/transfer-matrix-symmetric-split.md",
         ],
     ],
 )
