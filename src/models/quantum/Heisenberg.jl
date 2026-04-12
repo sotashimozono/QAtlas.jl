@@ -103,3 +103,58 @@ function fetch(::Heisenberg1D, ::ExactSpectrum; N::Int, J::Real=1.0, bc::Symbol=
         "are implemented; got (N=$N, bc=$bc).",
     )
 end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Dispatch tag + fetch: Bethe ansatz ground-state energy density
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    GroundStateEnergyDensity
+
+Dispatch tag for the ground-state energy per site in the thermodynamic
+limit (N → ∞).
+"""
+struct GroundStateEnergyDensity end
+
+"""
+    fetch(::Heisenberg1D, ::GroundStateEnergyDensity; J=1.0) -> Float64
+
+Exact ground-state energy per site of the spin-1/2 antiferromagnetic
+Heisenberg chain in the thermodynamic limit (N → ∞, PBC):
+
+    e₀ = J (1/4 − ln 2) ≈ −0.4431 J
+
+This is one of the earliest and most celebrated results of the Bethe
+ansatz. The derivation proceeds by solving the Bethe equations for the
+ground state of
+
+    H = J Σᵢ Sᵢ · Sᵢ₊₁
+
+in the limit N → ∞, yielding a linear integral equation for the
+rapidity distribution whose solution gives the energy via integration.
+
+# Finite-size corrections
+
+For a PBC chain of N sites, the ground-state energy density approaches
+e₀ with corrections of order 1/N² (logarithmic corrections also
+present):
+
+    E₀(N)/N = e₀ + O(1/N²)
+
+See `test/verification/test_universality_cross_check.jl` for a
+finite-size extrapolation verification using ED at N = 4, 6, 8.
+
+# Arguments
+- `J::Real`: Heisenberg coupling constant (default 1.0; J > 0 AFM)
+
+# References
+    H. Bethe, "Zur Theorie der Metalle. I. Eigenwerte und Eigenfunktionen
+      der linearen Atomkette", Z. Physik 71, 205–226 (1931) — original
+      Bethe ansatz solution.
+    L. Hulthén, "Über das Austauschproblem eines Kristalles",
+      Ark. Mat. Astron. Fys. 26A, No. 11, 1–106 (1938) — first
+      evaluation of e₀ = 1/4 − ln 2 from the Bethe equations.
+"""
+function fetch(::Heisenberg1D, ::GroundStateEnergyDensity; J::Real=1.0)
+    return J * (1 // 4 - log(2))
+end
