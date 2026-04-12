@@ -38,6 +38,50 @@ function embed_two_site(A::AbstractMatrix, B::AbstractMatrix, i::Int, j::Int, N:
 end
 
 """
+    embed_single_site(A, i, N) -> Matrix{Float64}
+
+Embed a single-site operator `A` (2×2) on site `i` into the full 2^N
+Hilbert space of `N` spin-1/2 sites. All other sites carry identity.
+"""
+function embed_single_site(A::AbstractMatrix, i::Int, N::Int)
+    @assert 1 <= i <= N "site index out of range"
+    left = Matrix{Float64}(I, 2^(i - 1), 2^(i - 1))
+    right = Matrix{Float64}(I, 2^(N - i), 2^(N - i))
+    return kron(kron(left, A), right)
+end
+
+"""
+    build_tfim(lat, J, h) -> Matrix{Float64}
+
+Construct the full 2^N × 2^N dense Hamiltonian of the 1D transverse-field
+Ising model
+
+    H = -J Σ_{⟨i,j⟩} σᶻ_i σᶻ_j  -  h Σ_i σˣ_i
+
+on the lattice `lat`. The Ising interaction iterates over `bonds(lat)`;
+the transverse field acts on all `num_sites(lat)` sites.
+
+Uses Pauli matrices (σᶻ, σˣ) directly — the resulting matrix is real
+symmetric.
+"""
+function build_tfim(lat, J::Real, h::Real)
+    N = num_sites(lat)
+    dim = 2^N
+    H = zeros(Float64, dim, dim)
+
+    σz = [1.0 0.0; 0.0 -1.0]
+    σx = [0.0 1.0; 1.0 0.0]
+
+    for b in bonds(lat)
+        H .-= J * embed_two_site(σz, σz, b.i, b.j, N)
+    end
+    for i in 1:N
+        H .-= h * embed_single_site(σx, i, N)
+    end
+    return H
+end
+
+"""
     build_spinhalf_heisenberg(lat, J) -> Matrix{Float64}
 
 Construct the full 2^N × 2^N dense Hamiltonian of the spin-1/2
