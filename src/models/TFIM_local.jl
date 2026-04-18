@@ -33,11 +33,7 @@ covariance as `Σ[2i-1, 2i]`.
 `beta = Inf` falls back to the ground state.
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:magnetization_x_local},
-    ::OBC;
-    beta::Float64,
-    kwargs...,
+    model::Model{:TFIM}, ::Quantity{:magnetization_x_local}, ::OBC; beta::Float64, kwargs...
 )
     N = Int(model.params[:N])
     J = Float64(model.params[:J])
@@ -58,11 +54,7 @@ explicit zero vector so consumers can use it as an exact baseline against
 finite random-sample estimates that fluctuate around zero.
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:magnetization_z_local},
-    ::OBC;
-    beta::Float64,
-    kwargs...,
+    model::Model{:TFIM}, ::Quantity{:magnetization_z_local}, ::OBC; beta::Float64, kwargs...
 )
     N = Int(model.params[:N])
     return zeros(Float64, N)
@@ -83,11 +75,7 @@ Bond expectations are read off as `Σ(β)[2i, 2i+1]` from the Majorana thermal
 covariance (exact, O(N) after the single 2N×2N diagonalisation).
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:energy_local},
-    ::OBC;
-    beta::Float64,
-    kwargs...,
+    model::Model{:TFIM}, ::Quantity{:energy_local}, ::OBC; beta::Float64, kwargs...
 )
     N = Int(model.params[:N])
     J = Float64(model.params[:J])

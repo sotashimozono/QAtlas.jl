@@ -42,9 +42,7 @@
             )
             @test mz_loc == zeros(Float64, N)
 
-            ε_loc = QAtlas.fetch(
-                :TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β
-            )
+            ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
             @test ε_loc isa Vector{Float64}
             @test length(ε_loc) == N
 
@@ -60,9 +58,7 @@
     @testset "bond extraction vs Pfaffian correlator" begin
         N, J, h, β = 8, 1.0, 1.2, 1.0
         ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
-        mx_loc = QAtlas.fetch(
-            :TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β
-        )
+        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
         C = QAtlas.fetch(:TFIM, :zz_static_thermal, OBC(); N=N, J=J, h=h, beta=β)
 
         # ε_i reconstructed from the Pfaffian nearest-neighbour correlator.
@@ -80,9 +76,7 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "per-site ED comparison (N = 4)" begin
         N, J, h, β = 4, 1.0, 0.8, 1.3
-        mx_loc = QAtlas.fetch(
-            :TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β
-        )
+        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
         ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
 
         H = _build_tfim_dense(N, J, h)
@@ -117,9 +111,7 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "β → 0 limit" begin
         N, J, h, β = 10, 1.0, 1.0, 1e-8
-        mx_loc = QAtlas.fetch(
-            :TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β
-        )
+        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
         ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
         @test maximum(abs, mx_loc) < 1e-6
         @test maximum(abs, ε_loc) < 1e-6
@@ -132,9 +124,7 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "profile symmetry" begin
         N, J, h, β = 16, 1.0, 1.5, 1.5
-        mx_loc = QAtlas.fetch(
-            :TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β
-        )
+        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
         ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
 
         # Reflection symmetry about the centre (OBC chain is invariant under
