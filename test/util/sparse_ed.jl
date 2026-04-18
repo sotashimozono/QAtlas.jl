@@ -26,9 +26,7 @@ Sparse analogue of `embed_two_site` (see `spinhalf_ed.jl`): embeds
 Pauli-like operators the result has O(2^N) non-zeros rather than the
 dense 2^N × 2^N.
 """
-function embed_two_site_sparse(
-    A::AbstractMatrix, B::AbstractMatrix, i::Int, j::Int, N::Int
-)
+function embed_two_site_sparse(A::AbstractMatrix, B::AbstractMatrix, i::Int, j::Int, N::Int)
     @assert 1 <= i <= N && 1 <= j <= N "site indices out of range"
     @assert i != j "two-site embed requires distinct sites"
     if i > j
