@@ -1,6 +1,7 @@
 ENV["GKSwstype"] = "100"
 
 using QAtlas, Test, LinearAlgebra, Lattice2D, ForwardDiff, Random
+using SparseArrays, KrylovKit
 
 # Use all available BLAS threads for dense eigensolves (ED).
 # On multi-core machines this dramatically speeds up eigvals/eigen.
@@ -17,6 +18,7 @@ mkpath.(values(PATHS))
 include(joinpath(@__DIR__, "util", "classical_partition.jl"))
 include(joinpath(@__DIR__, "util", "tight_binding.jl"))
 include(joinpath(@__DIR__, "util", "spinhalf_ed.jl"))
+include(joinpath(@__DIR__, "util", "sparse_ed.jl"))
 include(joinpath(@__DIR__, "util", "bloch.jl"))
 include(joinpath(@__DIR__, "util", "tfim_dense_ed.jl"))
 
