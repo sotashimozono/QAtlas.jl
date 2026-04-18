@@ -68,6 +68,17 @@ end
     :S_zz, :Szz, :static_structure_factor
 ]
 
+# Site-local (Vector-valued) thermal observables — TFIM_local.jl
+@register_aliases canonicalize_quantity :magnetization_x_local [
+    :mx_local, :Mx_local, :transverse_magnetization_local, :sx_local
+]
+@register_aliases canonicalize_quantity :magnetization_z_local [
+    :mz_local, :Mz_local, :longitudinal_magnetization_local, :sz_local
+]
+@register_aliases canonicalize_quantity :energy_local [
+    :E_local, :energy_density_local, :local_energy
+]
+
 # Model Aliases
 @register_aliases canonicalize_model :TFIM [
     :TransverseFieldIsingModel, :transverseFieldIsingModel
