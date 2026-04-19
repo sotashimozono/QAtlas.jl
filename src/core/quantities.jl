@@ -282,12 +282,28 @@ with U(1) symmetry (e.g. XXZ in the critical regime `|Δ| < 1`).
 struct LuttingerParameter <: AbstractQuantity end
 
 """
-    SpinWaveVelocity() <: AbstractQuantity
+    SoundVelocity() <: AbstractQuantity
 
-Spin-wave velocity `v_s`.  Appears as the prefactor of the linear
-dispersion at low momentum for massless 1D chains.
+Velocity of the low-energy linear-dispersion mode.  Same physical
+quantity regardless of the underlying degrees of freedom, although
+the community-specific name differs:
+
+- **spin chains** (XXZ, XY, Heisenberg in the critical regime): this
+  is the *spin-wave velocity* `v_s`.
+- **fermionic systems** (tight-binding, TFIM Majorana mode at the
+  critical field): this is the *Fermi velocity* `v_F = ∂ε/∂k` at the
+  Fermi point.
+- **Luttinger liquids** (bosonized 1D critical chains): this is the
+  *Luttinger velocity* `u` (a.k.a. `v_{LL}` or the renormalised
+  sound velocity).
+- **bosonic / hydrodynamic systems** (phonons, superfluids): this is
+  the *sound velocity* `c_s`.
+
+QAtlas returns a single scalar `Float64` and treats all four labels as
+aliases for the same quantity — the call site is responsible for
+knowing which physical interpretation applies to its model.
 """
-struct SpinWaveVelocity <: AbstractQuantity end
+struct SoundVelocity <: AbstractQuantity end
 
 """
     E8Spectrum() <: AbstractQuantity
