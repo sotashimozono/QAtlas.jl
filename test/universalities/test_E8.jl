@@ -61,14 +61,7 @@
     @testset "Tabulated decimal values (Delfino 2004, eq. 4.14)" begin
         masses = QAtlas.fetch(E8(), E8Spectrum(), Infinite())
         expected = [
-            1.000000,
-            1.618034,
-            1.989044,
-            2.404867,
-            2.956295,
-            3.218340,
-            3.891157,
-            4.783386,
+            1.000000, 1.618034, 1.989044, 2.404867, 2.956295, 3.218340, 3.891157, 4.783386
         ]
         for i in 1:8
             @test masses[i] ≈ expected[i] atol = 1e-5
