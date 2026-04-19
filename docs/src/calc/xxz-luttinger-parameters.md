@@ -190,7 +190,7 @@ $$\cosh(2\gamma\lambda) - \cos(n\gamma)
 
 The residue of $g$ at $\lambda_0^{-}$ is therefore
 
-$$\operatorname{Res}_{\lambda_0^{-}}\!g
+$$\mathrm{Res}_{\lambda_0^{-}}\!g
  = \frac{e^{-i\omega\lambda_0^{-}}}{-2 i\gamma\sin(n\gamma)}
  = \frac{e^{-\omega n/2}}{-2 i\gamma\sin(n\gamma)}.$$
 

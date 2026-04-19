@@ -193,7 +193,7 @@ $$E_{\pm}(\mathbf{k}) \;=\; \pm\,|f(\mathbf{k})|.
 The eigenvalues are symmetric about $E = 0$ for every
 $\mathbf{k}$ — this is the chiral / sublattice symmetry
 $\sigma^z H(\mathbf{k})\sigma^z = -H(\mathbf{k})$ with $\sigma^z =
-\operatorname{diag}(1, -1)$ acting in the $A/B$ basis.
+\mathrm{diag}(1, -1)$ acting in the $A/B$ basis.
 
 ### Step 3 — Expand $|f(\mathbf{k})|^2$
 
@@ -356,10 +356,10 @@ $$\alpha^{*}\,\beta = \bigl(\tfrac{3\sqrt{3}}{4} + i\tfrac{3}{4}\bigr)
  + i\tfrac{9}{16} + i^2\,\tfrac{9\sqrt{3}}{16}
  = 0 + i\,\tfrac{36}{16} = i\,\tfrac{9}{4},$$
 
-so $2\operatorname{Re}(\alpha^{*}\beta) = 0$. Therefore
+so $2\mathrm{Re}(\alpha^{*}\beta) = 0$. Therefore
 
 $$|\alpha\,q_x + \beta\,q_y|^2
- = |\alpha|^2\,q_x^2 + 2\operatorname{Re}(\alpha^{*}\beta)\,q_x q_y
+ = |\alpha|^2\,q_x^2 + 2\mathrm{Re}(\alpha^{*}\beta)\,q_x q_y
    + |\beta|^2\,q_y^2
  = \tfrac{9}{4}\,(q_x^2 + q_y^2) = \tfrac{9}{4}\,|\mathbf{q}|^2,$$
 
