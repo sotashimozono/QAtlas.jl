@@ -17,12 +17,11 @@ using Aqua
         ambiguities=false,
         deps_compat=true,
         stale_deps=true,
-        # TODO(v0.13 API redesign): re-enable `undocumented_names=true` once
-        # every public struct has a dedicated docstring.  At the time of
-        # writing this check flags `Infinite`, `OBC`, `PBC`, `Ising2D`,
-        # `KPZ1D`, `Model`, `Quantity` — all of which are being rewritten
-        # as part of the API redesign.
-        undocumented_names=false,
+        # Re-enabled in v0.13.5 after every public struct got a
+        # dedicated docstring. Keeps the public-API surface honest:
+        # adding a new `export X` without a docstring for `X` now
+        # fails CI.
+        undocumented_names=true,
         persistent_tasks=false,
         piracies=true,
         unbound_args=true,

@@ -10,10 +10,27 @@
 #   T. Sasamoto, H. Spohn, Nucl. Phys. B 834, 523 (2010).
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Backward-compatible alias — previously a bare struct tag; now
-# subtyped to `AbstractQAtlasModel` so dispatch composes with the new
-# top-level `fetch(::AbstractQAtlasModel, ::AbstractQuantity, ::BC)`
-# canonical signature.
+"""
+    KPZ1D <: AbstractQAtlasModel
+
+Dispatch tag for the **1+1-dimensional** KPZ (Kardar–Parisi–Zhang)
+universality class. Acts as a convenience wrapper over
+`Universality(:KPZ)` with the dimension pinned to `d = 1`:
+
+```julia
+QAtlas.fetch(KPZ1D(), CriticalExponents())
+# ≡ QAtlas.fetch(Universality(:KPZ), GrowthExponents(); d = 1)
+```
+
+The struct is kept as a distinct nominal type (rather than
+`const KPZ1D = Universality{:KPZ}`) because the dimension is fixed
+here — a type-level alias would defeat that fix. Subtyped to
+`AbstractQAtlasModel` so dispatch composes with the canonical
+`fetch(::AbstractQAtlasModel, ::AbstractQuantity, ::BoundaryCondition)`
+signature.
+
+See also: [`Universality`](@ref), [`GrowthExponents`](@ref).
+"""
 struct KPZ1D <: AbstractQAtlasModel end
 function fetch(::KPZ1D, ::CriticalExponents; kwargs...)
     return fetch(Universality(:KPZ), GrowthExponents(); d=1, kwargs...)
