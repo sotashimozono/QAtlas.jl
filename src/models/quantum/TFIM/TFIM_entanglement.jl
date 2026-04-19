@@ -83,7 +83,7 @@ matrix method — see equation (1) in the file header.
 The result matches the full-ED reference at every small `N` (verified
 to 1e-10 in `test/models/test_TFIM_entanglement.jl`).
 
-See full derivation: [JW reduction of the TFIM](../../../../docs/src/calc/jw-tfim-bdg.md).
+See full derivation in `docs/src/calc/jw-tfim-bdg.md`.
 """
 function fetch(
     model::TFIM, ::VonNeumannEntropy, bc::OBC; ℓ::Int, beta::Float64=Inf, kwargs...
