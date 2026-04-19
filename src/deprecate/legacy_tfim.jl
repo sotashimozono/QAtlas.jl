@@ -80,3 +80,54 @@ for (qsym, QTy) in _LEGACY_TFIM_LOCAL_MAP
         return fetch(_tfim_from_legacy_model(m), $QTy(), _bc_with_legacy_N(bc, m); kwargs...)
     end
 end
+
+# ── Dynamics / correlators / structure factors (TFIM_dynamics.jl) ──────
+# These use parametric ZZCorrelation{:mode} dispatch in the new API.
+function fetch(m::Model{:TFIM}, ::Quantity{:sz_sz_correlation}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m),
+        ZZCorrelation{:dynamic}(),
+        _bc_with_legacy_N(bc, m);
+        kwargs...,
+    )
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:sx_sx_correlation}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m),
+        XXCorrelation{:dynamic}(),
+        _bc_with_legacy_N(bc, m);
+        kwargs...,
+    )
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:sz_sz_spreading}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m),
+        ZZCorrelation{:lightcone}(),
+        _bc_with_legacy_N(bc, m);
+        kwargs...,
+    )
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:zz_static_thermal}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m),
+        ZZCorrelation{:static}(),
+        _bc_with_legacy_N(bc, m);
+        kwargs...,
+    )
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:zz_structure_factor}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m),
+        ZZStructureFactor(),
+        _bc_with_legacy_N(bc, m);
+        kwargs...,
+    )
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:longitudinal_susceptibility}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m),
+        SusceptibilityZZ(),
+        _bc_with_legacy_N(bc, m);
+        kwargs...,
+    )
+end

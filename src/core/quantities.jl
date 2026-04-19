@@ -190,10 +190,11 @@ struct SusceptibilityZZ <: AbstractQuantity end
 # methods should error explicitly for unsupported modes.
 
 """
-    ZZCorrelation(; mode::Symbol = :static) <: AbstractQuantity
+    ZZCorrelation{M}() <: AbstractQuantity
+    ZZCorrelation(; mode::Symbol = :static)
 
-Real-space 2-point correlator `⟨σᶻ_i σᶻ_j⟩` (or its connected /
-dynamic / light-cone variant selected by `mode`).
+Real-space 2-point correlator `⟨σᶻ_i σᶻ_j⟩`.  The mode `M::Symbol` is
+a phantom type parameter so dispatch can specialise on it.
 
 Supported `mode` values (by convention; individual models need only
 implement the ones they support):
@@ -201,37 +202,34 @@ implement the ones they support):
 - `:static` — equal-time, thermal or zero-temperature value
 - `:connected` — `⟨σᶻ_i σᶻ_j⟩ − ⟨σᶻ_i⟩⟨σᶻ_j⟩`
 - `:dynamic` — retarded real-time correlator `⟨σᶻ_i(t) σᶻ_j(0)⟩`
-- `:lightcone` — space-time spreading `|⟨σᶻ_i(t) σᶻ_j(0)⟩ − ...|`
+- `:lightcone` — space-time spreading `⟨σᶻ_i(t) σᶻ_j(0)⟩` as a
+  matrix over (site, time)
 
 The companion type for Fourier-space structure factors is
 [`ZZStructureFactor`](@ref), kept separate because it carries (q, ω)
 arguments instead of (i, j, t).
 """
-struct ZZCorrelation <: AbstractQuantity
-    mode::Symbol
-end
-ZZCorrelation(; mode::Symbol=:static) = ZZCorrelation(mode)
+struct ZZCorrelation{M} <: AbstractQuantity end
+ZZCorrelation(; mode::Symbol=:static) = ZZCorrelation{mode}()
 
 """
-    XXCorrelation(; mode::Symbol = :static) <: AbstractQuantity
+    XXCorrelation{M}() <: AbstractQuantity
+    XXCorrelation(; mode::Symbol = :static)
 
 Real-space 2-point `⟨σˣ_i σˣ_j⟩` correlator.  See
 [`ZZCorrelation`](@ref) for the `mode` semantics.
 """
-struct XXCorrelation <: AbstractQuantity
-    mode::Symbol
-end
-XXCorrelation(; mode::Symbol=:static) = XXCorrelation(mode)
+struct XXCorrelation{M} <: AbstractQuantity end
+XXCorrelation(; mode::Symbol=:static) = XXCorrelation{mode}()
 
 """
-    YYCorrelation(; mode::Symbol = :static) <: AbstractQuantity
+    YYCorrelation{M}() <: AbstractQuantity
+    YYCorrelation(; mode::Symbol = :static)
 
 Real-space 2-point `⟨σʸ_i σʸ_j⟩` correlator.
 """
-struct YYCorrelation <: AbstractQuantity
-    mode::Symbol
-end
-YYCorrelation(; mode::Symbol=:static) = YYCorrelation(mode)
+struct YYCorrelation{M} <: AbstractQuantity end
+YYCorrelation(; mode::Symbol=:static) = YYCorrelation{mode}()
 
 # ─── Fourier-space structure factors (q, ω) ────────────────────────────
 
