@@ -25,15 +25,12 @@
     @testset "Aliases" begin
         expected = QAtlas.fetch(E8(), E8Spectrum(), Infinite())
 
-        @test @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
-            :E8, :mass_ratios
-        ) == expected
-        @test @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
-            :E8, :E8_masses
-        ) == expected
-        @test @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
-            :E8, :mass_ratio
-        ) == expected
+        @test @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(:E8, :mass_ratios) ==
+            expected
+        @test @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(:E8, :E8_masses) ==
+            expected
+        @test @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(:E8, :mass_ratio) ==
+            expected
     end
 
     @testset "Type Stability" begin
