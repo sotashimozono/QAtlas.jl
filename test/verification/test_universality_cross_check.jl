@@ -123,7 +123,7 @@ end
 
     # Cross-check with the BdG analytical E₀ at each N
     for (i, N) in enumerate(Ns)
-        E0_analytical = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h)
+        E0_analytical = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N))
         @test e0_per_site[i] * N ≈ E0_analytical rtol = 1e-10
     end
 end
@@ -337,7 +337,7 @@ end
     e_inf = -4J / π  # ≈ -1.2732
 
     Ns = [50, 100, 200, 400]
-    E0s = [QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h) for N in Ns]
+    E0s = [QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N)) for N in Ns]
     e0_per_site = [E0s[i] / Ns[i] for i in eachindex(Ns)]
 
     # (a) Convergence: error decreases with N
