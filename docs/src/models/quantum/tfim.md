@@ -140,7 +140,7 @@ thermodynamic quantities are obtained by appropriate $\beta$-derivatives.
 ### References
 
 - S. Sachdev, _Quantum Phase Transitions_ (2011), Ch. 5.3.
-- QAtlas: `src/models/TFIM_thermal.jl` — full implementation.
+- QAtlas: `src/models/quantum/TFIM/TFIM_thermal.jl` — full implementation.
 
 ### QAtlas API
 

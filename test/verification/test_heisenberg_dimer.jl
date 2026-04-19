@@ -5,7 +5,7 @@
 #     H = J S_1 · S_2
 # built from `Lattice2D`'s `bonds(lat)` to the analytical spectrum
 #     { -3J/4, J/4, J/4, J/4 }  (singlet + three-fold triplet)
-# recorded in `src/models/quantum/Heisenberg.jl`.
+# recorded in `src/models/quantum/Heisenberg/Heisenberg.jl`.
 #
 # Also verifies the singlet–triplet gap Δ = J and that the low-lying
 # eigenvalue signs flip correctly under J → −J (ferromagnetic flip).

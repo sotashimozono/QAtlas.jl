@@ -54,8 +54,8 @@ Fidelity susceptibility `χ_F(λ) = −∂²⟨ψ(λ)|ψ(λ + δλ)⟩/∂δλ²
 struct FidelitySusceptibility <: AbstractQuantity end
 
 # `PartitionFunction`, `CriticalTemperature`, `SpontaneousMagnetization`
-# are currently defined in src/models/classical/IsingSquare.jl as bare
-# `struct X end` tags.  They will be migrated to subtype
+# are currently defined in src/models/classical/IsingSquare/IsingSquare.jl
+# as bare `struct X end` tags.  They will be migrated to subtype
 # `AbstractQuantity` in the IsingSquare refactor commit (M1.7).
 
 # ─── Entropies (explicit variants; see user-requested naming) ──────────
