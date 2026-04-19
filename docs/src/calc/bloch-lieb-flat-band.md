@@ -269,7 +269,7 @@ $$M\,\mathbf{v} = 0
 \quad\Longleftrightarrow\quad
 Q\,\mathbf{v}_{2} = 0\quad\text{and}\quad Q^{T}\,\mathbf{v}_{1} = 0.$$
 
-By rank-nullity, $\dim\ker Q = N_{2} - \operatorname{rank}(Q) \ge
+By rank-nullity, $\dim\ker Q = N_{2} - \mathrm{rank}(Q) \ge
 N_{2} - \min(N_{1}, N_{2}) = \max(0, N_{2} - N_{1})$, so there are
 at least $\max(0, N_{2} - N_{1})$ zero-energy eigenvectors
 supported on sublattice 2. Similarly at least
@@ -346,7 +346,7 @@ flat-band ferromagnetism (Lieb 1989).
 **(iii) Bipartite chiral symmetry.** The block form (3) makes the
 spectrum symmetric about $E = 0$: for every dispersive eigenvalue
 $+E(\mathbf{k})$ there is $-E(\mathbf{k})$. The sublattice operator
-$\Sigma = \operatorname{diag}(+1, -1, -1)$ (positive on $A$,
+$\Sigma = \mathrm{diag}(+1, -1, -1)$ (positive on $A$,
 negative on $B\cup C$) satisfies $\Sigma \widetilde{H}(\mathbf{k})
 \Sigma = -\widetilde{H}(\mathbf{k})$, the algebraic expression of
 bipartiteness.

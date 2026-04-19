@@ -12,7 +12,7 @@ the partition function $Z = \sum_{\{s\}} e^{-\beta H}$ admits the
 row-by-row **transfer-matrix representation**
 
 $$\boxed{\;
-Z \;=\; \operatorname{Tr}\bigl(T^{L_x}\bigr),
+Z \;=\; \mathrm{Tr}\bigl(T^{L_x}\bigr),
 \qquad
 T \in \mathbb{R}^{2^{L_y}\times 2^{L_y}},
 \;}$$
@@ -47,7 +47,7 @@ $$\boxed{\;T_{\sigma,\sigma'} = T_{\sigma', \sigma}\;}$$
 — **real symmetric**. This is the form QAtlas uses at
 [`src/models/classical/IsingSquare`](../models/classical/ising-square.md);
 the symmetry enables automatic-differentiation-compatible evaluation
-of thermodynamic quantities via $Z = \operatorname{Tr}(T^{L_x})$
+of thermodynamic quantities via $Z = \mathrm{Tr}(T^{L_x})$
 without an LAPACK eigendecomposition (see Step 6 below).
 
 ---
@@ -94,7 +94,7 @@ double counting).
 
 ### Goal
 
-Package (1) into the form $Z = \operatorname{Tr}(T^{L_x})$ with a
+Package (1) into the form $Z = \mathrm{Tr}(T^{L_x})$ with a
 real symmetric matrix $T$, so that the partition function can be
 computed by $L_x$ successive matrix multiplications.
 
@@ -158,7 +158,7 @@ $T_{\sigma, \sigma'}$ is the Boltzmann weight of placing row
 $\sigma$ adjacent to row $\sigma'$ in the "half-half" bond
 assignment.
 
-### Step 3 — $Z = \operatorname{Tr}(T^{L_x})$
+### Step 3 — $Z = \mathrm{Tr}(T^{L_x})$
 
 Substitute (3) back into (2):
 
@@ -178,7 +178,7 @@ Summing over $\sigma^{(0)}$ gives the diagonal trace:
 
 $$\boxed{\;
 Z \;=\; \sum_{\sigma^{(0)}} (T^{L_x})_{\sigma^{(0)}, \sigma^{(0)}}
- \;=\; \operatorname{Tr}\bigl(T^{L_x}\bigr).
+ \;=\; \mathrm{Tr}\bigl(T^{L_x}\bigr).
 \;}
 \tag{4}$$
 
@@ -217,7 +217,7 @@ $$\widetilde{T}_{\sigma,\sigma'}
  = \exp\!\Bigl[\,K\,E_h(\sigma')\;+\;K\,E_v(\sigma, \sigma')\,\Bigr].
 \tag{6}$$
 
-This matrix has the same trace $\operatorname{Tr}(\widetilde{T}^{L_x}) = Z$
+This matrix has the same trace $\mathrm{Tr}(\widetilde{T}^{L_x}) = Z$
 (provable by the same cyclic-trace argument, since
 $\prod_i \exp[K E_h(\sigma^{(i+1)})] = \exp[K \sum_i E_h(\sigma^{(i+1)})]
 = \exp[K \sum_i E_h(\sigma^{(i)})]$ by PBC reindexing). But (6) is
@@ -234,10 +234,10 @@ unless $E_h(\sigma) = E_h(\sigma')$, which is not generic.
 
 Symmetric (3) and asymmetric (6) are **similar matrices**: one can
 check $T = D^{1/2}\widetilde{T}\,D^{-1/2}$ with $D =
-\operatorname{diag}_\sigma \exp[K E_h(\sigma)]$, so they share the
+\mathrm{diag}_\sigma \exp[K E_h(\sigma)]$, so they share the
 same eigenvalues. The traces of all their powers agree
-($\operatorname{Tr}\widetilde{T}^{L_x} = \operatorname{Tr}(D^{1/2}
-\widetilde{T} D^{-1/2})^{L_x} = \operatorname{Tr} T^{L_x}$). Both
+($\mathrm{Tr}\widetilde{T}^{L_x} = \mathrm{Tr}(D^{1/2}
+\widetilde{T} D^{-1/2})^{L_x} = \mathrm{Tr} T^{L_x}$). Both
 give the same partition function, but the symmetric form has three
 distinct advantages (Step 6).
 
@@ -268,7 +268,7 @@ $$F(\beta) = -\tfrac{1}{\beta}\ln Z(\beta),\qquad
 S(\beta) = -\partial_T F,\qquad C_v(\beta) = -T\partial_T^{2} F$$
 
 as first- and second-order forward-mode derivatives of
-$\operatorname{Tr}(T^{L_x})$ with respect to $\beta$ — see
+$\mathrm{Tr}(T^{L_x})$ with respect to $\beta$ — see
 [`ad-thermodynamics-from-z`](ad-thermodynamics-from-z.md) for the
 derivation of the chain-rule formulas.
 
@@ -287,11 +287,11 @@ number matters for $L_y \gtrsim 20$ at low temperatures.
 **(i) $\beta = 0$ (infinite temperature).** All bonds contribute
 $\exp(0) = 1$, so $T_{\sigma, \sigma'} = 1$ for every pair. The
 matrix is the $2^{L_y}\times 2^{L_y}$ all-ones matrix;
-$\operatorname{rank}(T) = 1$ with single non-zero eigenvalue
+$\mathrm{rank}(T) = 1$ with single non-zero eigenvalue
 $\lambda_{\max} = 2^{L_y}$ and eigenvector the uniform vector
 $(1, 1, \dots, 1)^T$. Then
 
-$$Z = \operatorname{Tr}(T^{L_x}) = \lambda_{\max}^{L_x} = 2^{L_y L_x},$$
+$$Z = \mathrm{Tr}(T^{L_x}) = \lambda_{\max}^{L_x} = 2^{L_y L_x},$$
 
 the correct infinite-temperature result $Z = 2^{\#\text{spins}}$.
 
@@ -315,9 +315,9 @@ s_1 s_2 + s_2 s_1 = 2 s_1 s_2$ (PBC gives two identical bonds on
 a 2-site ring; this is the standard double-counting artefact of
 small-$L_y$ PBC lattices noted in the repository
 `CONTRIBUTING.md`).  For $L_x = 2$ the $4\times 4$ matrix $T$ has
-$\operatorname{Tr}(T^2) = Z$. The explicit brute-force sum over
+$\mathrm{Tr}(T^2) = Z$. The explicit brute-force sum over
 the $2^{4} = 16$ spin configurations on the $2\times 2$ torus
-matches $\operatorname{Tr}(T^2)$ to machine precision in every
+matches $\mathrm{Tr}(T^2)$ to machine precision in every
 QAtlas test (`test/verification/test_ising_2x2_classical.jl`).
 
 ---

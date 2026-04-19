@@ -5,7 +5,7 @@
 A classical statistical-mechanical system with partition function
 $Z(\beta)$ depending on inverse temperature $\beta = 1/T$ and possibly
 coupling constants (e.g. $J$, $h$). The partition function may be
-computed as $Z = \operatorname{tr}(T^{L_x})$ where $T$ is the
+computed as $Z = \mathrm{tr}(T^{L_x})$ where $T$ is the
 transfer matrix, or from an explicit sum over configurations.
 
 ## Calculation
@@ -62,7 +62,7 @@ Cv(beta) = beta^2 * ForwardDiff.derivative(
     b -> ForwardDiff.derivative(b2 -> log(Z(b2)), b), beta)
 ```
 
-### Why $\operatorname{tr}(T^{L_x})$, not eigenvalue decomposition
+### Why $\mathrm{tr}(T^{L_x})$, not eigenvalue decomposition
 
 LAPACK's eigenvalue routines (`DGEEV`, `DSYEV`, etc.) do **not**
 accept dual-number inputs. The internal Fortran code performs
@@ -71,7 +71,7 @@ arithmetic. In contrast, matrix multiplication and the trace
 operation are purely algebraic and propagate dual numbers correctly.
 
 Therefore, the partition function must be computed as
-$Z = \operatorname{tr}(T^{L_x})$ via repeated matrix multiplication,
+$Z = \mathrm{tr}(T^{L_x})$ via repeated matrix multiplication,
 not as $Z = \sum_i \lambda_i^{L_x}$ from eigenvalues.
 
 For large $L_x$, the matrix power can be computed in $O(\log L_x)$
@@ -97,7 +97,7 @@ $$\boxed{\langle E \rangle = -\frac{\partial \ln Z}{\partial \beta}, \qquad
   \langle \sigma\sigma \rangle_{\mathrm{nn}} = \frac{1}{\beta}\frac{\partial \ln Z}{\partial J}}$$
 
 All thermodynamic observables are obtained from $\ln Z$ by automatic
-differentiation. The implementation uses $\operatorname{tr}(T^{L_x})$
+differentiation. The implementation uses $\mathrm{tr}(T^{L_x})$
 rather than eigenvalue decomposition to maintain compatibility with
 dual-number arithmetic.
 
