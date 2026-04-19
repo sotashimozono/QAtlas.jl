@@ -22,25 +22,42 @@ using LinearAlgebra: tr
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    IsingSquare
+    IsingSquare(; J::Real = 1.0, Lx::Int = 0, Ly::Int = 0) <: AbstractQAtlasModel
 
-Dispatch tag for the classical 2D Ising model on a square lattice with
-periodic boundary conditions (PBC) in both directions.
+Classical 2D Ising model on a square lattice with periodic boundary
+conditions (PBC) in both directions.
 
 Hamiltonian: H = -J Σ_{⟨i,j⟩} σᵢ σⱼ, σᵢ ∈ {-1, +1}.
 
-See also: [`PartitionFunction`](@ref), [`fetch(::IsingSquare, ::PartitionFunction)`](@ref).
+Physics parameters are carried as typed struct fields:
+
+- `J`   — Ising coupling (default `1.0`, `J > 0` ferromagnetic).
+- `Lx`, `Ly` — lattice extents.  `0` is a legacy sentinel meaning
+  "thermodynamic limit / unspecified"; finite-size quantities like
+  [`PartitionFunction`](@ref) require both to be positive.
+
+For backward compatibility the `fetch` methods accept `Lx`, `Ly`, `J`,
+`β` as kwargs too — kwargs override the struct fields when both are
+supplied.
+
+See also: [`PartitionFunction`](@ref), [`CriticalTemperature`](@ref),
+[`SpontaneousMagnetization`](@ref).
 """
-struct IsingSquare end
+struct IsingSquare <: AbstractQAtlasModel
+    J::Float64
+    Lx::Int
+    Ly::Int
+end
+function IsingSquare(; J::Real=1.0, Lx::Integer=0, Ly::Integer=0)
+    IsingSquare(Float64(J), Int(Lx), Int(Ly))
+end
 
 """
-    PartitionFunction
+    PartitionFunction() <: AbstractQuantity
 
-Dispatch tag for the canonical partition function Z = Σ_σ exp(-β H(σ)).
-
-See also: [`IsingSquare`](@ref).
+Canonical partition function `Z = Σ_σ exp(-β H(σ))`.
 """
-struct PartitionFunction end
+struct PartitionFunction <: AbstractQuantity end
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Internal: transfer matrix for a row of Ly spins (PBC in y)
@@ -152,7 +169,18 @@ against direct ensemble averages.
     L. Onsager, Phys. Rev. 65, 117 (1944).
     B. M. McCoy and T. T. Wu, "The Two-Dimensional Ising Model" (1973).
 """
-function fetch(::IsingSquare, ::PartitionFunction; Lx::Int, Ly::Int, β::Real, J::Real=1.0)
+function fetch(
+    m::IsingSquare,
+    ::PartitionFunction;
+    β::Real,
+    Lx::Integer=m.Lx,
+    Ly::Integer=m.Ly,
+    J::Real=m.J,
+)
+    Lx > 0 && Ly > 0 || error(
+        "IsingSquare PartitionFunction: Lx and Ly must be positive. " *
+        "Pass them in the struct (IsingSquare(; Lx, Ly, J)) or as kwargs.",
+    )
     T = _ising_sq_transfer_matrix(Ly, β, J)
     return tr(T^Lx)
 end
@@ -162,19 +190,22 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    CriticalTemperature
+    CriticalTemperature() <: AbstractQuantity
 
-Dispatch tag for the exact critical temperature of a classical model.
+Exact critical temperature of a classical model.
 """
-struct CriticalTemperature end
+struct CriticalTemperature <: AbstractQuantity end
 
 """
-    SpontaneousMagnetization
+    SpontaneousMagnetization() <: AbstractQuantity
 
-Dispatch tag for the spontaneous magnetization of a classical model
-as a function of temperature.
+Spontaneous magnetization of a classical model as a function of
+temperature.  Retained under this name for backward compatibility
+with the classical-Ising literature; new code may prefer the
+axis-explicit [`MagnetizationZ`](@ref) together with a `T < T_c`
+context.
 """
-struct SpontaneousMagnetization end
+struct SpontaneousMagnetization <: AbstractQuantity end
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # fetch: Onsager critical temperature
@@ -193,7 +224,7 @@ or sinh(2K_c) = 1.
 # References
     L. Onsager, "Crystal Statistics. I.", Phys. Rev. 65, 117 (1944).
 """
-function fetch(::IsingSquare, ::CriticalTemperature; J::Real=1.0)
+function fetch(m::IsingSquare, ::CriticalTemperature; J::Real=m.J)
     return 2J / log(1 + sqrt(2))
 end
 
@@ -225,7 +256,7 @@ Special values:
     C. N. Yang, "The spontaneous magnetization of a two-dimensional Ising
     model", Phys. Rev. 85, 808 (1952).
 """
-function fetch(::IsingSquare, ::SpontaneousMagnetization; β::Real, J::Real=1.0)
+function fetch(m::IsingSquare, ::SpontaneousMagnetization; β::Real, J::Real=m.J)
     s = sinh(2 * β * J)
     if s <= 1.0  # T ≥ T_c
         return 0.0

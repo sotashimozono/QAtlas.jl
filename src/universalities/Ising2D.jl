@@ -24,8 +24,10 @@
 #   These are currently the most precise known estimates.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Backward-compatible alias — delegates to Universality{:Ising} with d=2
-struct Ising2D end
+# Backward-compatible alias — delegates to Universality{:Ising} with d=2.
+# Subtyped to `AbstractQAtlasModel` so it composes with the new top-level
+# fetch(::AbstractQAtlasModel, ::AbstractQuantity, ::BC) signature.
+struct Ising2D <: AbstractQAtlasModel end
 
 """
     fetch(::Ising2D, ::CriticalExponents) -> NamedTuple

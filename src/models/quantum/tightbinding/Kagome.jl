@@ -43,7 +43,13 @@ Hamiltonian: H = -t Σ_{⟨i,j⟩} (c†_i c_j + h.c.)
 The spectrum exhibits a dispersionless flat band at E = +2t touching the
 lower dispersive bands at the Γ-point.
 """
-struct Kagome end
+struct Kagome <: AbstractQAtlasModel
+    ;
+    t::Float64;
+    Lx::Int;
+    Ly::Int;
+end
+Kagome(; t::Real=1.0, Lx::Integer=0, Ly::Integer=0) = Kagome(Float64(t), Int(Lx), Int(Ly))
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # fetch: closed-form Bloch spectrum for Lx × Ly kagome PBC
@@ -88,7 +94,10 @@ A sorted `Vector{Float64}` of length `3·Lx·Ly`.
     I. Syôzi, Prog. Theor. Phys. 6, 306 (1951).
     D. L. Bergman et al., Phys. Rev. B 78, 125104 (2008).
 """
-function fetch(::Kagome, ::TightBindingSpectrum; Lx::Int, Ly::Int, t::Real=1.0)
+function fetch(
+    m::Kagome, ::TightBindingSpectrum; Lx::Integer=m.Lx, Ly::Integer=m.Ly, t::Real=m.t
+)
+    Lx > 0 && Ly > 0 || error("Kagome TightBindingSpectrum: Lx, Ly must be positive")
     eigs = Float64[]
     sizehint!(eigs, 3 * Lx * Ly)
     for m in 0:(Lx - 1), n in 0:(Ly - 1)

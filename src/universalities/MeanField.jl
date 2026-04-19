@@ -9,12 +9,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 """
-    MeanField
+    MeanField() <: AbstractQAtlasModel
 
-Dispatch tag for the mean-field (Landau) universality class.
-Exact for d ≥ d_c (upper critical dimension).
+Mean-field (Landau) universality class.  Exact for `d ≥ d_c` (upper
+critical dimension).  Kept as a top-level alias so that existing
+`fetch(MeanField(), ...)` callers keep working after the v0.13 API
+redesign; the canonical form is `Universality(:MeanField)`.
 """
-struct MeanField end
+struct MeanField <: AbstractQAtlasModel end
 
 """
     fetch(::MeanField, ::CriticalExponents) -> NamedTuple

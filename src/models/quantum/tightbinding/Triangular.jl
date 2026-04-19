@@ -47,7 +47,15 @@ The single band ranges from `-6t` (at the Γ-point) to `+3t` (at the
 K-points), reflecting geometric frustration: the absence of
 particle-hole (chiral) symmetry on a non-bipartite lattice.
 """
-struct Triangular end
+struct Triangular <: AbstractQAtlasModel
+    ;
+    t::Float64;
+    Lx::Int;
+    Ly::Int;
+end
+function Triangular(; t::Real=1.0, Lx::Integer=0, Ly::Integer=0)
+    Triangular(Float64(t), Int(Lx), Int(Ly))
+end
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # fetch: closed-form Bloch spectrum for Lx × Ly triangular PBC
@@ -82,7 +90,10 @@ A sorted `Vector{Float64}` of length `Lx·Ly`.
 # References
     G. H. Wannier, Phys. Rev. 79, 357 (1950).
 """
-function fetch(::Triangular, ::TightBindingSpectrum; Lx::Int, Ly::Int, t::Real=1.0)
+function fetch(
+    m::Triangular, ::TightBindingSpectrum; Lx::Integer=m.Lx, Ly::Integer=m.Ly, t::Real=m.t
+)
+    Lx > 0 && Ly > 0 || error("Triangular TightBindingSpectrum: Lx, Ly must be positive")
     eigs = Vector{Float64}(undef, Lx * Ly)
     idx = 1
     for m in 0:(Lx - 1), n in 0:(Ly - 1)

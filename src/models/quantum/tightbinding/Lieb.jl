@@ -53,7 +53,13 @@ sublattices). Hamiltonian:
 The spectrum contains a dispersionless flat band at `E = 0` for every
 momentum, with an additional three-fold band touching at the M-point.
 """
-struct Lieb end
+struct Lieb <: AbstractQAtlasModel
+    ;
+    t::Float64;
+    Lx::Int;
+    Ly::Int;
+end
+Lieb(; t::Real=1.0, Lx::Integer=0, Ly::Integer=0) = Lieb(Float64(t), Int(Lx), Int(Ly))
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # fetch: closed-form Bloch spectrum for Lx × Ly Lieb PBC
@@ -96,7 +102,10 @@ A sorted `Vector{Float64}` of length `3·Lx·Ly`.
 # References
     E. H. Lieb, Phys. Rev. Lett. 62, 1201 (1989).
 """
-function fetch(::Lieb, ::TightBindingSpectrum; Lx::Int, Ly::Int, t::Real=1.0)
+function fetch(
+    m::Lieb, ::TightBindingSpectrum; Lx::Integer=m.Lx, Ly::Integer=m.Ly, t::Real=m.t
+)
+    Lx > 0 && Ly > 0 || error("Lieb TightBindingSpectrum: Lx, Ly must be positive")
     eigs = Float64[]
     sizehint!(eigs, 3 * Lx * Ly)
     for m in 0:(Lx - 1), n in 0:(Ly - 1)
