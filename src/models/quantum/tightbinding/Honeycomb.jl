@@ -1,5 +1,11 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Graphene — nearest-neighbor tight-binding on the honeycomb lattice
+# Honeycomb — nearest-neighbor tight-binding on the honeycomb lattice
+#
+# Also known as the graphene band structure (Wallace 1947).  The model
+# is named after the lattice rather than the material so it composes
+# cleanly with Lattice2D (which already uses the `Graphene` name for
+# its topology type).  `const Graphene = Honeycomb` in
+# `src/deprecate/legacy_honeycomb.jl` keeps pre-v0.13 callers working.
 #
 # Hamiltonian (single-particle, spinless):
 #   H = -t Σ_{⟨i,j⟩ ∈ A-B} (c†_i c_j + c†_j c_i)
@@ -29,21 +35,39 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    Graphene
+    Honeycomb(; t::Real = 1.0, Lx::Int = 0, Ly::Int = 0) <: AbstractQAtlasModel
 
-Dispatch tag for the nearest-neighbor tight-binding model on the
-honeycomb lattice (spinless, single-orbital).
+Nearest-neighbor tight-binding model on the honeycomb lattice
+(spinless, single-orbital) — historically known as graphene.
 
-Hamiltonian: H = -t Σ_{⟨i,j⟩} (c†_i c_j + h.c.)
+Hamiltonian: `H = -t Σ_{⟨i,j⟩} (c†_i c_j + h.c.)`.
+
+Fields:
+- `t`  — nearest-neighbor hopping amplitude (default `1.0`).
+- `Lx`, `Ly` — unit-cell counts in the two lattice directions.  `0` is
+  a sentinel meaning "caller passes via kwargs at fetch time".
+
+For backward compatibility with the pre-v0.13 call form
+`fetch(Graphene(), TightBindingSpectrum(); Lx, Ly, t=…)`, the fetch
+method still accepts `Lx`, `Ly`, `t` as kwargs (they override the
+struct fields when supplied).  The legacy name `Graphene` is retained
+as a type alias in `src/deprecate/legacy_honeycomb.jl`.
 """
-struct Graphene end
+struct Honeycomb <: AbstractQAtlasModel
+    t::Float64
+    Lx::Int
+    Ly::Int
+end
+Honeycomb(; t::Real=1.0, Lx::Integer=0, Ly::Integer=0) =
+    Honeycomb(Float64(t), Int(Lx), Int(Ly))
 
 """
-    TightBindingSpectrum
+    TightBindingSpectrum() <: AbstractQuantity
 
-Dispatch tag for the single-particle spectrum of a tight-binding model.
+Single-particle Bloch spectrum of a tight-binding model.  Returned as
+a sorted `Vector{Float64}` of length `n_orbitals · Lx · Ly`.
 """
-struct TightBindingSpectrum end
+struct TightBindingSpectrum <: AbstractQuantity end
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # fetch: closed-form Bloch spectrum for Lx × Ly honeycomb PBC
@@ -85,12 +109,22 @@ A sorted `Vector{Float64}` of length `2·Lx·Ly`.
     P. R. Wallace, Phys. Rev. 71, 622 (1947).
     A. H. Castro Neto et al., Rev. Mod. Phys. 81, 109 (2009).
 """
-function fetch(::Graphene, ::TightBindingSpectrum; Lx::Int, Ly::Int, t::Real=1.0)
+function fetch(
+    m::Honeycomb,
+    ::TightBindingSpectrum;
+    Lx::Integer=m.Lx,
+    Ly::Integer=m.Ly,
+    t::Real=m.t,
+)
+    Lx > 0 && Ly > 0 || error(
+        "Honeycomb TightBindingSpectrum: Lx and Ly must be positive. " *
+        "Pass them in the struct (Honeycomb(; Lx, Ly)) or as kwargs.",
+    )
     eigs = Float64[]
     sizehint!(eigs, 2 * Lx * Ly)
-    for m in 0:(Lx - 1), n in 0:(Ly - 1)
-        θ1 = 2π * m / Lx
-        θ2 = 2π * n / Ly
+    for mi in 0:(Lx - 1), ni in 0:(Ly - 1)
+        θ1 = 2π * mi / Lx
+        θ2 = 2π * ni / Ly
         # |f(k)|² / t² = 3 + 2cos(θ1) + 2cos(θ2) + 2cos(θ2 - θ1)
         val = 3 + 2cos(θ1) + 2cos(θ2) + 2cos(θ2 - θ1)
         energy = abs(t) * sqrt(max(val, 0.0))

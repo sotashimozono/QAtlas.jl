@@ -11,11 +11,12 @@ export IsingSquare, PartitionFunction, CriticalTemperature, SpontaneousMagnetiza
 # --- Quantum Models ---
 export TFIM                                             # v0.13 concrete struct
 export E8                                               # v0.13 concrete struct
-export Graphene, TightBindingSpectrum
+export Honeycomb, TightBindingSpectrum                  # v0.13 rename: was Graphene
 # NOTE: `Kagome`, `Lieb`, `Triangular` are NOT exported — they conflict
 # with Lattice2D's topology types of the same name. Access them as
 # `QAtlas.Kagome()` / `QAtlas.Lieb()` / `QAtlas.Triangular()` in code
-# that also uses `Lattice2D`.
+# that also uses `Lattice2D`.  `Graphene` is kept as a top-level
+# backward-compat alias for `Honeycomb` (see src/deprecate/).
 export Heisenberg1D, ExactSpectrum, GroundStateEnergyDensity
 
 # --- Core Implementation ---
@@ -54,7 +55,7 @@ include("models/TFIM_dynamics.jl")
 include("models/TFIM_thermal.jl")
 include("models/TFIM_local.jl")
 include("models/classical/IsingSquare.jl")
-include("models/quantum/tightbinding/Graphene.jl")
+include("models/quantum/tightbinding/Honeycomb.jl")
 include("models/quantum/tightbinding/Kagome.jl")
 include("models/quantum/tightbinding/Lieb.jl")
 include("models/quantum/tightbinding/Triangular.jl")
@@ -66,5 +67,7 @@ include("models/quantum/Heisenberg.jl")
 include("deprecate/legacy_fetch.jl")
 include("deprecate/legacy_tfim.jl")
 include("deprecate/legacy_e8.jl")
+include("deprecate/legacy_honeycomb.jl")
+export Graphene                                         # backward-compat alias
 
 end # module QAtlas
