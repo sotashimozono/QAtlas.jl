@@ -467,9 +467,7 @@ end
 
 Static structure factor `S_zz(q, β)` for the OBC TFIM at wave vector `q`.
 """
-function fetch(
-    model::TFIM, ::ZZStructureFactor, bc::OBC; beta::Float64, q::Real, kwargs...
-)
+function fetch(model::TFIM, ::ZZStructureFactor, bc::OBC; beta::Float64, q::Real, kwargs...)
     N = _bc_size(bc, kwargs)
     return _zz_static_structure_factor(N, model.J, model.h, beta, q)
 end

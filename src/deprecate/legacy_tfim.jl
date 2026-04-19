@@ -58,7 +58,9 @@ const _LEGACY_TFIM_THERMAL_MAP = (
 
 for (qsym, QTy) in _LEGACY_TFIM_THERMAL_MAP
     @eval begin
-        function fetch(m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::Infinite; kwargs...)
+        function fetch(
+            m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::Infinite; kwargs...
+        )
             return fetch(_tfim_from_legacy_model(m), $QTy(), bc; kwargs...)
         end
         function fetch(m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::OBC; kwargs...)
@@ -76,8 +78,12 @@ const _LEGACY_TFIM_LOCAL_MAP = (
     (:energy_local, EnergyLocal),
 )
 for (qsym, QTy) in _LEGACY_TFIM_LOCAL_MAP
-    @eval function fetch(m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::OBC; kwargs...)
-        return fetch(_tfim_from_legacy_model(m), $QTy(), _bc_with_legacy_N(bc, m); kwargs...)
+    @eval function fetch(
+        m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::OBC; kwargs...
+    )
+        return fetch(
+            _tfim_from_legacy_model(m), $QTy(), _bc_with_legacy_N(bc, m); kwargs...
+        )
     end
 end
 
@@ -117,17 +123,13 @@ function fetch(m::Model{:TFIM}, ::Quantity{:zz_static_thermal}, bc::OBC; kwargs.
 end
 function fetch(m::Model{:TFIM}, ::Quantity{:zz_structure_factor}, bc::OBC; kwargs...)
     return fetch(
-        _tfim_from_legacy_model(m),
-        ZZStructureFactor(),
-        _bc_with_legacy_N(bc, m);
-        kwargs...,
+        _tfim_from_legacy_model(m), ZZStructureFactor(), _bc_with_legacy_N(bc, m); kwargs...
     )
 end
-function fetch(m::Model{:TFIM}, ::Quantity{:longitudinal_susceptibility}, bc::OBC; kwargs...)
+function fetch(
+    m::Model{:TFIM}, ::Quantity{:longitudinal_susceptibility}, bc::OBC; kwargs...
+)
     return fetch(
-        _tfim_from_legacy_model(m),
-        SusceptibilityZZ(),
-        _bc_with_legacy_N(bc, m);
-        kwargs...,
+        _tfim_from_legacy_model(m), SusceptibilityZZ(), _bc_with_legacy_N(bc, m); kwargs...
     )
 end
