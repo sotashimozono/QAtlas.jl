@@ -90,6 +90,16 @@ To extract $c$ from numerical entropy data $\{S(l)\}$:
 
 ---
 
+## Full derivation
+
+Step-by-step: replica trick, branch-point twist operators with
+scaling dimension $\Delta_n = (c/24)(n - 1/n)$, the cylinder →
+plane conformal map for PBC, the strip → upper half-plane map
+with method of images for OBC, explicit $n \to 1$ derivative to
+extract $S$, and the factor-of-2 origin tabulated:
+**[Calabrese–Cardy entanglement entropy: OBC vs PBC prefactor
+](../../calc/calabrese-cardy-obc-vs-pbc.md)**.
+
 ## References
 
 - P. Calabrese, J. Cardy, "Entanglement entropy and quantum field

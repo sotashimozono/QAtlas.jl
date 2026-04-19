@@ -96,6 +96,21 @@ spectrum_exact = QAtlas.fetch(Graphene(), BlochSpectrum(); Lx=6, Ly=6, t=1.0)
 
 ---
 
+## Full derivations
+
+Each lattice family has a dedicated step-by-step calc/ note
+covering the Fourier transform to the Bloch Hamiltonian, band
+structure, and key features:
+
+- **Honeycomb** (Dirac cones at $K, K'$ with $v_F = 3t/2$):
+  [`bloch-honeycomb-dispersion`](../../calc/bloch-honeycomb-dispersion.md)
+- **Kagome** (flat band at $E = +2t$ from destructive-interference
+  hexagonal compact-localised states):
+  [`bloch-kagome-flat-band`](../../calc/bloch-kagome-flat-band.md)
+- **Lieb** (flat band at $E = 0$ from bipartite sublattice
+  imbalance $1 : 2$ via Lieb's theorem):
+  [`bloch-lieb-flat-band`](../../calc/bloch-lieb-flat-band.md)
+
 ## References
 
 - N. W. Ashcroft, N. D. Mermin, *Solid State Physics*
