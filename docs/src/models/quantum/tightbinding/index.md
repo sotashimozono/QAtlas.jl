@@ -58,7 +58,7 @@ used; both agree in every tested case.
 | Lattice | $n_{\text{sub}}$ | Bipartite? | Flat band? | `src/` formula? | Page |
 |---------|:-----------------:|:----------:|:----------:|:---------------:|:----:|
 | Square | 1 | Yes | No | No | -- |
-| Honeycomb (Graphene) | 2 | Yes | No | Yes | [graphene.md](graphene.md) |
+| Honeycomb (Graphene) | 2 | Yes | No | Yes | [honeycomb.md](honeycomb.md) |
 | Kagome | 3 | No | Yes ($+2t$) | Yes | [kagome.md](kagome.md) |
 | Lieb | 3 | Yes | Yes ($0$) | Yes | [lieb.md](lieb.md) |
 | Triangular | 1 | No | No | Yes | [triangular.md](triangular.md) |

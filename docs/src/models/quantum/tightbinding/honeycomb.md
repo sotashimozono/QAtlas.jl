@@ -1,4 +1,4 @@
-# Graphene (Honeycomb)
+# Honeycomb Lattice (formerly Graphene)
 
 ## Overview
 
@@ -7,6 +7,12 @@ the standard model for the electronic band structure of graphene. It
 features two sublattices (A, B), bipartite structure, and the
 celebrated Dirac cones at the $K$ and $K'$ points of the Brillouin
 zone.
+
+!!! note "Renamed from `Graphene` in v0.13"
+    The model type is `Honeycomb` — a lattice name, whereas "graphene"
+    is the material realisation.  The old name remains available as
+    `const Graphene = Honeycomb` and emits a deprecation notice through
+    `src/deprecate/legacy_honeycomb.jl`.
 
 $$H = -t \sum_{\langle i,j \rangle \in A\text{-}B} \bigl(c^\dagger_i c_j + c^\dagger_j c_i\bigr)$$
 

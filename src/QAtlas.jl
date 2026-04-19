@@ -12,12 +12,13 @@ export IsingSquare, PartitionFunction, CriticalTemperature, SpontaneousMagnetiza
 export TFIM                                             # v0.13 concrete struct
 export E8                                               # v0.13 concrete struct
 export XXZ1D                                            # v0.13 new model
-export Honeycomb, TightBindingSpectrum                  # v0.13 rename: was Graphene
-# NOTE: `Kagome`, `Lieb`, `Triangular` are NOT exported — they conflict
-# with Lattice2D's topology types of the same name. Access them as
-# `QAtlas.Kagome()` / `QAtlas.Lieb()` / `QAtlas.Triangular()` in code
-# that also uses `Lattice2D`.  `Graphene` is kept as a top-level
-# backward-compat alias for `Honeycomb` (see src/deprecate/).
+export TightBindingSpectrum
+# NOTE: `Honeycomb`, `Kagome`, `Lieb`, `Triangular` are NOT exported —
+# they all conflict with Lattice2D's topology types of the same name.
+# Access them as `QAtlas.Honeycomb()` / `QAtlas.Kagome()` / etc. in code
+# that also uses `Lattice2D`.  `Graphene` *is* exported as the
+# backward-compat top-level alias for `Honeycomb` (see src/deprecate/)
+# since the name does not collide with anything in Lattice2D.
 export Heisenberg1D, ExactSpectrum, GroundStateEnergyDensity
 
 # --- Core Implementation ---

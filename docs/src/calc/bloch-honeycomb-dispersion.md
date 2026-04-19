@@ -92,4 +92,4 @@ $E \sim |\mathbf{q}|$ near the Dirac points.
 
 ## Used by
 
-- [Graphene Tight-Binding Model](../models/quantum/tightbinding/graphene.md)
+- [Honeycomb Tight-Binding Model](../models/quantum/tightbinding/honeycomb.md)
