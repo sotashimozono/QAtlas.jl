@@ -377,74 +377,68 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:sz_sz_correlation}, ::OBC;
+    fetch(model::TFIM, ::ZZCorrelation{:dynamic}, bc::OBC;
           i::Int, j::Int, t::Float64, beta::Float64 = Inf) -> ComplexF64
 
 Exact `⟨σᶻ_i(t) σᶻ_j(0)⟩_β` for the OBC TFIM.  `beta = Inf` (the default)
-gives the ground-state result.
+gives the ground-state result.  `N` comes from `bc.N`.
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:sz_sz_correlation},
-    ::OBC;
+    model::TFIM,
+    ::ZZCorrelation{:dynamic},
+    bc::OBC;
     i::Int,
     j::Int,
     t::Float64,
     beta::Real=Inf,
     kwargs...,
 )
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    return _sz_sz_corr(N, J, h, i, j, t; β=beta)
+    N = _bc_size(bc, kwargs)
+    return _sz_sz_corr(N, model.J, model.h, i, j, t; β=beta)
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:sx_sx_correlation}, ::OBC;
+    fetch(model::TFIM, ::XXCorrelation{:dynamic}, bc::OBC;
           i::Int, j::Int, t::Float64, beta::Float64 = Inf) -> ComplexF64
 
 Exact `⟨σˣ_i(t) σˣ_j(0)⟩_β` for the OBC TFIM.
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:sx_sx_correlation},
-    ::OBC;
+    model::TFIM,
+    ::XXCorrelation{:dynamic},
+    bc::OBC;
     i::Int,
     j::Int,
     t::Float64,
     beta::Real=Inf,
     kwargs...,
 )
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    return _sx_sx_corr(N, J, h, i, j, t; β=beta)
+    N = _bc_size(bc, kwargs)
+    return _sx_sx_corr(N, model.J, model.h, i, j, t; β=beta)
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:sz_sz_spreading}, ::OBC;
+    fetch(model::TFIM, ::ZZCorrelation{:lightcone}, bc::OBC;
           center::Int, times::AbstractVector{<:Real}, beta::Float64 = Inf) -> Matrix{ComplexF64}
 
 Exact spreading correlation `C[it, ix] = ⟨σᶻ_ix(t_it) σᶻ_center(0)⟩_β` for all
 sites `ix ∈ 1:N` and `t_it ∈ times`.
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:sz_sz_spreading},
-    ::OBC;
+    model::TFIM,
+    ::ZZCorrelation{:lightcone},
+    bc::OBC;
     center::Int,
     times::AbstractVector{<:Real},
     beta::Real=Inf,
     kwargs...,
 )
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    return _sz_sz_spreading(N, J, h, center, times; β=beta)
+    N = _bc_size(bc, kwargs)
+    return _sz_sz_spreading(N, model.J, model.h, center, times; β=beta)
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:zz_static_thermal}, ::OBC;
+    fetch(model::TFIM, ::ZZCorrelation{:static}, bc::OBC;
           beta::Float64, [i::Int, j::Int]) -> Matrix{Float64} or Float64
 
 Static (equal-time) thermal correlator `⟨σᶻ_i σᶻ_j⟩_β` for the OBC TFIM.
@@ -452,60 +446,43 @@ With both `i` and `j` given returns a scalar; otherwise returns the full
 N×N matrix.
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:zz_static_thermal},
-    ::OBC;
+    model::TFIM,
+    ::ZZCorrelation{:static},
+    bc::OBC;
     beta::Float64,
     i::Union{Int,Nothing}=nothing,
     j::Union{Int,Nothing}=nothing,
     kwargs...,
 )
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
+    N = _bc_size(bc, kwargs)
     if i !== nothing && j !== nothing
-        return _sz_sz_static_thermal(N, J, h, beta; i=i, j=j)[1, 1]
+        return _sz_sz_static_thermal(N, model.J, model.h, beta; i=i, j=j)[1, 1]
     end
-    return _sz_sz_static_thermal(N, J, h, beta)
+    return _sz_sz_static_thermal(N, model.J, model.h, beta)
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:zz_structure_factor}, ::OBC;
+    fetch(model::TFIM, ::ZZStructureFactor, bc::OBC;
           beta::Float64, q::Real) -> Float64
 
 Static structure factor `S_zz(q, β)` for the OBC TFIM at wave vector `q`.
 """
-function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:zz_structure_factor},
-    ::OBC;
-    beta::Float64,
-    q::Real,
-    kwargs...,
-)
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    return _zz_static_structure_factor(N, J, h, beta, q)
+function fetch(model::TFIM, ::ZZStructureFactor, bc::OBC; beta::Float64, q::Real, kwargs...)
+    N = _bc_size(bc, kwargs)
+    return _zz_static_structure_factor(N, model.J, model.h, beta, q)
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:longitudinal_susceptibility}, ::OBC;
+    fetch(model::TFIM, ::SusceptibilityZZ, bc::OBC;
           beta::Float64) -> Float64
 
 Static uniform longitudinal (`q = 0`) susceptibility per site,
 
     χ_zz(β) = (β/N) Σ_{i,j} ⟨σᶻ_i σᶻ_j⟩_β.
 """
-function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:longitudinal_susceptibility},
-    ::OBC;
-    beta::Float64,
-    kwargs...,
-)
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
+function fetch(model::TFIM, ::SusceptibilityZZ, bc::OBC; beta::Float64, kwargs...)
+    N = _bc_size(bc, kwargs)
+    J = model.J
+    h = model.h
     return _zz_uniform_susceptibility(N, J, h, beta)
 end
