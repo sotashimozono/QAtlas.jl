@@ -98,7 +98,7 @@ function fetch(model::XXZ1D, ::Energy, ::Infinite; kwargs...)
         return _xxz1d_energy_heisenberg_fm(J)
     else
         @warn "XXZ1D Energy: general-Δ Bethe ansatz not yet implemented; " *
-              "only Δ ∈ {-1, 0, 1} are exposed in this release." Δ = Δ
+            "only Δ ∈ {-1, 0, 1} are exposed in this release." Δ = Δ
         return NaN
     end
 end

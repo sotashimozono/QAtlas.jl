@@ -68,9 +68,19 @@ end
 # `LuttingerVelocity()`; `SpinWaveVelocity` is a type-level alias for
 # `LuttingerVelocity`.
 @register_aliases canonicalize_quantity :luttinger_velocity [
-    :v_LL, :vLL, :u_LL, :uLL, :sound_velocity,
-    :spin_wave_velocity, :v_s, :vs, :SpinWaveVelocity,
-    :fermi_velocity, :v_F, :vF, :FermiVelocity,
+    :v_LL,
+    :vLL,
+    :u_LL,
+    :uLL,
+    :sound_velocity,
+    :spin_wave_velocity,
+    :v_s,
+    :vs,
+    :SpinWaveVelocity,
+    :fermi_velocity,
+    :v_F,
+    :vF,
+    :FermiVelocity,
     :LuttingerVelocity,
 ]
 

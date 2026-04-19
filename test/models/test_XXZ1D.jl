@@ -46,18 +46,25 @@ end
 end
 
 @testset "XXZ1D — Luttinger parameter K" begin
-    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=0.0), LuttingerParameter(), Infinite()) ≈ 1.0 atol = 1e-12
-    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), LuttingerParameter(), Infinite()) ≈ 0.5 atol = 1e-12
+    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=0.0), LuttingerParameter(), Infinite()) ≈ 1.0 atol =
+        1e-12
+    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), LuttingerParameter(), Infinite()) ≈ 0.5 atol =
+        1e-12
 
     # Monotone decreasing from Δ = -1 (K → ∞) to Δ = 1 (K = 1/2)
-    ks = [QAtlas.fetch(XXZ1D(; J=1, Δ=Δ), LuttingerParameter(), Infinite()) for Δ in -0.9:0.2:0.9]
+    ks = [
+        QAtlas.fetch(XXZ1D(; J=1, Δ=Δ), LuttingerParameter(), Infinite()) for
+        Δ in -0.9:0.2:0.9
+    ]
     @test all(diff(ks) .< 0)
 end
 
 @testset "XXZ1D — LuttingerVelocity (+ SpinWaveVelocity alias)" begin
     # Canonical values at Δ=0 (XX) and Δ=1 (AF Heisenberg)
-    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=0.0), LuttingerVelocity(), Infinite()) ≈ 1.0 atol = 1e-12
-    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), LuttingerVelocity(), Infinite()) ≈ π / 2 atol = 1e-12
+    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=0.0), LuttingerVelocity(), Infinite()) ≈ 1.0 atol =
+        1e-12
+    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), LuttingerVelocity(), Infinite()) ≈ π / 2 atol =
+        1e-12
 
     # J scaling linear
     @test QAtlas.fetch(XXZ1D(; J=3.0, Δ=0.0), LuttingerVelocity(), Infinite()) ≈ 3.0
