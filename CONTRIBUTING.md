@@ -39,13 +39,32 @@ src/
 │   ├── KPZ.jl, Percolation.jl, ...
 │   └── E8.jl                          #   E8 mass ratios
 ├── universalities/ONModel.jl          #   XY / Heisenberg / O(N) nonlinear σ
-└── models/
-    ├── TFIM.jl, TFIM_thermal.jl, TFIM_dynamics.jl, TFIM_local.jl   # v0.13 concrete struct
-    ├── classical/IsingSquare.jl       #   IsingSquare(; J, Lx, Ly)
+└── models/                            # Layout: `<class>/<Model>/<Model>.jl`.
+    │                                  # Per-model directory so each Model has
+    │                                  # its own dir even if currently single
+    │                                  # file (room to grow into thermal /
+    │                                  # dynamics / local siblings as needed).
+    ├── classical/
+    │   └── IsingSquare/
+    │       └── IsingSquare.jl         #   IsingSquare(; J, Lx, Ly)
     └── quantum/
-        ├── Heisenberg.jl              #   Heisenberg1D(; J)
-        ├── XXZ.jl                     #   XXZ1D(; J, Δ)
-        └── tightbinding/              #   Honeycomb, Kagome, Lieb, Triangular (typed fields t, Lx, Ly)
+        ├── TFIM/
+        │   ├── TFIM.jl                #   TFIM(; J, h) + Energy + MassGap + CentralCharge
+        │   ├── TFIM_thermal.jl        #   FreeEnergy, ThermalEntropy, SpecificHeat, M_x, χ_xx
+        │   ├── TFIM_dynamics.jl       #   Majorana covariance, {XX,YY,ZZ}Correlation{M}, structure factors
+        │   └── TFIM_local.jl          #   MagnetizationXLocal, MagnetizationZLocal, EnergyLocal
+        ├── Heisenberg/
+        │   └── Heisenberg.jl          #   Heisenberg1D() + ExactSpectrum + GroundStateEnergyDensity
+        ├── XXZ/
+        │   └── XXZ.jl                 #   XXZ1D(; J, Δ) + Luttinger K, u, central charge, Energy
+        └── tightbinding/              # family dir (multiple tight-binding lattices)
+            └── regular/               # Bloch-diagonalisable periodic lattices
+                ├── Honeycomb.jl       #   Honeycomb(; t, Lx, Ly)
+                ├── Kagome.jl
+                ├── Lieb.jl
+                └── Triangular.jl
+            # Future: tightbinding/{quasicrystalline,fractal,disordered}/
+            # for Fibonacci, Penrose, Sierpinski, Anderson, ...
 
 test/
 ├── util/                              # Reusable verification helpers (dense + sparse)

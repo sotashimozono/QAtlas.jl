@@ -52,17 +52,21 @@ include("universalities/Potts.jl")
 include("universalities/ONModel.jl")
 
 # --- Models ---
-include("models/classical/IsingSquare.jl")
-include("models/quantum/tightbinding/Honeycomb.jl")
-include("models/quantum/tightbinding/Kagome.jl")
-include("models/quantum/tightbinding/Lieb.jl")
-include("models/quantum/tightbinding/Triangular.jl")
-include("models/quantum/TFIM.jl")
-include("models/quantum/TFIM_dynamics.jl")
-include("models/quantum/TFIM_thermal.jl")
-include("models/quantum/TFIM_local.jl")
-include("models/quantum/Heisenberg.jl")
-include("models/quantum/XXZ.jl")
+# Layout: `<class>/<Model>/<Model>.jl` (with optional sibling axis files like
+# `TFIM/TFIM_thermal.jl`).  `tightbinding/<lattice-class>/` groups multiple
+# tight-binding Hamiltonians by lattice type (regular = Bloch-diagonalisable;
+# future: quasicrystalline, fractal, disordered).
+include("models/classical/IsingSquare/IsingSquare.jl")
+include("models/quantum/tightbinding/regular/Honeycomb.jl")
+include("models/quantum/tightbinding/regular/Kagome.jl")
+include("models/quantum/tightbinding/regular/Lieb.jl")
+include("models/quantum/tightbinding/regular/Triangular.jl")
+include("models/quantum/TFIM/TFIM.jl")
+include("models/quantum/TFIM/TFIM_dynamics.jl")
+include("models/quantum/TFIM/TFIM_thermal.jl")
+include("models/quantum/TFIM/TFIM_local.jl")
+include("models/quantum/Heisenberg/Heisenberg.jl")
+include("models/quantum/XXZ/XXZ.jl")
 
 # --- Deprecation shims (legacy API) ---
 # Loaded last so they can route into any already-registered concrete

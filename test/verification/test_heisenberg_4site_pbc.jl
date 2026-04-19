@@ -4,7 +4,7 @@
 # Build H = J Σ_{i mod 4} S_i · S_{i+1} via Lattice2D's 4-site PBC
 # square chain (build_lattice(Square, 4, 1; PeriodicAxis in x, OpenAxis
 # in y)) and compare the full 2^4 = 16-state spectrum against the
-# hardcoded exact result in src/models/quantum/Heisenberg.jl.
+# hardcoded exact result in src/models/quantum/Heisenberg/Heisenberg.jl.
 #
 # Two independent construction paths cross-check each other:
 #   src:  hardcoded {-2J, -J×3, 0×7, +J×5} (from textbook / Bethe ansatz)
