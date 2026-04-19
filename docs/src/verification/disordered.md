@@ -108,7 +108,7 @@ implemented. It is planned as a future verification target.
 ## QAtlas Test
 
 ```julia
-# test/verification/test_disordered.jl
+# test/verification/test_disordered_heisenberg.jl
 
 # Random-bond Heisenberg: singlet ground state
 E, psi = eigen(H_random_heisenberg)
