@@ -161,6 +161,52 @@ function fetch(
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Mass gap (lowest quasi-particle energy)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    fetch(model::TFIM, ::MassGap, ::Infinite) -> Float64
+
+Mass gap of the infinite-chain TFIM: the lowest single-quasiparticle
+excitation energy
+
+    Δ = min_k Λ(k),     Λ(k) = 2 √( J² + h² − 2 J h cos k ).
+
+Closed form:
+
+    Δ = 2 |h − J|.
+
+Canonical values:
+
+- ordered   (h < J): `Δ = 2(J − h)`
+- disordered (h > J): `Δ = 2(h − J)`
+- critical  (h = J): `Δ = 0` (Ising CFT, Δ ~ π v_F / N on finite chains)
+"""
+function fetch(model::TFIM, ::MassGap, ::Infinite; kwargs...)
+    return 2 * abs(model.h - model.J)
+end
+
+"""
+    fetch(model::TFIM, ::MassGap, bc::OBC) -> Float64
+
+Single-quasiparticle gap of the N-site OBC TFIM read off the BdG
+spectrum as `Λ_min`, the smallest positive eigenvalue of the 2N×2N
+Bogoliubov-de Gennes Hamiltonian.
+
+This is the one-particle excitation energy.  Away from the critical
+point (`|h − J| > O(1/N)`) it converges to `2|h − J|` exponentially in
+N.  At the critical point `h = J` the OBC gap scales as
+`Δ(N) ~ π J / N` (Ising CFT).
+
+Size is taken from `bc.N` (or `kwargs[:N]` as a legacy fallback).
+"""
+function fetch(model::TFIM, ::MassGap, bc::OBC; kwargs...)
+    N = _bc_size(bc, kwargs)
+    Λ = _tfim_bdg_spectrum(N, model.J, model.h)
+    return Λ[1]
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Central charge (critical point h = J)
 # ═══════════════════════════════════════════════════════════════════════════════
 

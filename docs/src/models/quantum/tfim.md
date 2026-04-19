@@ -192,12 +192,21 @@ with dynamic exponent $z = 1$.
 
 ### QAtlas API
 
-The gap is accessed indirectly via the BdG spectrum:
-
 ```julia
-Λ = QAtlas._tfim_bdg_spectrum(N, J, h)  # internal function
-gap = minimum(Λ)
+# Infinite chain — closed form Δ = 2|h − J|
+QAtlas.fetch(TFIM(; J=1.0, h=0.3), MassGap(), Infinite())
+# → 1.4
+
+QAtlas.fetch(TFIM(; J=1.0, h=1.0), MassGap(), Infinite())
+# → 0.0   (critical: gap closes)
+
+# OBC finite-N — smallest positive BdG eigenvalue
+QAtlas.fetch(TFIM(; J=1.0, h=1.0), MassGap(), OBC(32))
+# → π J / N ≈ 0.098   (finite-size CFT gap)
 ```
+
+Symbol aliases recognised by the legacy layer include `:mass_gap`,
+`:gap`, `:Δ`, `:excitation_gap`, and the capitalised `:MassGap`.
 
 ### Verification
 

@@ -46,6 +46,14 @@ function fetch(m::Model{:TFIM}, ::Quantity{:central_charge}, bc::Infinite; kwarg
     return fetch(_tfim_from_legacy_model(m), CentralCharge(), bc; kwargs...)
 end
 
+# ── Mass gap ────────────────────────────────────────────────────────────
+function fetch(m::Model{:TFIM}, ::Quantity{:mass_gap}, bc::Infinite; kwargs...)
+    return fetch(_tfim_from_legacy_model(m), MassGap(), bc; kwargs...)
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:mass_gap}, bc::OBC; kwargs...)
+    return fetch(_tfim_from_legacy_model(m), MassGap(), _bc_with_legacy_N(bc, m); kwargs...)
+end
+
 # ── Thermal quantities (TFIM_thermal.jl) ────────────────────────────────
 # Mapping: legacy Symbol Quantity → concrete struct used by the new API.
 const _LEGACY_TFIM_THERMAL_MAP = (
