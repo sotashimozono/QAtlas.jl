@@ -1,0 +1,43 @@
+name: Nightly full tests (QATLAS_TEST_FULL=1)
+
+# The default PR CI profile runs the entanglement-entropy central-charge
+# test up to N=14 via sparse + KrylovKit Lanczos (about 2 minutes on a
+# 4-core GitHub runner).  This workflow additionally exercises the
+# N=16 branch — ~32 GB sparse matrix, minutes of extra runtime — so
+# the expensive branch is run daily but not on every PR push.
+#
+# Trigger: every day at 18:00 UTC (~03:00 JST).  Also `workflow_dispatch`
+# so it can be invoked manually from the GitHub UI.  No `push` or
+# `pull_request` triggers — the default CI.yml workflow covers those.
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  full-tests:
+    name: QATLAS_TEST_FULL=1 — Julia ${{ matrix.version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+    env:
+      QATLAS_TEST_FULL: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: julia-actions/cache@v3
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          julia-args: "--threads=auto"

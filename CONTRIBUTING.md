@@ -200,7 +200,7 @@ Public docs (`docs/src/`) are **English only**. Dev memos under `md/` may be in 
 - **Bond counting in small PBC systems**: Lattice2D's `bonds(lat)` double-counts bonds when `Lx = 2` or `Ly = 2` with periodic boundaries. Both the transfer-matrix and brute-force paths use the same convention, so they agree — but be aware of this when writing new models.
 - **OBC vs PBC for gap analysis**: in the ordered phase of the TFIM (h ≪ J), the lowest ED "gap" is actually the Z₂ tunneling splitting (exponentially small in N), not the physical excitation gap. This is correct physics but can be surprising in tests.
 - **ForwardDiff compatibility**: if you want a `fetch` function to support automatic differentiation, relax type constraints from `Float64` to `Real` and avoid LAPACK-only operations like `eigvals(Symmetric(T))` — use `tr(T^n)` instead, which works with dual numbers.
-- **Entanglement tests and RAM**: the ED-based entanglement-entropy tests (`test_entanglement_central_charge.jl`) scale as $O(2^N)$ memory at $N \ge 14$. The default PR-CI profile runs $N \le 14$ via sparse + KrylovKit Lanczos. `QATLAS_TEST_FULL=1` enables $N = 16$ (~24 GB peak).
+- **Entanglement tests and RAM**: the ED-based entanglement-entropy tests (`test_entanglement_central_charge.jl`) scale as $O(2^N)$ memory at $N \ge 14$. The default PR-CI profile runs $N \le 14$ via sparse + KrylovKit Lanczos. `QATLAS_TEST_FULL=1` enables $N = 16$ (~24 GB peak) and is run automatically every night by [`NightlyFullTests.yml`](.github/workflows/NightlyFullTests.yml) (also invokable via `workflow_dispatch` from the Actions tab).
 
 ## Before Submitting a PR
 
