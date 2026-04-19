@@ -57,7 +57,7 @@ function exact_partition(Lx::Int, Ly::Int, J::Float64, β::Float64)
     N = Lx * Ly
     pairs = square_pbc_bond_pairs(Lx, Ly)
     Z = 0.0
-    for σ_idx in 0:(2^N - 1)
+    for σ_idx in 0:(2 ^ N - 1)
         σ = Int[((σ_idx >> k) & 1) == 1 ? 1 : -1 for k in 0:(N - 1)]
         E = -J * sum(σ[a] * σ[b] for (a, b) in pairs)
         Z += exp(-β * E)

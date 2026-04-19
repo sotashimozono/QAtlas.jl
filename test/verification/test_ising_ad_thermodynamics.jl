@@ -40,7 +40,7 @@ function _direct_moments(Lx::Int, Ly::Int, J::Float64, β::Float64)
     E1 = 0.0
     E2 = 0.0
     S1 = 0.0  # ⟨Σ σ_i σ_j⟩ (no J factor)
-    for σ_idx in 0:(2^N - 1)
+    for σ_idx in 0:(2 ^ N - 1)
         σ = Int[((σ_idx >> k) & 1) == 1 ? 1 : -1 for k in 0:(N - 1)]
         bond_sum = sum(σ[a] * σ[b] for (a, b) in bond_pairs)
         E = -J * bond_sum
@@ -76,9 +76,7 @@ const J_ISING = 1.0
                     ForwardDiff.derivative(Jv -> _log_Z_tm(Lx, Ly, β, Jv), J_ISING)
 
                 # --- Direct ensemble averages ---
-                E_direct, E2_direct, bond_sum_direct = _direct_moments(
-                    Lx, Ly, J_ISING, β
-                )
+                E_direct, E2_direct, bond_sum_direct = _direct_moments(Lx, Ly, J_ISING, β)
                 Cv_direct = β^2 * (E2_direct - E_direct^2)
 
                 @test E_ad ≈ E_direct rtol = 1e-10
