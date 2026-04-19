@@ -33,6 +33,9 @@ end
     :ee, :EE, :S_vN, :EntanglementEntropy
 ]
 @register_aliases canonicalize_quantity :central_charge [:c, :cc, :CentralCharge]
+@register_aliases canonicalize_quantity :mass_gap [
+    :gap, :Δ, :Delta, :MassGap, :single_particle_gap, :excitation_gap
+]
 @register_aliases canonicalize_quantity :zz_corr [:ZZ, :zzcorr, :szsz]
 @register_aliases canonicalize_quantity :sz_sz_correlation [
     :szsz_correlation, :zz_correlation_rt, :sz_sz_rt
