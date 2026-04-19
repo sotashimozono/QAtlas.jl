@@ -26,11 +26,7 @@ makedocs(;
                 ),
             ),
         ),
-        assets=[
-            "assets/favicon.ico",
-            "assets/custom.css",
-            "assets/report-issue.js",
-        ],
+        assets=["assets/favicon.ico", "assets/custom.css", "assets/report-issue.js"],
     ),
     modules=[QAtlas],
     pages=[
