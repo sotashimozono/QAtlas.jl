@@ -98,6 +98,32 @@ function build_spinhalf_heisenberg_sparse(lat, J::Real)
 end
 
 """
+    build_xxz_sparse(lat, J, Δ) -> SparseMatrixCSC{Float64}
+
+Spin-1/2 XXZ chain Hamiltonian on `lat`:
+
+    H = J Σ_⟨i,j⟩ [ S^x_i S^x_j + S^y_i S^y_j + Δ · S^z_i S^z_j ]
+      = J Σ_⟨i,j⟩ [ ½ (S^+_i S^-_j + S^-_i S^+_j) + Δ · S^z_i S^z_j ]
+
+At Δ = 1 this reduces to `build_spinhalf_heisenberg_sparse`; at Δ = 0
+it is the XX (free-fermion) point. Real symmetric, O(N · 2^N) nonzeros.
+"""
+function build_xxz_sparse(lat, J::Real, Δ::Real)
+    N = num_sites(lat)
+    dim = 2^N
+    H = spzeros(Float64, dim, dim)
+    Sp = [0.0 1.0; 0.0 0.0]
+    Sm = [0.0 0.0; 1.0 0.0]
+    Sz = [0.5 0.0; 0.0 -0.5]
+    for b in bonds(lat)
+        H += J * Δ * embed_two_site_sparse(Sz, Sz, b.i, b.j, N)
+        H += (J / 2) * embed_two_site_sparse(Sp, Sm, b.i, b.j, N)
+        H += (J / 2) * embed_two_site_sparse(Sm, Sp, b.i, b.j, N)
+    end
+    return H
+end
+
+"""
     ground_state_krylov(H; rng = nothing, tol = 1e-10, krylovdim = 30) -> Vector{Float64}
 
 Return the ground-state eigenvector of a symmetric / Hermitian linear
