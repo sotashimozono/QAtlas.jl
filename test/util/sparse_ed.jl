@@ -55,6 +55,49 @@ function embed_single_site_sparse(A::AbstractMatrix, i::Int, N::Int)
 end
 
 """
+    build_tfim_sparse(lat, J, h) -> SparseMatrixCSC{Float64}
+
+Sparse analogue of `build_tfim` from `spinhalf_ed.jl`.  Memory footprint
+is O(N · 2^N) instead of O(4^N), enabling N ≳ 14 entanglement tests
+without blowing out dense eigen() allocations.
+"""
+function build_tfim_sparse(lat, J::Real, h::Real)
+    N = num_sites(lat)
+    dim = 2^N
+    H = spzeros(Float64, dim, dim)
+    σz = [1.0 0.0; 0.0 -1.0]
+    σx = [0.0 1.0; 1.0 0.0]
+    for b in bonds(lat)
+        H -= J * embed_two_site_sparse(σz, σz, b.i, b.j, N)
+    end
+    for i in 1:N
+        H -= h * embed_single_site_sparse(σx, i, N)
+    end
+    return H
+end
+
+"""
+    build_spinhalf_heisenberg_sparse(lat, J) -> SparseMatrixCSC{Float64}
+
+Sparse analogue of `build_spinhalf_heisenberg` from `spinhalf_ed.jl`.
+Same Hamiltonian, O(N · 2^N) nonzeros.
+"""
+function build_spinhalf_heisenberg_sparse(lat, J::Real)
+    N = num_sites(lat)
+    dim = 2^N
+    H = spzeros(Float64, dim, dim)
+    Sp = [0.0 1.0; 0.0 0.0]
+    Sm = [0.0 0.0; 1.0 0.0]
+    Sz = [0.5 0.0; 0.0 -0.5]
+    for b in bonds(lat)
+        H += J * embed_two_site_sparse(Sz, Sz, b.i, b.j, N)
+        H += (J / 2) * embed_two_site_sparse(Sp, Sm, b.i, b.j, N)
+        H += (J / 2) * embed_two_site_sparse(Sm, Sp, b.i, b.j, N)
+    end
+    return H
+end
+
+"""
     ground_state_krylov(H; rng = nothing, tol = 1e-10, krylovdim = 30) -> Vector{Float64}
 
 Return the ground-state eigenvector of a symmetric / Hermitian linear
