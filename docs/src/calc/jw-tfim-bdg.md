@@ -701,7 +701,7 @@ $\Gamma = 1$. Matches.
 
 Our derivation produces $M = N - 1$ fermions (one per bond of the
 original chain). The QAtlas implementation (`_tfim_bdg_spectrum` in
-`src/models/TFIM.jl`) constructs an $N \times N$ BdG block and
+`src/models/quantum/TFIM.jl`) constructs an $N \times N$ BdG block and
 returns $N$ eigenvalues, matching the total site count rather than
 the bond count. The discrepancy of one is absorbed by a
 zero-eigenvalue boundary mode:

@@ -3,7 +3,7 @@
 # Routes the pre-v0.13 call patterns:
 #   fetch(Model(:TFIM; J, h, N), Quantity(:energy), OBC(); …)
 #   fetch(:TFIM, :energy, OBC(); N, J, h, beta)
-# into the canonical concrete-struct API defined in src/models/TFIM*.jl.
+# into the canonical concrete-struct API defined in src/models/quantum/TFIM*.jl.
 #
 # Scheduled for removal in v1.0.
 
