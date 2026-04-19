@@ -24,44 +24,45 @@ do not contain the full calculation. Specific gaps:
 These are candidates for deeper `calc/` sub-notes when expertise is
 available.
 
-### Peschel method for σ^z σ^z TFIM
+### ~~Peschel method for σ^z σ^z TFIM~~  ✅ Clarified (v0.13.3)
 
 The BdG eigenvectors for the TFIM in the σ^z σ^z convention give
 **dual-fermion** correlators (Kramers-Wannier dual), not spin-basis
-correlators. Computing the spin-basis entanglement entropy via the
-Peschel correlation-matrix method requires proper handling of the
-duality boundary conditions.
+correlators.  For a contiguous block `A = {1, …, ℓ}` the JW unitary
+factorises across the `A / Aᶜ` cut, so the spin-basis entanglement
+entropy and the fermion-basis entanglement entropy are equal
+(Fagotti–Calabrese 2010).  The derivation is written out in
+`docs/src/calc/tfim-entanglement-peschel.md` (v0.13.3 PR #69) and the
+`fetch(TFIM, VonNeumannEntropy, OBC(N); ℓ)` method uses the
+correlation-matrix algorithm in O(N³) for contiguous blocks.
 
-Current workaround: full ED (O(2^N), N ≤ 16 with 128GB RAM).
+Full ED (`O(2^N)`) is still used by `test_entanglement_central_charge.jl`
+to exercise both entropy-dispatch paths at N ≤ 16.  The duality caveat
+now applies only to single-site `σ^z` correlators reached via
+Pfaffians, not to contiguous-block entanglement entropy.
 
-Resolution path: implement the duality-aware Peschel method, or switch
-to the σ^x σ^x convention for the entanglement-specific code path.
+### ~~Central charge extraction precision~~  ✅ Tightened (v0.13.5)
 
-### Central charge extraction precision
+PR #75 switched the tight-signal central-charge extraction to PBC
+ground states via `build_tfim_sparse` / `build_spinhalf_heisenberg_sparse`
++ KrylovKit Lanczos:
 
-Current: c = 1/2 within ~10% at N=14 (TFIM), c = 1 within ~20% at
-N=12 (Heisenberg, even-l filtering).
+| model (PBC)        | extracted c      | exact c | assertion          |
+|--------------------|------------------|---------|--------------------|
+| TFIM at h = J      | c(N=14) = 0.5021 | 0.5     | rtol = 0.01        |
+| Heisenberg (1/N ext.) | c(∞) = 1.014 | 1.0     | rtol = 0.03        |
 
-The OBC Calabrese-Cardy formula already includes the log-sin finite-size
-correction. Remaining errors come from:
+The OBC testset (rtol = 0.10 / 0.20) is kept for open-boundary code-
+path coverage; both routes pass.
 
-1. Lattice discretization (irrelevant operators, O(1/N))
-2. Boundary effects not captured by the strip conformal mapping
-3. For Heisenberg: SU(2) alternating corrections (-1)^l f(l)
+### ~~Bond counting convention for small PBC lattices~~  ✅ Decoupled (v0.13.4)
 
-Potential improvements:
-- Use PBC chains (eliminate boundary corrections) — requires PBC ED or
-  fixing the Peschel method
-- Include subleading corrections in the fit model
-- Larger N via sparse Lanczos (ground state only)
-
-### Bond counting convention for small PBC lattices
-
-Lattice2D's `bonds(lat)` double-counts bonds when Lx = 2 or Ly = 2
-with PBC (each edge is traversed in both directions). The transfer
-matrix and brute-force enumeration use the same convention, so results
-agree — but the effective coupling is doubled compared to larger
-lattices. This is documented but can surprise new contributors.
+The IsingSquare transfer-matrix test no longer depends on whichever
+convention `Lattice2D.bonds(lat)` adopts; PR #71 moved the bond-list
+construction to `test/util/classical_partition.jl`'s
+`square_pbc_bond_pairs(Lx, Ly)` and dropped the `[sources]` pin on
+Lattice2D / LatticeCore.  Current `Lattice2D` (≥ 0.2.8) is the
+registered release.
 
 ### ~~Two API styles~~  ✅ Resolved (v0.13)
 
@@ -84,7 +85,12 @@ All models have been migrated to concrete parameter-carrying structs:
 - BCs `OBC(N)`, `PBC(N)` carry their own size; `Infinite()` unchanged.
 - Legacy Symbol-dispatch calls (`fetch(:TFIM, :energy, OBC(); N, J, h)`
   etc.) are routed through the deprecation shims in `src/deprecate/`
-  with a `maxlog=3` warning.  The directory can be `git rm`-ed
+  with a `maxlog=1` info log (keyed per `(model, quantity)` pair).
+  Incidental verification call sites have been ported to the concrete-
+  struct API (PRs #73, #78); only the dedicated
+  `"… legacy Symbol dispatch …"` testsets still reach the shims, and
+  those wrap each call with `@test_logs (:info, r"symbol-dispatch") …`
+  so CI output stays clean.  The directory can be `git rm`-ed
   wholesale at v1.0 cut.
 - Aqua.jl static checks are enabled in `test/test_aqua.jl`
   (ambiguities, deps_compat, stale_deps, piracies).
@@ -97,13 +103,13 @@ Version bumped to 0.13.0.  See PRs #40 (foundation), #41 (TFIM + E8),
 
 ### Near-term (infrastructure exists)
 
-**Sparse ED for larger N** (N = 18–22):
-- `build_tfim` and `build_spinhalf_heisenberg` currently produce dense
-  matrices. Sparse construction + iterative Lanczos (Arpack.jl or
-  KrylovKit.jl) would enable ground state computation at N ~ 20.
-- This would improve central charge extraction significantly
-  (c precision scales as 1/N).
-- Estimated effort: small (sparse matrix fill + `eigsolve` call).
+**~~Sparse ED for larger N~~** ✅ Landed (v0.13.3+):
+- `build_tfim_sparse`, `build_spinhalf_heisenberg_sparse` and
+  `build_xxz_sparse` in `test/util/sparse_ed.jl`, with
+  `ground_state_krylov` driving `KrylovKit.eigsolve`.  The PBC
+  entanglement-entropy, TFIM-BdG-vs-ED, z-exponent, and Luttinger-K
+  cross-checks now run at N ∈ {14, 16} on the default CI profile.
+  N = 18–20 remain accessible under `QATLAS_TEST_FULL = 1` (nightly).
 
 **More universality classes from Wikipedia table**:
 - Directed percolation (d=1,2,3: numerical, d≥4: MF)

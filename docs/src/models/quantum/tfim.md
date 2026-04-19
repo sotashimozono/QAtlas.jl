@@ -297,5 +297,8 @@ Symbol aliases recognised by the legacy layer: `:entanglement_entropy`,
 - **Disordered version**: [Random TFIM](../../verification/disordered.md) —
   the Fisher IRFP at $[\ln J]_{\text{avg}} = [\ln h]_{\text{avg}}$.
 - **E8 spectrum**: [E8 universality](../../universalities/e8.md) —
-  adding a longitudinal field $\lambda \sigma^z$ at $h = J$ breaks
-  integrability and produces the E8 mass spectrum.
+  perturbing the critical TFIM at $h = J$ by a longitudinal field
+  $\lambda \sigma^z$ is the $\Phi_{(1,2)} = \sigma$ magnetic
+  perturbation of the Ising CFT. Zamolodchikov (1989) showed the
+  resulting massive field theory **remains integrable** and its
+  eight stable particles realise the $E_8$ mass spectrum.

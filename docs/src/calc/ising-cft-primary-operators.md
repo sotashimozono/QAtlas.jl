@@ -351,13 +351,15 @@ non-negative conformal weights (0, 1/16, 1/2), consistent.
 
 **(iii) Numerical verification against finite-size ED.**
 $\sigma$-type operator: the two-point function of $\sigma^{z}$ on
-the critical TFIM decays as $|\mathbf{r}|^{-1/4}$, verified in
-`test/verification/test_tfim_central_charge.jl` via direct lattice ED.
-$\varepsilon$-type operator: the bond–bond correlator
-$\sigma^{z}_{i}\sigma^{z}_{i+1}\,\sigma^{z}_{j}\sigma^{z}_{j+1}$
-decays as $|i - j|^{-2}$ (matching $\Delta_{\varepsilon} = 1$).
-Both are cross-checked to $\sim 5\%$ at $N \le 16$ in the QAtlas
-test suite.
+the critical TFIM decays as $|\mathbf{r}|^{-1/4}$; the exponent is
+extracted from QAtlas's closed-form correlator in the
+`"criticality: scaling toward CFT exponent -1/4"` testset of
+`test/models/test_TFIM_dynamics.jl`, which asserts the effective
+doubling-ratio slope at $N \in \{80, 160, 240\}$ converges
+monotonically to $-1/4$ within $0.10$ at the largest $N$.
+The central charge $c = 1/2$ itself is extracted to $\lesssim 1\%$
+from the PBC entanglement entropy in
+`test/verification/test_entanglement_central_charge.jl`.
 
 **(iv) Yang-magnetisation exponent $\beta = 1/8$.** Derived
 independently from the Toeplitz determinant in
