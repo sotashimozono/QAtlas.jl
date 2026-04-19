@@ -23,29 +23,25 @@
 _zz_bond(Σ::AbstractMatrix, i::Int) = Σ[2i, 2i + 1]
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:magnetization_x_local}, ::OBC;
-          beta::Float64, kwargs...) -> Vector{Float64}
+    fetch(model::TFIM, ::MagnetizationXLocal, bc::OBC; beta::Float64, kwargs...)
+        -> Vector{Float64}
 
 Site-resolved transverse magnetisation `[⟨σˣ_i⟩_β for i = 1:N]` of the OBC
 TFIM at inverse temperature `beta`, read off from the Majorana thermal
-covariance as `Σ[2i-1, 2i]`.
+covariance as `Σ[2i-1, 2i]`.  `N` is taken from `bc.N`.
 
 `beta = Inf` falls back to the ground state.
 """
-function fetch(
-    model::Model{:TFIM}, ::Quantity{:magnetization_x_local}, ::OBC; beta::Float64, kwargs...
-)
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    hmat = _majorana_ham(N, J, h)
+function fetch(model::TFIM, ::MagnetizationXLocal, bc::OBC; beta::Float64, kwargs...)
+    N = _bc_size(bc, kwargs)
+    hmat = _majorana_ham(N, model.J, model.h)
     Σ = _majorana_thermal_covariance(hmat, beta)
     return Float64[_sx_expect(Σ, i) for i in 1:N]
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:magnetization_z_local}, ::OBC;
-          beta::Float64, kwargs...) -> Vector{Float64}
+    fetch(model::TFIM, ::MagnetizationZLocal, bc::OBC; beta::Float64, kwargs...)
+        -> Vector{Float64}
 
 Site-resolved longitudinal magnetisation `[⟨σᶻ_i⟩_β for i = 1:N]`.
 Identically zero in the OBC TFIM by the Z₂ symmetry σᶻ → −σᶻ of the
@@ -53,16 +49,14 @@ Hamiltonian (Gaussian state, odd product of Majoranas).  Returned as an
 explicit zero vector so consumers can use it as an exact baseline against
 finite random-sample estimates that fluctuate around zero.
 """
-function fetch(
-    model::Model{:TFIM}, ::Quantity{:magnetization_z_local}, ::OBC; beta::Float64, kwargs...
-)
-    N = Int(model.params[:N])
+function fetch(::TFIM, ::MagnetizationZLocal, bc::OBC; beta::Float64, kwargs...)
+    N = _bc_size(bc, kwargs)
     return zeros(Float64, N)
 end
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:energy_local}, ::OBC;
-          beta::Float64, kwargs...) -> Vector{Float64}
+    fetch(model::TFIM, ::EnergyLocal, bc::OBC; beta::Float64, kwargs...)
+        -> Vector{Float64}
 
 Site-local energy density `ε_i` of the OBC TFIM at inverse temperature
 `beta`, defined so that `Σᵢ ε_i = ⟨H⟩_β`.  Each bond is split symmetrically
@@ -74,13 +68,9 @@ with the missing bonds at the i = 1 and i = N boundaries taken to be zero.
 Bond expectations are read off as `Σ(β)[2i, 2i+1]` from the Majorana thermal
 covariance (exact, O(N) after the single 2N×2N diagonalisation).
 """
-function fetch(
-    model::Model{:TFIM}, ::Quantity{:energy_local}, ::OBC; beta::Float64, kwargs...
-)
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    hmat = _majorana_ham(N, J, h)
+function fetch(model::TFIM, ::EnergyLocal, bc::OBC; beta::Float64, kwargs...)
+    N = _bc_size(bc, kwargs)
+    hmat = _majorana_ham(N, model.J, model.h)
     Σ = _majorana_thermal_covariance(hmat, beta)
 
     bonds = Float64[_zz_bond(Σ, i) for i in 1:(N - 1)]
@@ -89,7 +79,7 @@ function fetch(
     @inbounds for i in 1:N
         left = i > 1 ? bonds[i - 1] : 0.0
         right = i < N ? bonds[i] : 0.0
-        ε[i] = -(J / 2) * (left + right) - h * _sx_expect(Σ, i)
+        ε[i] = -(model.J / 2) * (left + right) - model.h * _sx_expect(Σ, i)
     end
     return ε
 end

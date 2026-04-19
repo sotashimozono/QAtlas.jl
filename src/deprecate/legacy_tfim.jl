@@ -68,3 +68,15 @@ for (qsym, QTy) in _LEGACY_TFIM_THERMAL_MAP
         end
     end
 end
+
+# ── Site-local quantities (TFIM_local.jl) ──────────────────────────────
+const _LEGACY_TFIM_LOCAL_MAP = (
+    (:magnetization_x_local, MagnetizationXLocal),
+    (:magnetization_z_local, MagnetizationZLocal),
+    (:energy_local, EnergyLocal),
+)
+for (qsym, QTy) in _LEGACY_TFIM_LOCAL_MAP
+    @eval function fetch(m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::OBC; kwargs...)
+        return fetch(_tfim_from_legacy_model(m), $QTy(), _bc_with_legacy_N(bc, m); kwargs...)
+    end
+end
