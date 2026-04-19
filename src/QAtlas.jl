@@ -65,6 +65,7 @@ include("models/quantum/TFIM/TFIM.jl")
 include("models/quantum/TFIM/TFIM_dynamics.jl")
 include("models/quantum/TFIM/TFIM_thermal.jl")
 include("models/quantum/TFIM/TFIM_local.jl")
+include("models/quantum/TFIM/TFIM_entanglement.jl")
 include("models/quantum/Heisenberg/Heisenberg.jl")
 include("models/quantum/XXZ/XXZ.jl")
 

@@ -235,40 +235,48 @@ procedure.
 
 ### Physical Context
 
-!!! note "Peschel method limitation"
-The TFIM is a free-fermion system, so in principle $S(l)$ can be
-computed in $O(N^3)$ via the Peschel correlation-matrix method.
-However, QAtlas's $\sigma^z\sigma^z$ convention maps to free fermions
-only after [Kramers-Wannier duality](../../calc/kramers-wannier-duality.md),
-and the BdG eigenvectors give **dual-fermion** correlators, not
-spin-basis correlators. QAtlas therefore uses full
-[exact diagonalization](../../methods/exact-diagonalization/index.md)
-for entanglement entropy.
+The TFIM is a free-fermion system after Jordan-Wigner transformation,
+so the reduced density matrix on a contiguous block of $\ell$ spins
+is Gaussian and its von Neumann entropy is computable in $O(\ell^3)$
+from the Majorana covariance matrix restricted to that block
+(Peschel's correlation-matrix method). QAtlas exposes this directly
+via `fetch(TFIM(; J, h), VonNeumannEntropy(), OBC(N); ℓ)` — no
+Kramers-Wannier detour is needed, because the internal
+$\sigma^x$-string JW convention puts the Majorana pair
+$(\gamma_{2i-1}, \gamma_{2i})$ on spin site $i$ directly, and the JW
+transformation factorises across any contiguous bipartition up to a
+parity factor on A that commutes with $\rho_A$ (Fagotti-Calabrese
+2010).
 
 ### References
 
 - P. Calabrese, J. Cardy, J. Stat. Mech. **0406**, P06002 (2004), Eq. (19).
-- I. Peschel, J. Phys. A **36**, L205 (2003).
+- I. Peschel, J. Phys. A **36**, L205 (2003), Eq. (9).
+- G. Vidal, J. I. Latorre, E. Rico, A. Kitaev, Phys. Rev. Lett. **90**, 227902 (2003).
+- M. Fagotti, P. Calabrese, Phys. Rev. Lett. **104**, 227203 (2010).
 
 ### QAtlas API
 
-Computed via ED (not `fetch` — test utility only):
-
 ```julia
-include("test/util/spinhalf_ed.jl")
-lat = build_lattice(Square, N, 1; boundary=OpenAxis())
-H = build_tfim(lat, J, J)
-ψ₀ = eigen(Symmetric(H)).vectors[:, 1]
-S_l = entanglement_entropy(ψ₀, l, N)
+# Ground state, block of ℓ = N/2 sites at criticality:
+QAtlas.fetch(TFIM(; J=1.0, h=1.0), VonNeumannEntropy(), OBC(100); ℓ=50)
+# → 0.7256…  (matches (c/6) log((2N/π) sin(πℓ/N)) + s_1 with c = 1/2)
+
+# Thermal state at β = 1:
+QAtlas.fetch(TFIM(; J=1.0, h=1.0), VonNeumannEntropy(), OBC(100); ℓ=50, beta=1.0)
 ```
+
+Symbol aliases recognised by the legacy layer: `:entanglement_entropy`,
+`:ee`, `:EE`, `:S_vN`, `:EntanglementEntropy`.
 
 ### Verification
 
-| Test file                             | Method             | What is checked                               |
-| ------------------------------------- | ------------------ | --------------------------------------------- |
-| `test_entanglement_central_charge.jl` | ED ($N = 10$–$16$) | $c_{\text{extracted}} \approx 0.5$ within 10% |
-| `test_entanglement_central_charge.jl` | ED                 | $S(l)$ symmetric, maximal at $l = N/2$        |
-| `test_entanglement_central_charge.jl` | ED ($h \gg J$)     | Area law: $S \approx 0$ in disordered phase   |
+| Test file                             | Method                 | What is checked                                                       |
+| ------------------------------------- | ---------------------- | --------------------------------------------------------------------- |
+| `test_TFIM_entanglement.jl`           | Peschel vs full ED SVD | Machine-precision agreement for every $\ell$ at $N = 10$, three $(J, h)$ points |
+| `test_TFIM_entanglement.jl`           | Peschel $N = 100$      | Extracted $c \approx 0.5$ within 5% at criticality                    |
+| `test_TFIM_entanglement.jl`           | Peschel                | Symmetric $S(\ell) = S(N - \ell)$, area law away from criticality      |
+| `test_entanglement_central_charge.jl` | ED ($N \le 14$)        | $c_{\text{extracted}} \approx 0.5$ within 10%                         |
 
 ---
 
