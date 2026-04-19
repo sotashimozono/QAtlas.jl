@@ -45,3 +45,26 @@ end
 function fetch(m::Model{:TFIM}, ::Quantity{:central_charge}, bc::Infinite; kwargs...)
     return fetch(_tfim_from_legacy_model(m), CentralCharge(), bc; kwargs...)
 end
+
+# ── Thermal quantities (TFIM_thermal.jl) ────────────────────────────────
+# Mapping: legacy Symbol Quantity → concrete struct used by the new API.
+const _LEGACY_TFIM_THERMAL_MAP = (
+    (:free_energy, FreeEnergy),
+    (:entropy, ThermalEntropy),
+    (:specific_heat, SpecificHeat),
+    (:transverse_magnetization, MagnetizationX),
+    (:transverse_susceptibility, SusceptibilityXX),
+)
+
+for (qsym, QTy) in _LEGACY_TFIM_THERMAL_MAP
+    @eval begin
+        function fetch(m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::Infinite; kwargs...)
+            return fetch(_tfim_from_legacy_model(m), $QTy(), bc; kwargs...)
+        end
+        function fetch(m::Model{:TFIM}, ::Quantity{$(QuoteNode(qsym))}, bc::OBC; kwargs...)
+            return fetch(
+                _tfim_from_legacy_model(m), $QTy(), _bc_with_legacy_N(bc, m); kwargs...
+            )
+        end
+    end
+end

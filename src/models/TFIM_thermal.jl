@@ -195,54 +195,42 @@ end
 # fetch dispatch
 # ═══════════════════════════════════════════════════════════════════════════════
 
-const _THERMAL_QUANTITIES = (
-    :free_energy,
-    :entropy,
-    :specific_heat,
-    :transverse_magnetization,
-    :transverse_susceptibility,
+# (quantity struct, internal symbol) pairs — the internal helpers
+# `_tfim_thermo_infinite` / `_tfim_thermo_obc` still key off the symbol.
+# The concrete-struct dispatch below is meta-programmed over this list
+# so adding a thermal quantity only requires adding one row + wiring
+# the inner Symbol branch.
+const _TFIM_THERMAL_METHODS = (
+    (FreeEnergy, :free_energy),
+    (ThermalEntropy, :entropy),
+    (SpecificHeat, :specific_heat),
+    (MagnetizationX, :transverse_magnetization),
+    (SusceptibilityXX, :transverse_susceptibility),
 )
 
-for q in _THERMAL_QUANTITIES
+for (QTy, qsym) in _TFIM_THERMAL_METHODS
     @eval begin
         """
-            fetch(model::Model{:TFIM}, ::Quantity{$($(QuoteNode(q)))}, ::Infinite;
-                  beta::Float64, kwargs...)
+            fetch(model::TFIM, ::$($QTy), ::Infinite; beta::Float64, kwargs...)
 
-        Per-site `$($(string(q)))` of the TFIM in the thermodynamic limit at
+        Per-site $($(string(qsym))) of the TFIM in the thermodynamic limit at
         inverse temperature `beta`.  Uses adaptive Gauss-Kronrod quadrature
         over the BdG dispersion `Λ(k) = 2√(J² + h² − 2Jh cos k)`.
         """
-        function fetch(
-            model::Model{:TFIM},
-            ::Quantity{$(QuoteNode(q))},
-            ::Infinite;
-            beta::Float64,
-            kwargs...,
-        )
-            J = Float64(model.params[:J])
-            h = Float64(model.params[:h])
-            return _tfim_thermo_infinite($(QuoteNode(q)), J, h, beta)
+        function fetch(model::TFIM, ::$QTy, ::Infinite; beta::Float64, kwargs...)
+            return _tfim_thermo_infinite($(QuoteNode(qsym)), model.J, model.h, beta)
         end
 
         """
-            fetch(model::Model{:TFIM}, ::Quantity{$($(QuoteNode(q)))}, ::OBC;
-                  beta::Float64, kwargs...)
+            fetch(model::TFIM, ::$($QTy), bc::OBC; beta::Float64, kwargs...)
 
-        Per-site `$($(string(q)))` of the OBC TFIM with `N` sites at inverse
-        temperature `beta`.  Computed exactly via the BdG diagonalisation.
+        Per-site $($(string(qsym))) of the OBC TFIM with `N = bc.N` sites at
+        inverse temperature `beta`.  Computed exactly via the BdG
+        diagonalisation.
         """
-        function fetch(
-            model::Model{:TFIM},
-            ::Quantity{$(QuoteNode(q))},
-            ::OBC;
-            beta::Float64,
-            kwargs...,
-        )
-            N = Int(model.params[:N])
-            J = Float64(model.params[:J])
-            h = Float64(model.params[:h])
-            return _tfim_thermo_obc($(QuoteNode(q)), N, J, h, beta)
+        function fetch(model::TFIM, ::$QTy, bc::OBC; beta::Float64, kwargs...)
+            N = _bc_size(bc, kwargs)
+            return _tfim_thermo_obc($(QuoteNode(qsym)), N, model.J, model.h, beta)
         end
     end
 end
