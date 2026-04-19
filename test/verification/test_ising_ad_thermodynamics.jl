@@ -14,10 +14,11 @@
 #
 # Every equality must hold to machine precision because Z is the same
 # mathematical object on both sides — the AD path exercises QAtlas's
-# transfer-matrix Z, while the direct path uses `Lattice2D.bonds(lat)`.
+# transfer-matrix Z, and the direct path enumerates configurations under
+# the same PBC bond list (see `test/util/classical_partition.jl`).
 # ─────────────────────────────────────────────────────────────────────────────
 
-using QAtlas, Lattice2D, ForwardDiff, Test
+using QAtlas, ForwardDiff, Test
 
 # log Z as a generic function of (β, J) so ForwardDiff.Dual propagates.
 function _log_Z_tm(Lx::Int, Ly::Int, β, J)
@@ -25,22 +26,23 @@ function _log_Z_tm(Lx::Int, Ly::Int, β, J)
 end
 
 """
-    _direct_moments(lat, J, β) -> (⟨E⟩, ⟨E²⟩, ⟨Σσσ⟩)
+    _direct_moments(Lx, Ly, J, β) -> (⟨E⟩, ⟨E²⟩, ⟨Σσσ⟩)
 
 Directly compute the ensemble averages needed for the thermodynamic
-identities by brute-force enumeration. Uses `Lattice2D.bonds(lat)` and
-the same bond-counting convention as `exact_partition`.
+identities by brute-force enumeration. Uses the same PBC bond list as
+[`exact_partition`](@ref) so the comparison against the transfer-matrix
+observables is exact by construction.
 """
-function _direct_moments(lat, J::Float64, β::Float64)
-    N = num_sites(lat)
-    bond_pairs = [(b.i, b.j) for b in bonds(lat)]
+function _direct_moments(Lx::Int, Ly::Int, J::Float64, β::Float64)
+    N = Lx * Ly
+    bond_pairs = square_pbc_bond_pairs(Lx, Ly)
     Z = 0.0
     E1 = 0.0
     E2 = 0.0
     S1 = 0.0  # ⟨Σ σ_i σ_j⟩ (no J factor)
-    for σ_idx in 0:(2 ^ N - 1)
-        σ = Int[((σ_idx >> j) & 1) == 1 ? 1 : -1 for j in 0:(N - 1)]
-        bond_sum = sum(σ[i] * σ[j] for (i, j) in bond_pairs)
+    for σ_idx in 0:(2^N - 1)
+        σ = Int[((σ_idx >> k) & 1) == 1 ? 1 : -1 for k in 0:(N - 1)]
+        bond_sum = sum(σ[a] * σ[b] for (a, b) in bond_pairs)
         E = -J * bond_sum
         w = exp(-β * E)
         Z += w
@@ -55,8 +57,6 @@ const J_ISING = 1.0
 
 @testset "IsingSquare — thermodynamics from log Z (ForwardDiff)" begin
     for (Lx, Ly) in [(2, 2), (2, 3), (3, 3)]
-        lat = build_lattice(Square, Lx, Ly)
-
         @testset "$(Lx)×$(Ly) square PBC" begin
             for β in [0.1, 0.3, 0.5, 1.0]
                 # --- AD from transfer matrix ---
@@ -76,7 +76,9 @@ const J_ISING = 1.0
                     ForwardDiff.derivative(Jv -> _log_Z_tm(Lx, Ly, β, Jv), J_ISING)
 
                 # --- Direct ensemble averages ---
-                E_direct, E2_direct, bond_sum_direct = _direct_moments(lat, J_ISING, β)
+                E_direct, E2_direct, bond_sum_direct = _direct_moments(
+                    Lx, Ly, J_ISING, β
+                )
                 Cv_direct = β^2 * (E2_direct - E_direct^2)
 
                 @test E_ad ≈ E_direct rtol = 1e-10
