@@ -1,0 +1,47 @@
+# deprecate/legacy_tfim.jl — backward-compat shims for the TFIM Symbol API.
+#
+# Routes the pre-v0.13 call patterns:
+#   fetch(Model(:TFIM; J, h, N), Quantity(:energy), OBC(); …)
+#   fetch(:TFIM, :energy, OBC(); N, J, h, beta)
+# into the canonical concrete-struct API defined in src/models/TFIM*.jl.
+#
+# Scheduled for removal in v1.0.
+
+"""
+    _tfim_from_legacy_model(m::Model{:TFIM}) -> TFIM
+
+Extract `J`, `h` from the legacy `Model{:TFIM}(params)` Dict and build
+the concrete struct.
+"""
+function _tfim_from_legacy_model(m::Model{:TFIM})::TFIM
+    J = Float64(get(m.params, :J, 1.0))
+    h = Float64(get(m.params, :h, 1.0))
+    return TFIM(; J=J, h=h)
+end
+
+"""
+    _bc_with_legacy_N(bc::OBC, m::Model{:TFIM}) -> OBC
+
+If `bc.N == 0` (zero-arg `OBC()` call) but the legacy `Model` Dict has
+an `:N` entry, promote it to a sized `OBC(N)` so the concrete fetch can
+read `bc.N` uniformly.
+"""
+function _bc_with_legacy_N(bc::OBC, m::Model{:TFIM})::OBC
+    bc.N > 0 && return bc
+    haskey(m.params, :N) && return OBC(Int(m.params[:N]))
+    return bc
+end
+_bc_with_legacy_N(bc::BoundaryCondition, ::Model{:TFIM}) = bc
+
+# ── Energy ──────────────────────────────────────────────────────────────
+function fetch(m::Model{:TFIM}, ::Quantity{:energy}, bc::OBC; kwargs...)
+    return fetch(_tfim_from_legacy_model(m), Energy(), _bc_with_legacy_N(bc, m); kwargs...)
+end
+function fetch(m::Model{:TFIM}, ::Quantity{:energy}, bc::Infinite; kwargs...)
+    return fetch(_tfim_from_legacy_model(m), Energy(), bc; kwargs...)
+end
+
+# ── Central charge ──────────────────────────────────────────────────────
+function fetch(m::Model{:TFIM}, ::Quantity{:central_charge}, bc::Infinite; kwargs...)
+    return fetch(_tfim_from_legacy_model(m), CentralCharge(), bc; kwargs...)
+end

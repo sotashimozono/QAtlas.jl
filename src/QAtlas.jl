@@ -9,6 +9,7 @@ export fetch
 export IsingSquare, PartitionFunction, CriticalTemperature, SpontaneousMagnetization
 
 # --- Quantum Models ---
+export TFIM                                             # v0.13 concrete struct
 export Graphene, TightBindingSpectrum
 # NOTE: `Kagome`, `Lieb`, `Triangular` are NOT exported — they conflict
 # with Lattice2D's topology types of the same name. Access them as
@@ -62,5 +63,6 @@ include("models/quantum/Heisenberg.jl")
 # Loaded last so they can route into any already-registered concrete
 # `fetch` method.  See src/deprecate/README.md.
 include("deprecate/legacy_fetch.jl")
+include("deprecate/legacy_tfim.jl")
 
 end # module QAtlas

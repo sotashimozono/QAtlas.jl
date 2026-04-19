@@ -9,11 +9,30 @@
 #
 #   ⟨H⟩(β) = -Σₙ (Λₙ/2) tanh(β Λₙ / 2)
 #
-# Aliases: :TFIM, :TransverseFieldIsingModel
+# The canonical API uses the concrete `TFIM` struct and concrete `Quantity`
+# types from `src/core/quantities.jl`.  Legacy symbol-dispatch
+# (`fetch(:TFIM, :energy, OBC(); …)`) routes through
+# `src/deprecate/legacy_tfim.jl`.
 # ─────────────────────────────────────────────────────────────────────────────
 
 using LinearAlgebra: eigvals, Symmetric
 using QuadGK: quadgk
+
+"""
+    TFIM(; J = 1.0, h = 1.0) <: AbstractQAtlasModel
+
+The 1D transverse field Ising model with Hamiltonian
+
+    H = -J Σ_i σᶻ_i σᶻ_{i+1} - h Σ_i σˣ_i
+
+`J > 0` is ferromagnetic, `h` is the transverse field.  The critical
+point sits at `h = J`.
+"""
+struct TFIM <: AbstractQAtlasModel
+    J::Float64
+    h::Float64
+end
+TFIM(; J::Real=1.0, h::Real=1.0) = TFIM(Float64(J), Float64(h))
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Internal: BdG quasiparticle spectrum (OBC, finite N)
@@ -60,12 +79,12 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:energy}, ::OBC; beta, betas) -> Float64 or Vector{Float64}
+    fetch(model::TFIM, ::Energy, bc::OBC; beta, betas) -> Float64 or Vector{Float64}
 
 Total energy ⟨H⟩(β) for the OBC TFIM with N sites.
 
-Required model params: `N` (Int), `J` (Float64), `h` (Float64, transverse field)
-
+- `N` is read from `bc.N` (`OBC(N)` / `OBC(; N)`) or from `kwargs[:N]`
+  as a legacy fallback.
 - `beta::Float64`: return scalar ⟨H⟩(β)
 - `betas::AbstractVector{Float64}`: return vector, reusing spectrum (O(N³) once)
 - no keyword: return ground-state energy E₀ = -Σₙ Λₙ/2  (β → ∞)
@@ -73,17 +92,15 @@ Required model params: `N` (Int), `J` (Float64), `h` (Float64, transverse field)
 Uses the exact BdG formula:  ⟨H⟩ = -Σₙ (Λₙ/2) tanh(β Λₙ / 2)
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:energy},
-    ::OBC;
+    model::TFIM,
+    ::Energy,
+    bc::OBC;
     beta::Union{Float64,Nothing}=nothing,
     betas::Union{AbstractVector{Float64},Nothing}=nothing,
     kwargs...,
 )
-    N = Int(model.params[:N])
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    Λ = _tfim_bdg_spectrum(N, J, h)
+    N = _bc_size(bc, kwargs)
+    Λ = _tfim_bdg_spectrum(N, model.J, model.h)
     if betas !== nothing
         return Float64[-sum(λ -> (λ / 2) * tanh(β * λ / 2), Λ) for β in betas]
     elseif beta !== nothing
@@ -99,7 +116,7 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:energy}, ::Infinite; beta, betas) -> Float64 or Vector{Float64}
+    fetch(model::TFIM, ::Energy, ::Infinite; beta, betas) -> Float64 or Vector{Float64}
 
 Energy *per site* ⟨H⟩/N in the thermodynamic limit (PBC, N → ∞).
 
@@ -114,15 +131,15 @@ where the PBC dispersion is  Λ(k) = 2√(J² + h² - 2Jh cos k).
 Uses adaptive Gauss-Kronrod quadrature (QuadGK).
 """
 function fetch(
-    model::Model{:TFIM},
-    ::Quantity{:energy},
+    model::TFIM,
+    ::Energy,
     ::Infinite;
     beta::Union{Float64,Nothing}=nothing,
     betas::Union{AbstractVector{Float64},Nothing}=nothing,
     kwargs...,
 )
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
+    J = model.J
+    h = model.h
     _energy_at_beta =
         β -> begin
             result, _ = quadgk(
@@ -148,16 +165,14 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite) -> Float64
+    fetch(model::TFIM, ::CentralCharge, ::Infinite) -> Float64
 
 Central charge of the TFIM critical point (h = J): c = 1/2 (Ising CFT).
 Returns NaN if not at the critical point (|h/J - 1| > 1e-6).
 """
-function fetch(model::Model{:TFIM}, ::Quantity{:central_charge}, ::Infinite; kwargs...)
-    J = Float64(model.params[:J])
-    h = Float64(model.params[:h])
-    if abs(h / J - 1.0) > 1e-6
-        @warn "TFIM central charge c=1/2 only at the critical point h=J. Got h/J=$(h/J)."
+function fetch(model::TFIM, ::CentralCharge, ::Infinite; kwargs...)
+    if abs(model.h / model.J - 1.0) > 1e-6
+        @warn "TFIM central charge c=1/2 only at the critical point h=J. Got h/J=$(model.h/model.J)."
         return NaN
     end
     return 0.5
