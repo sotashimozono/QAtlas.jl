@@ -30,7 +30,8 @@ export MagnetizationXLocal, MagnetizationZLocal, EnergyLocal
 export SusceptibilityXX, SusceptibilityYY, SusceptibilityZZ
 export XXCorrelation, YYCorrelation, ZZCorrelation
 export XXStructureFactor, YYStructureFactor, ZZStructureFactor
-export CentralCharge, LuttingerParameter, SoundVelocity
+export CentralCharge, LuttingerParameter
+export FermiVelocity, LuttingerVelocity, SpinWaveVelocity
 export E8Spectrum
 
 # --- Universality Classes ---

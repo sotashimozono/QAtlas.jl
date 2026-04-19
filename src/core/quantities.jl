@@ -282,28 +282,41 @@ with U(1) symmetry (e.g. XXZ in the critical regime `|Δ| < 1`).
 struct LuttingerParameter <: AbstractQuantity end
 
 """
-    SoundVelocity() <: AbstractQuantity
+    FermiVelocity() <: AbstractQuantity
 
-Velocity of the low-energy linear-dispersion mode.  Same physical
-quantity regardless of the underlying degrees of freedom, although
-the community-specific name differs:
-
-- **spin chains** (XXZ, XY, Heisenberg in the critical regime): this
-  is the *spin-wave velocity* `v_s`.
-- **fermionic systems** (tight-binding, TFIM Majorana mode at the
-  critical field): this is the *Fermi velocity* `v_F = ∂ε/∂k` at the
-  Fermi point.
-- **Luttinger liquids** (bosonized 1D critical chains): this is the
-  *Luttinger velocity* `u` (a.k.a. `v_{LL}` or the renormalised
-  sound velocity).
-- **bosonic / hydrodynamic systems** (phonons, superfluids): this is
-  the *sound velocity* `c_s`.
-
-QAtlas returns a single scalar `Float64` and treats all four labels as
-aliases for the same quantity — the call site is responsible for
-knowing which physical interpretation applies to its model.
+Fermi velocity `v_F = ∂ε/∂k |_{k_F}`.  Meaningful for non-interacting
+/ mean-field fermionic band structures (tight-binding lattices,
+Bogoliubov-de Gennes diagonalisations).  In QAtlas this is the type
+returned by models like [`Honeycomb`](@ref) (at the Dirac cones), the
+other tight-binding lattices, and the TFIM Majorana mode at the
+critical field.
 """
-struct SoundVelocity <: AbstractQuantity end
+struct FermiVelocity <: AbstractQuantity end
+
+"""
+    LuttingerVelocity() <: AbstractQuantity
+
+Luttinger-liquid / bosonisation velocity `u` (a.k.a. `v_{LL}`) of the
+low-energy linear-dispersion mode in a 1D critical interacting system.
+Used by models like [`XXZ1D`](@ref) in the Luttinger regime
+`|Δ| < 1`, the Heisenberg chain at the SU(2) point, and any other
+bosonised 1D critical theory.
+
+For a free-fermion model this coincides with [`FermiVelocity`](@ref);
+for interacting systems `u` includes the Luttinger renormalisation.
+"""
+struct LuttingerVelocity <: AbstractQuantity end
+
+"""
+    const SpinWaveVelocity = LuttingerVelocity
+
+Spin-chain community alias for [`LuttingerVelocity`](@ref).  The "spin
+wave velocity" (e.g. in the Haldane / Affleck literature on the AFM
+Heisenberg chain) is the same quantity as the Luttinger velocity once
+bosonised; both dispatch through the same fetch method via the type
+identity.
+"""
+const SpinWaveVelocity = LuttingerVelocity
 
 """
     E8Spectrum() <: AbstractQuantity
