@@ -26,7 +26,8 @@ emitted the first time the shim is reached from a given site.
 function fetch(m::Symbol, q::Symbol, bc::BoundaryCondition=Infinite(); kwargs...)
     @info """QAtlas symbol-dispatch `fetch(:$(m), :$(q), …)` will be \
 removed in v1.0; prefer the concrete-struct API
-    (e.g. `fetch(TFIM(; J, h), Energy(), OBC(N=…); kwargs...)`).""" maxlog = 1 _id =
-        (:qatlas_legacy_fetch_symbol, m, q)
+    (e.g. `fetch(TFIM(; J, h), Energy(), OBC(N=…); kwargs...)`).""" maxlog = 1 _id = (
+        :qatlas_legacy_fetch_symbol, m, q
+    )
     return fetch(Model(m; kwargs...), Quantity(q), bc; kwargs...)
 end

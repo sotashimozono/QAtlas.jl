@@ -98,7 +98,9 @@ fetch methods can use this helper to accept both `OBC(N=24)` and
 """
 function _bc_size end
 
-_bc_size(::Infinite, kwargs) = error("_bc_size called on Infinite; call a size-free fetch method instead")
+function _bc_size(::Infinite, kwargs)
+    error("_bc_size called on Infinite; call a size-free fetch method instead")
+end
 function _bc_size(bc::Union{OBC,PBC}, kwargs)
     bc.N > 0 && return bc.N
     haskey(kwargs, :N) && return Int(kwargs[:N])
@@ -144,10 +146,7 @@ method; this top-level definition throws an informative error for
 un-implemented triples.
 """
 function fetch(
-    model::AbstractQAtlasModel,
-    quantity::AbstractQuantity,
-    bc::BoundaryCondition;
-    kwargs...,
+    model::AbstractQAtlasModel, quantity::AbstractQuantity, bc::BoundaryCondition; kwargs...
 )
     return error(
         "QAtlas: no fetch method for model=$(typeof(model)), " *

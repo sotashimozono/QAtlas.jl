@@ -96,9 +96,11 @@ struct RenyiEntropy <: AbstractQuantity
     α::Float64
     function RenyiEntropy(α::Real)
         α > 0 || throw(ArgumentError("RenyiEntropy: α must be positive; got $α"))
-        α == 1 && throw(ArgumentError(
-            "RenyiEntropy(1) is ambiguous; use VonNeumannEntropy() explicitly."
-        ))
+        α == 1 && throw(
+            ArgumentError(
+                "RenyiEntropy(1) is ambiguous; use VonNeumannEntropy() explicitly."
+            ),
+        )
         return new(Float64(α))
     end
 end
