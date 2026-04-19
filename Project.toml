@@ -8,10 +8,20 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 
 [compat]
-julia = "1.10"
+Aqua = "0.8"
+ForwardDiff = "0.10, 1"
+KrylovKit = "0.8, 0.9"
+Lattice2D = "0.2"
+LatticeCore = "0.8"
+LinearAlgebra = "1.10"
 QuadGK = "2.11.2"
+Random = "1.10"
+SparseArrays = "1.10"
+Test = "1.10"
+julia = "1.10"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 KrylovKit = "0b1a1467-8014-51b9-945f-bf0ae24f4b77"
 Lattice2D = "e8031020-b7ff-4f1d-bee4-f79aea4cf140"
@@ -21,7 +31,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Lattice2D", "LatticeCore", "ForwardDiff", "Random", "SparseArrays", "KrylovKit"]
+test = ["Test", "Aqua", "Lattice2D", "LatticeCore", "ForwardDiff", "Random", "SparseArrays", "KrylovKit"]
 
 [sources]
 Lattice2D = {url = "https://github.com/sotashimozono/Lattice2D.jl.git", rev = "v0.2.4"}
