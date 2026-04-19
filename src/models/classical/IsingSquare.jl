@@ -48,8 +48,9 @@ struct IsingSquare <: AbstractQAtlasModel
     Lx::Int
     Ly::Int
 end
-IsingSquare(; J::Real=1.0, Lx::Integer=0, Ly::Integer=0) =
+function IsingSquare(; J::Real=1.0, Lx::Integer=0, Ly::Integer=0)
     IsingSquare(Float64(J), Int(Lx), Int(Ly))
+end
 
 """
     PartitionFunction() <: AbstractQuantity

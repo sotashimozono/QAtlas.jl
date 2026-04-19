@@ -58,8 +58,9 @@ struct Honeycomb <: AbstractQAtlasModel
     Lx::Int
     Ly::Int
 end
-Honeycomb(; t::Real=1.0, Lx::Integer=0, Ly::Integer=0) =
+function Honeycomb(; t::Real=1.0, Lx::Integer=0, Ly::Integer=0)
     Honeycomb(Float64(t), Int(Lx), Int(Ly))
+end
 
 """
     TightBindingSpectrum() <: AbstractQuantity
@@ -110,11 +111,7 @@ A sorted `Vector{Float64}` of length `2·Lx·Ly`.
     A. H. Castro Neto et al., Rev. Mod. Phys. 81, 109 (2009).
 """
 function fetch(
-    m::Honeycomb,
-    ::TightBindingSpectrum;
-    Lx::Integer=m.Lx,
-    Ly::Integer=m.Ly,
-    t::Real=m.t,
+    m::Honeycomb, ::TightBindingSpectrum; Lx::Integer=m.Lx, Ly::Integer=m.Ly, t::Real=m.t
 )
     Lx > 0 && Ly > 0 || error(
         "Honeycomb TightBindingSpectrum: Lx and Ly must be positive. " *
