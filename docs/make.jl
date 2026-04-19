@@ -12,9 +12,11 @@ Downloads.download("https://github.com/sotashimozono.png", logo_path)
 
 makedocs(;
     sitename="QAtlas.jl",
+    repo=Remotes.GitHub("sotashimozono", "QAtlas.jl"),
     format=Documenter.HTML(;
         canonical="https://codes.sota-shimozono.com/QAtlas.jl/stable/",
         prettyurls=get(ENV, "CI", "false") == "true",
+        edit_link="main",
         mathengine=MathJax3(
             Dict(
                 :tex => Dict(
@@ -24,7 +26,7 @@ makedocs(;
                 ),
             ),
         ),
-        assets=["assets/favicon.ico", "assets/custom.css"],
+        assets=["assets/favicon.ico", "assets/custom.css", "assets/report-issue.js"],
     ),
     modules=[QAtlas],
     pages=[

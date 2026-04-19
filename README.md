@@ -1,5 +1,14 @@
 # QAtlas.jl
 
+> ⚠️ **AI-assisted draft — feedback welcome.**
+> Both the source code and every derivation note in the documentation are
+> generated with heavy LLM assistance (Claude) and are still being
+> independently reviewed. If you spot an error — in a formula, a proof
+> step, a citation, a type signature, anything — please
+> [**open an issue**](https://github.com/sotashimozono/QAtlas.jl/issues/new?labels=docs&title=%5Bdocs%5D%20error%20report)
+> or submit a pull request. Corrections and reviews are genuinely
+> appreciated; this package is in better shape the more eyes it gets.
+
 [![docs: stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://codes.sota-shimozono.com/QAtlas.jl/stable/)
 [![docs: dev](https://img.shields.io/badge/docs-dev-purple.svg)](https://codes.sota-shimozono.com/QAtlas.jl/dev/)
 [![Julia](https://img.shields.io/badge/julia-v1.12+-9558b2.svg)](https://julialang.org)
@@ -11,9 +20,9 @@
 
 **QAtlas** (QUAntum Reference Table for Exact Tests) is a Julia package providing a curated dictionary of **rigorous results** in quantum and statistical physics. Every stored value is traced to a specific publication and cross-validated against independent calculations.
 
-> **Status and Disclaimer**
+> **Status and verification policy**
 >
-> This package is under active development with AI-assisted code generation. While all stored values cite specific publications and are cross-checked against independent numerical computations (exact diagonalization, brute-force enumeration, automatic differentiation), **the maintainer has not personally verified every derivation in equal depth**.
+> While every stored value cites a specific publication and is cross-checked against independent numerical computations (exact diagonalization, brute-force enumeration, automatic differentiation), **the maintainer has not personally verified every derivation in equal depth**.
 >
 > Results that the maintainer can independently derive and has verified line-by-line (TFIM exact solution, Onsager critical temperature, Yang magnetization, Heisenberg dimer) carry the highest confidence. Other results (tight-binding Bloch formulas for various lattices, numerical universality exponents transcribed from the literature, E8 mass ratios) are tested against independent computations but the underlying derivations have not been checked by hand.
 >
