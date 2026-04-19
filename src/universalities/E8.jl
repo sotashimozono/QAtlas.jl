@@ -8,18 +8,26 @@ Analytical expressions for the 8 particle masses in the E8 spectrum of the Ising
 - Experiment: Coldea, R., Tennant, D. A., Wheeler, E. M., Wawrzynska, E., Prabhakaran, D., Telling, M., ... & Kiefer, K. (2010). Quantum criticality in an Ising chain: experimental evidence for emergent E8 symmetry. *Science*, 327(5962), 177-180.
 """
 function get_e8_mass_ratios()
-    # Golden ratio ϕ = 2 cos(π/5) ≈ 1.618...
-    # m₂/m₁ = ϕ is the hallmark of the E8 symmetry.
+    # Closed-form mass ratios of the E₈ particle spectrum of the
+    # Zamolodchikov (1989) magnetic Ising field theory, normalised by
+    # m₁ = 1.  The derivation (Perron-Frobenius eigenvector of the E₈
+    # Cartan matrix, Dorey's fusion rules, exponents from the Coxeter
+    # group) is written out in
+    # `docs/src/calc/e8-mass-spectrum-derivation.md`.
+    #
+    # φ = 2 cos(π/5) is the golden ratio; m₂/m₁ = φ is the hallmark of
+    # the E₈ symmetry and was measured experimentally in Coldea et al.
+    # (2010) for CoNb₂O₆ on its Ising-chain plateau.
     ϕ = 2 * cos(π / 5)
 
     m1 = 1.0
     m2 = ϕ
     m3 = 2 * cos(π / 30)
-    m4 = 2 * m2 * cos(7π / 30)
-    m5 = 2 * m2 * cos(2π / 15)
-    m6 = 2 * m2 * cos(π / 30)
-    m7 = 4 * m2^2 * cos(7π / 30)
-    m8 = 4 * m2^2 * cos(2π / 15)
+    m4 = 2 * cos(7π / 30) * ϕ
+    m5 = 2 * cos(2π / 15) * ϕ
+    m6 = 2 * cos(π / 30) * ϕ
+    m7 = 2 * cos(7π / 30) * ϕ^2
+    m8 = 2 * cos(2π / 15) * ϕ^2
 
     return [m1, m2, m3, m4, m5, m6, m7, m8]
 end
