@@ -88,6 +88,61 @@ end
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# 2b. TFIM gap Δ(N) at h = J → z = 1 (tight PBC signal)
+#
+# The OBC extraction above has a boundary-energy O(1/N) contamination
+# in the gap that caps the extracted z_eff at ~0.97 for N ≤ 12, so the
+# assertion `rtol = 0.1` only rejects gross deviations. Repeating the
+# extraction on the PBC chain removes the boundary term entirely and
+# sends z_eff to 1 with a 1/N² tail — extracted z lies within ~0.2 %
+# of the exact value already at N ∈ {14, 16}, enough to catch any sign
+# or prefactor drift in the BdG spectrum used by QAtlas.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@testset "Cross-check: TFIM gap Δ(N) → z = 1 (PBC, tight)" begin
+    J = 1.0
+    h = J
+    bc_chain = LatticeBoundary((PeriodicAxis(), OpenAxis()))
+
+    Ns = [10, 12, 14, 16]
+    gaps = Float64[]
+    for N in Ns
+        lat = build_lattice(Square, N, 1; boundary=bc_chain)
+        H = build_tfim_sparse(lat, J, h)
+        vals, _, info = eigsolve(
+            H,
+            randn(MersenneTwister(42 + N), 2^N),
+            2,
+            :SR;
+            issymmetric=true,
+            tol=1e-11,
+            krylovdim=40,
+        )
+        info.converged < 2 && error(
+            "PBC TFIM two-lowest ED failed to converge at N = $N (converged=$(info.converged))",
+        )
+        push!(gaps, vals[2] - vals[1])
+    end
+
+    z_effs = [
+        -log(gaps[i + 1] / gaps[i]) / log(Ns[i + 1] / Ns[i]) for i in 1:(length(Ns) - 1)
+    ]
+
+    # Largest-N pair is within 1 % of z = 1.
+    @test z_effs[end] ≈ 1.0 rtol = 0.01
+
+    # Error shrinks monotonically in N.
+    for i in 1:(length(z_effs) - 1)
+        @test abs(z_effs[i + 1] - 1.0) < abs(z_effs[i] - 1.0)
+    end
+
+    # Finite-N correction has the expected positive sign (z_eff > 1 at
+    # finite N for PBC TFIM at h = J, with the correction scaling as
+    # O(1/N²)).
+    @test all(>(1.0), z_effs)
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 3. TFIM ground-state energy E₀(N) → Ising central charge c = 1/2
 #
 # Source A: Universality(:Ising) d=2 → c = 1/2 (CFT)
