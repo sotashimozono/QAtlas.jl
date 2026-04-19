@@ -19,7 +19,19 @@ export Heisenberg1D, ExactSpectrum, GroundStateEnergyDensity
 # --- Core Implementation ---
 include("core/alias.jl")
 include("core/type.jl")
+include("core/quantities.jl")
 include("core/pfaffian.jl")
+
+# --- Quantity struct exports (new, axis-explicit naming) ---
+export Energy, FreeEnergy, SpecificHeat, MassGap, FidelitySusceptibility
+export ThermalEntropy, VonNeumannEntropy, RenyiEntropy
+export MagnetizationX, MagnetizationY, MagnetizationZ
+export MagnetizationXLocal, MagnetizationZLocal, EnergyLocal
+export SusceptibilityXX, SusceptibilityYY, SusceptibilityZZ
+export XXCorrelation, YYCorrelation, ZZCorrelation
+export XXStructureFactor, YYStructureFactor, ZZStructureFactor
+export CentralCharge, LuttingerParameter, SpinWaveVelocity
+export E8Spectrum
 
 # --- Universality Classes ---
 export Universality, CriticalExponents, GrowthExponents
