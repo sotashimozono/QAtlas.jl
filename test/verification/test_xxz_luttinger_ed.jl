@@ -109,9 +109,7 @@ const _XXZ_Ns = [8, 10, 12, 14]
             (0.5, 0.12),  # K_exact = 3/4 (subleading AF corrections)
         ]
         for (Δ, rtol) in cases
-            K_exact = QAtlas.fetch(
-                XXZ1D(; J=1.0, Δ=Δ), LuttingerParameter(), Infinite()
-            )
+            K_exact = QAtlas.fetch(XXZ1D(; J=1.0, Δ=Δ), LuttingerParameter(), Infinite())
             Ks = [_extract_K(N, Δ) for N in _XXZ_Ns]
             K_inf, _ = _linfit([1.0 / N for N in _XXZ_Ns], Ks)
 
