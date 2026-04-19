@@ -30,6 +30,32 @@ function extract_central_charge_obc(Ss::Vector{Float64}, ls, N::Int)
     return 6 * slope  # OBC: S = (c/6) ξ + const
 end
 
+# PBC version: S(l) = (c/3) ln[(N/π) sin(πl/N)] + s₁ — no boundary term,
+# so the leading finite-size correction is O(1/N²) at criticality instead
+# of O(1/N), and extracted c at N ≈ 14 lands within sub-percent of the
+# exact value for free-fermion CFTs like the critical TFIM.
+function extract_central_charge_pbc(Ss::Vector{Float64}, ls, N::Int)
+    ξs = [log((N / π) * sin(π * l / N)) for l in ls]
+    n = length(ls)
+    ξ̄ = sum(ξs) / n
+    S̄ = sum(Ss) / n
+    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
+    return 3 * slope  # PBC: S = (c/3) ξ + const
+end
+
+# Linear fit y ≈ a + b·x; returns (intercept, slope). Used to extrapolate
+# c(N) → c(∞) under an assumed 1/N (or 1/N²) leading correction.
+function _linear_fit(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
+    n = length(x)
+    x̄ = sum(x) / n
+    ȳ = sum(y) / n
+    num = sum((x[i] - x̄) * (y[i] - ȳ) for i in 1:n)
+    den = sum((x[i] - x̄)^2 for i in 1:n)
+    b = num / den
+    a = ȳ - b * x̄
+    return (a, b)
+end
+
 # Ground-state dispatcher: dense eigen() for small N (cheap, simple);
 # sparse + KrylovKit Lanczos for N ≥ 14 where dense allocates tens of
 # gigabytes.  Returns (ψ0, cache_key) so callers can reuse across tests.
@@ -137,5 +163,88 @@ const _TEST_FULL = get(ENV, "QATLAS_TEST_FULL", "0") != "0"
         c_tfim = extract_central_charge_obc(Ss_tfim, ls_all, N)
 
         @test c_heis > c_tfim
+    end
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Tight-signal central-charge extraction (PBC)
+#
+# The OBC Calabrese–Cardy fit above leaves an O(1/N) boundary correction
+# that at N ≤ 16 puts the extracted c ≈ 10% off the exact value even for
+# a bug-free implementation — so the assertion `rtol = 0.10` only rejects
+# very large deviations. Switching to PBC removes the boundary term; at
+# criticality the leading correction is O(1/N²) and the extracted c lands
+# within ~0.5 % of the exact value already at N = 10. This lets the tests
+# assert the central charge to ~1 % — strong enough to catch any sign
+# flip, parity, or coefficient error in the entropy or the CFT dispatch,
+# rather than just outright garbage.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@testset "Tight signal: central charge from PBC ground states" begin
+    bc_chain = LatticeBoundary((PeriodicAxis(), OpenAxis()))
+
+    @testset "TFIM at h = J (PBC) → c = 1/2 within 1 %" begin
+        c_exact = 0.5
+        J = 1.0
+        Ns = [10, 12, 14]
+        cs = Float64[]
+        for N in Ns
+            lat = build_lattice(Square, N, 1; boundary=bc_chain)
+            H = build_tfim_sparse(lat, J, J)
+            _, vecs, info = eigsolve(
+                H, randn(2^N), 1, :SR; issymmetric=true, tol=1e-11, krylovdim=30
+            )
+            info.converged < 1 && error("PBC TFIM ED failed to converge at N = $N")
+            ψ0 = vecs[1]
+            ls = collect(2:(N - 2))
+            Ss = [entanglement_entropy(ψ0, l, N) for l in ls]
+            push!(cs, extract_central_charge_pbc(Ss, ls, N))
+        end
+
+        # Largest N is within 1 % of the exact central charge.
+        @test cs[end] ≈ c_exact rtol = 0.01
+
+        # Monotone convergence toward c_exact (error shrinks with N).
+        @test abs(cs[end] - c_exact) < abs(cs[1] - c_exact)
+
+        # Finite-N correction has the expected positive sign for PBC
+        # critical TFIM (direct consequence of Calabrese–Cardy subleading
+        # terms on a torus with fixed boundary sum).
+        @test all(c -> c > c_exact, cs)
+    end
+
+    @testset "Heisenberg chain (PBC) → c = 1 within 3 % after 1/N extrapolation" begin
+        c_exact = 1.0
+        J = 1.0
+        Ns = [8, 10, 12, 14]
+        cs = Float64[]
+        for N in Ns
+            lat = build_lattice(Square, N, 1; boundary=bc_chain)
+            H = build_spinhalf_heisenberg_sparse(lat, J)
+            _, vecs, info = eigsolve(
+                H, randn(2^N), 1, :SR; issymmetric=true, tol=1e-11, krylovdim=30
+            )
+            info.converged < 1 && error("PBC Heisenberg ED failed to converge at N = $N")
+            ψ0 = vecs[1]
+            # Even l only (suppresses the SU(2) alternating correction).
+            ls = collect(2:2:(N - 2))
+            Ss = [entanglement_entropy(ψ0, l, N) for l in ls]
+            push!(cs, extract_central_charge_pbc(Ss, ls, N))
+        end
+
+        # Linear 1/N extrapolation to c(∞). The SU(2) log correction
+        # decays as 1/ln(N) asymptotically, but over N = 8..14 the leading
+        # residual is well approximated by A/N and the intercept sits
+        # within a few percent of the exact c.
+        invN = [1.0 / N for N in Ns]
+        c_inf, _ = _linear_fit(invN, cs)
+
+        @test c_inf ≈ c_exact rtol = 0.03
+
+        # Monotone convergence (cs decreases toward 1.0 as N grows).
+        @test abs(cs[end] - c_exact) < abs(cs[1] - c_exact)
+
+        # Correct sign of the Heisenberg finite-size correction.
+        @test all(c -> c > c_exact, cs)
     end
 end
