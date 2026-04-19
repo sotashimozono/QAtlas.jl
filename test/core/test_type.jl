@@ -37,26 +37,42 @@ using Test
     end
 
     @testset "Dispatch Logic (Core API)" begin
-        # fetch(:Dummy, :Answer) -> fetch(Model(:Dummy), Quantity(:Answer), Infinite())
-        @test QAtlas.fetch(:Dummy, :Answer) == 42
-        @test QAtlas.fetch(:Dummy, :Answer, QAtlas.Infinite()) == 42
+        # fetch(:Dummy, :Answer) -> fetch(Model(:Dummy), Quantity(:Answer), Infinite()).
+        # Every legacy-Symbol call hits the shim which emits one `@info` per
+        # (model, quantity) pair; `@test_logs` captures those to keep CI quiet.
+        @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(:Dummy, :Answer)) == 42
+        @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+            :Dummy, :Answer, QAtlas.Infinite()
+        )) == 42
 
         # dispatch of bounary conditions
-        @test QAtlas.fetch(:Dummy, :Answer, QAtlas.OBC()) == "Open Boundary"
+        @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+            :Dummy, :Answer, QAtlas.OBC()
+        )) == "Open Boundary"
     end
 
     @testset "Keyword Argument Passing" begin
-        # fetch(:Dummy, :ParamCheck; val=10) 
+        # fetch(:Dummy, :ParamCheck; val=10)
         # -> Model(:Dummy, val=10) が作られ、params[:val] が参照されるか
-        @test QAtlas.fetch(:Dummy, :ParamCheck; val=10) == 20
-        @test QAtlas.fetch(:Dummy, :ParamCheck; val=100) == 200
+        @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+            :Dummy, :ParamCheck; val=10
+        )) == 20
+        @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+            :Dummy, :ParamCheck; val=100
+        )) == 200
     end
 
     @testset "Error Handling (Strictness)" begin
+        # The shim emits its `@info` before the inner `fetch` throws, so
+        # `@test_logs` must wrap the `@test_throws` to absorb that log.
         # if no method matches, it should throw a MethodError, not a generic error
-        @test_throws ErrorException QAtlas.fetch(:Dummy, :NotExist)
+        @test_logs (:info, r"symbol-dispatch") @test_throws ErrorException QAtlas.fetch(
+            :Dummy, :NotExist
+        )
         # if model or quantity is unknown, it should also throw a MethodError
-        @test_throws ErrorException QAtlas.fetch(:UnknownModel, :Answer)
+        @test_logs (:info, r"symbol-dispatch") @test_throws ErrorException QAtlas.fetch(
+            :UnknownModel, :Answer
+        )
     end
     #=
     @testset "Type Stability" begin
