@@ -90,6 +90,33 @@ end
     )
 end
 
+@testset "XXZ1D (Δ=1) ↔ Heisenberg1D — dictionary cross-consistency" begin
+    # The AF Heisenberg chain is the Δ = 1 point of the XXZ chain. QAtlas
+    # exposes the ground-state energy density at this point through two
+    # independent code paths — the dedicated `Heisenberg1D` model (Hulthén
+    # closed form) and the generic `XXZ1D` model (Bethe-ansatz branch at
+    # Δ = 1). The two must return identical values for every J.
+    #
+    # This catches any future divergence between the two dispatch paths
+    # (e.g. a formula typo, a sign convention drift, an accidental J²
+    # factor). Without this test the two are independent dictionary
+    # entries that happen to compute the same physics.
+    for J in (1.0, 2.5, -0.7)
+        e_heis = QAtlas.fetch(Heisenberg1D(), GroundStateEnergyDensity(); J=J)
+        e_xxz_energy = QAtlas.fetch(XXZ1D(; J=J, Δ=1.0), Energy(), Infinite())
+        e_xxz_gs = QAtlas.fetch(
+            XXZ1D(; J=J, Δ=1.0), GroundStateEnergyDensity(), Infinite()
+        )
+        @test e_xxz_energy ≈ e_heis atol = 1e-12
+        @test e_xxz_gs ≈ e_heis atol = 1e-12
+    end
+
+    # Sanity: Heisenberg1D value is exactly J·(1/4 − ln 2), so the XXZ
+    # Δ=1 path also reproduces the literature closed form.
+    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), Energy(), Infinite()) ≈
+        0.25 - log(2.0) atol = 1e-12
+end
+
 @testset "XXZ1D — gapped regime is NaN (general-Δ deferred)" begin
     # |Δ| > 1: gapped; NaN + warning.  This is the same branch as the
     # generic-Δ path above (single deferred-implementation warning);
