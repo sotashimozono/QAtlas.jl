@@ -10,8 +10,11 @@
 #   T. Sasamoto, H. Spohn, Nucl. Phys. B 834, 523 (2010).
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Backward-compatible alias
-struct KPZ1D end
+# Backward-compatible alias — previously a bare struct tag; now
+# subtyped to `AbstractQAtlasModel` so dispatch composes with the new
+# top-level `fetch(::AbstractQAtlasModel, ::AbstractQuantity, ::BC)`
+# canonical signature.
+struct KPZ1D <: AbstractQAtlasModel end
 function fetch(::KPZ1D, ::CriticalExponents; kwargs...)
     return fetch(Universality(:KPZ), GrowthExponents(); d=1, kwargs...)
 end

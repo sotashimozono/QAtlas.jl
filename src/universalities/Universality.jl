@@ -32,25 +32,25 @@ QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=3)   # numerical + _er
 QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=4)   # mean-field
 ```
 """
-struct Universality{C} end
+struct Universality{C} <: AbstractQAtlasModel end
 Universality(name::Symbol) = Universality{name}()
 
 """
-    CriticalExponents
+    CriticalExponents() <: AbstractQuantity
 
-Dispatch tag for the standard set of equilibrium critical exponents
+Standard set of equilibrium critical exponents
 {α, β, γ, δ, ν, η} of a universality class. Returns a `NamedTuple`.
 
 For exact values: fields are `Rational{Int}`.
 For numerical estimates: fields are `Float64` with corresponding
 `_err` fields (e.g., `β_err`) giving the uncertainty.
 """
-struct CriticalExponents end
+struct CriticalExponents <: AbstractQuantity end
 
 """
-    GrowthExponents
+    GrowthExponents() <: AbstractQuantity
 
-Dispatch tag for KPZ-type growth/roughness/dynamic exponents.
-Returns `(β_growth, α_rough, z)` instead of the equilibrium set.
+KPZ-type growth / roughness / dynamic exponents.  Returns
+`(β_growth, α_rough, z)` instead of the equilibrium set.
 """
-struct GrowthExponents end
+struct GrowthExponents <: AbstractQuantity end
