@@ -24,9 +24,28 @@
 #   These are currently the most precise known estimates.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Backward-compatible alias — delegates to Universality{:Ising} with d=2.
-# Subtyped to `AbstractQAtlasModel` so it composes with the new top-level
-# fetch(::AbstractQAtlasModel, ::AbstractQuantity, ::BC) signature.
+"""
+    Ising2D <: AbstractQAtlasModel
+
+Dispatch tag for the **two-dimensional** Ising universality class.
+Acts as a convenience wrapper over `Universality(:Ising)` with the
+dimension pinned to `d = 2`, so call sites do not have to repeat
+`d = 2` on every `fetch`:
+
+```julia
+QAtlas.fetch(Ising2D(), CriticalExponents())
+# ≡ QAtlas.fetch(Universality(:Ising), CriticalExponents(); d = 2)
+```
+
+The struct is kept as a distinct nominal type (rather than
+`const Ising2D = Universality{:Ising}`) because the `d` kwarg is
+fixed at 2 here — a type-level `const` alias would defeat that
+fix. Subtyped to `AbstractQAtlasModel` so it composes with the
+canonical `fetch(::AbstractQAtlasModel, ::AbstractQuantity, ::BoundaryCondition)`
+signature.
+
+See also: [`Universality`](@ref), [`CriticalExponents`](@ref).
+"""
 struct Ising2D <: AbstractQAtlasModel end
 
 """
