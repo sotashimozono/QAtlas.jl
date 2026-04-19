@@ -104,17 +104,15 @@ end
     for J in (1.0, 2.5, -0.7)
         e_heis = QAtlas.fetch(Heisenberg1D(), GroundStateEnergyDensity(); J=J)
         e_xxz_energy = QAtlas.fetch(XXZ1D(; J=J, Δ=1.0), Energy(), Infinite())
-        e_xxz_gs = QAtlas.fetch(
-            XXZ1D(; J=J, Δ=1.0), GroundStateEnergyDensity(), Infinite()
-        )
+        e_xxz_gs = QAtlas.fetch(XXZ1D(; J=J, Δ=1.0), GroundStateEnergyDensity(), Infinite())
         @test e_xxz_energy ≈ e_heis atol = 1e-12
         @test e_xxz_gs ≈ e_heis atol = 1e-12
     end
 
     # Sanity: Heisenberg1D value is exactly J·(1/4 − ln 2), so the XXZ
     # Δ=1 path also reproduces the literature closed form.
-    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), Energy(), Infinite()) ≈
-        0.25 - log(2.0) atol = 1e-12
+    @test QAtlas.fetch(XXZ1D(; J=1.0, Δ=1.0), Energy(), Infinite()) ≈ 0.25 - log(2.0) atol =
+        1e-12
 end
 
 @testset "XXZ1D — gapped regime is NaN (general-Δ deferred)" begin
