@@ -26,14 +26,29 @@ end
 
 # --- Registry & Fetch ---
 
+"""
+    E8() <: AbstractQAtlasModel
+
+The E8 integrable field theory — the low-energy continuum theory of the
+2D Ising model perturbed by a small longitudinal magnetic field at
+T = T_c (Zamolodchikov 1989).  The only physics parameter is the
+underlying magnetic field perturbation strength, but QAtlas currently
+only exposes the universal mass-ratio spectrum, so this struct carries
+no fields.
+"""
+struct E8 <: AbstractQAtlasModel end
+
 @register_aliases canonicalize_quantity :E8_spectrum [
     :E8_mass_ratios, :E8_masses, :mass_ratios, :E8_mass_ratio, :mass_ratio
 ]
 
 """
-    fetch(Model(:E8), Quantity(:E8_spectrum), Infinite())
-Returns the analytical E8 mass spectrum.
+    fetch(::E8, ::E8Spectrum, ::Infinite) -> Vector{Float64}
+
+Returns the analytical E8 mass spectrum `[m₁, m₂, …, m₈]` normalised
+by `m₁ = 1`.  `m₂/m₁ = 2 cos(π/5) = ϕ` (golden ratio) is the hallmark
+of the E8 symmetry.
 """
-function QAtlas.fetch(::Model{:E8}, ::Quantity{:E8_spectrum}, ::Infinite; kwargs...)
+function QAtlas.fetch(::E8, ::E8Spectrum, ::Infinite; kwargs...)
     return get_e8_mass_ratios()
 end
