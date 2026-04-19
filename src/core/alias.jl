@@ -61,6 +61,36 @@ end
 @register_aliases canonicalize_quantity :longitudinal_susceptibility [
     :chi_zz, :χ_zz, :LongitudinalSusceptibility, :susceptibility_z, :uniform_susceptibility
 ]
+
+# v0.13 velocity family — all resolve to the same canonical Symbol
+# (`:luttinger_velocity`) at the alias layer.  The legacy shim in
+# `src/deprecate/legacy_xxz.jl` then maps the Symbol to
+# `LuttingerVelocity()`; `SpinWaveVelocity` is a type-level alias for
+# `LuttingerVelocity`.
+@register_aliases canonicalize_quantity :luttinger_velocity [
+    :v_LL,
+    :vLL,
+    :u_LL,
+    :uLL,
+    :sound_velocity,
+    :spin_wave_velocity,
+    :v_s,
+    :vs,
+    :SpinWaveVelocity,
+    :fermi_velocity,
+    :v_F,
+    :vF,
+    :FermiVelocity,
+    :LuttingerVelocity,
+]
+
+@register_aliases canonicalize_quantity :luttinger_parameter [
+    :K, :K_LL, :LuttingerParameter
+]
+
+@register_aliases canonicalize_quantity :ground_state_energy [
+    :e0, :E0, :GroundStateEnergyDensity, :ground_state_energy_density
+]
 @register_aliases canonicalize_quantity :zz_static_thermal [
     :zz_static, :sz_sz_static, :static_zz_thermal
 ]
@@ -83,3 +113,5 @@ end
 @register_aliases canonicalize_model :TFIM [
     :TransverseFieldIsingModel, :transverseFieldIsingModel
 ]
+
+@register_aliases canonicalize_model :XXZ1D [:XXZ, :xxz, :xxz1d]
