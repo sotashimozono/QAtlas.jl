@@ -129,6 +129,40 @@ end
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# 3b. TFIM BdG E₀ at larger N via sparse ED (Lanczos)
+#
+# Source A: QAtlas TFIM Energy OBC — analytical BdG sum E₀ = −½ Σ Λₙ.
+# Source B: Real-space spin Hamiltonian H = −J Σ σ^z_i σ^z_{i+1} − h Σ σ^x_i
+#           built on the 2^N spin-1/2 basis via `build_tfim_sparse`, lowest
+#           eigenpair extracted with KrylovKit Lanczos (O(nnz) per iter).
+#
+# The dense-ED cross-check above (test 3) reaches N = 12 only because
+# dense eigvals scales as O(4^N).  Repeating the same cross-check at
+# N = 14, 16 through sparse ED pushes the independent verification into
+# the regime where boundary corrections are numerically smaller and any
+# drift between the BdG formula and the real-space spin Hamiltonian
+# would show up cleanly.  Both the critical point h = J and a
+# paramagnetic point h = 2J are covered.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@testset "Cross-check: TFIM sparse ED ↔ BdG E₀ at N=14, 16 (OBC)" begin
+    for (J, h) in [(1.0, 1.0), (1.0, 2.0)]
+        for N in (14, 16)
+            lat = build_lattice(Square, N, 1; boundary=OpenAxis())
+            H = build_tfim_sparse(lat, J, h)
+            vals, _, info = eigsolve(
+                H, randn(2^N), 1, :SR; issymmetric=true, tol=1e-11, krylovdim=30
+            )
+            info.converged < 1 && error("sparse ED failed to converge at N = $N")
+            E0_ed = vals[1]
+
+            E0_bdg = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N))
+            @test E0_ed ≈ E0_bdg rtol = 1e-8
+        end
+    end
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 4. Heisenberg E₀/N finite-size extrapolation
 #
 # Source A: Bethe ansatz → e_∞ = J(1/4 − ln 2) ≈ −0.4431J (N→∞, PBC)
@@ -324,6 +358,15 @@ end
     # the ground state energy per site is e_∞ = −(2/π)·2J = −4J/π.
     # This value comes from integrating the BdG dispersion Λ(k) = 2J|sin k|
     # over the Brillouin zone.
+    #
+    # Both sides of this test are consequences of the same Pfeuty BdG
+    # formula — the finite-N sum −½ Σ Λₙ and the thermodynamic-limit
+    # integral −4J/π. Independent cross-validation against a real-space
+    # spin Hamiltonian is handled by the sparse-ED check above ("3b",
+    # N = 14, 16) and the dense-ED check ("3", N ≤ 12); this test adds
+    # the complementary assertion that the BdG sum approaches the BdG
+    # integral at large N with the expected 1/N boundary-correction
+    # scaling, which ED cannot probe at such sizes.
     #
     # For OBC, the leading finite-size correction is O(1/N) (boundary
     # energy), not O(1/N²) (Cardy). Extracting the central charge c = 1/2
