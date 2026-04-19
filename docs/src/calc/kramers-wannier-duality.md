@@ -67,7 +67,7 @@ $$H = -J\sum_{i=1}^{N}\sigma^z_i\sigma^z_{i+1}
 
 (PBC) is obtained from the 2D Ising model by taking the **continuous-
 time limit** of the row-to-row transfer matrix: the 2D partition
-function becomes $Z = \operatorname{Tr}\,e^{-\beta_{\rm eff} H}$
+function becomes $Z = \mathrm{Tr}\,e^{-\beta_{\rm eff} H}$
 with $\beta_{\rm eff} \propto L_y$ and an anisotropic identification
 between $J, h$ and the two 2D couplings (Mattis §§3.4–3.5; Sachdev
 §5.2).  The self-dual structure of 2D Ising therefore descends to an

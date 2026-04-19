@@ -494,7 +494,7 @@ and $\beta^T = -\beta$ takes the matrix form
 $$H = \tfrac{1}{2}\,\Psi^\dagger
       \begin{pmatrix} \alpha & \beta \\ -\beta^* & -\alpha^* \end{pmatrix}
       \Psi
-    + \tfrac{1}{2}\operatorname{Tr}\alpha.
+    + \tfrac{1}{2}\mathrm{Tr}\alpha.
 \tag{8}$$
 
 The overall $\tfrac{1}{2}$ arises because $\Psi$ and $\Psi^\dagger$
@@ -630,7 +630,7 @@ Step 5.
 
 **(i) $h = 0$ (classical Ising).** With $h = 0$, (2') becomes
 $H = -J\sum \tilde\tau^z_b = -J\sum(1 - 2 n_b)$, hence $\mathcal{H}_{\rm
-BdG} = \operatorname{diag}(-2J,\dots,-2J,\,+2J,\dots,+2J)$ (the
+BdG} = \mathrm{diag}(-2J,\dots,-2J,\,+2J,\dots,+2J)$ (the
 diagonal $\alpha_{ii} = -2 J$ from re-reading: we had $2h = 0$ and
 only the diagonal from $+2 h n_b$ dropped; let me redo with (7')):
 actually with $h = 0$ equation (7') gives $\alpha = 0$ and $\beta_{i,
@@ -656,7 +656,7 @@ splitting, exponentially small in $N$.
 
 **(ii) $J = 0$ (classical transverse field).** With $J = 0$, (7')
 gives $\beta = 0$ and $\alpha_{ii} = 2 h$, so $\mathcal{H}_{\rm BdG}
-= \operatorname{diag}(2h,\dots,2h,\,-2h,\dots,-2h)$. Eigenvalues are
+= \mathrm{diag}(2h,\dots,2h,\,-2h,\dots,-2h)$. Eigenvalues are
 $\pm 2 h$; the positive set has $\Lambda_n = 2h$ uniformly. The
 ground-state energy is
 
