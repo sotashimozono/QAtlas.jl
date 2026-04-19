@@ -78,9 +78,16 @@ where
     Eᵥ(σ,σ') = Σⱼ₌₁^Ly σⱼ σ'ⱼ             (vertical bonds between rows)
 
 Note: for Ly = 2, each horizontal bond is counted twice by the PBC sum
-(σ₁σ₂ + σ₂σ₁ = 2σ₁σ₂). This is consistent with the convention used by
-`Lattice2D`'s bond list, which also lists each bond of a 2-site periodic
-row twice.
+(σ₁σ₂ + σ₂σ₁ = 2σ₁σ₂). The same applies along the transfer direction:
+`tr(T^Lx)` double-counts the vertical bonds when Lx = 2, because the
+cyclic product `T[σ,σ'] T[σ',σ]` weights the single pair of rows with
+the vertical Boltzmann factor twice. This doubling is an intrinsic
+property of the PBC transfer-matrix formula at L = 2 and is used
+consistently by the brute-force cross-check in
+`test/util/classical_partition.jl` (its bond list is constructed to
+match this convention by enumerating
+`(i, j) ↔ (i, (j mod Ly) + 1)` and `(i, j) ↔ ((i mod Lx) + 1, j)`
+for every site).
 
 The function is generic in `β` and `J` so that automatic-differentiation
 dual numbers (e.g. `ForwardDiff.Dual`) propagate through the matrix
@@ -136,11 +143,14 @@ each row containing Ly spins and PBC along the Ly direction.
 
 # Bond-counting convention
 
-This function adopts the same bond-counting convention as `Lattice2D`'s
-pre-computed bond list: for small PBC systems where Lx = 2 or Ly = 2, each
-unique physical bond appears twice in the enumeration. Both the transfer-matrix
-result and the brute-force enumeration via `Lattice2D.bonds` are internally
-consistent under this convention.
+The transfer-matrix sum double-counts bonds along any dimension of length
+2 (PBC wraparound of a length-2 ring produces the factor
+`σ_1 σ_2 + σ_2 σ_1 = 2 σ_1 σ_2`). The brute-force enumeration in
+`test/util/classical_partition.jl` is built under the same PBC convention
+so that `Z_transfer-matrix == Z_bruteforce` exactly for every
+`(Lx, Ly, β, J)`. For `Lx ≥ 3` and `Ly ≥ 3` each physical bond is
+enumerated exactly once and the result coincides with the standard
+physical Z of a PBC lattice.
 
 # Special values
 
