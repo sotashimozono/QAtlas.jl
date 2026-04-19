@@ -86,13 +86,14 @@ to 1e-10 in `test/models/test_TFIM_entanglement.jl`).
 See full derivation: [JW reduction of the TFIM](../../../../docs/src/calc/jw-tfim-bdg.md).
 """
 function fetch(
-    model::TFIM, ::VonNeumannEntropy, bc::OBC;
-    ℓ::Int, beta::Float64=Inf, kwargs...,
+    model::TFIM, ::VonNeumannEntropy, bc::OBC; ℓ::Int, beta::Float64=Inf, kwargs...
 )
     N = _bc_size(bc, kwargs)
-    1 ≤ ℓ ≤ N - 1 || throw(ArgumentError(
-        "VonNeumannEntropy: ℓ must satisfy 1 ≤ ℓ ≤ N - 1; got ℓ = $ℓ, N = $N.",
-    ))
+    1 ≤ ℓ ≤ N - 1 || throw(
+        ArgumentError(
+            "VonNeumannEntropy: ℓ must satisfy 1 ≤ ℓ ≤ N - 1; got ℓ = $ℓ, N = $N."
+        ),
+    )
     hmat = _majorana_ham(N, model.J, model.h)
     Σ = _majorana_thermal_covariance(hmat, beta)
     Σ_A = Σ[1:(2ℓ), 1:(2ℓ)]

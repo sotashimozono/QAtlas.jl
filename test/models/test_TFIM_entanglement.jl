@@ -57,8 +57,7 @@ end
     n = length(ℓs)
     ξ̄ = sum(ξs) / n
     S̄ = sum(Ss) / n
-    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
-            sum((ξs[i] - ξ̄)^2 for i in 1:n)
+    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
     c_est = 6 * slope
     @test c_est ≈ 0.5 rtol = 0.05
 end
@@ -82,9 +81,7 @@ end
 @testset "TFIM VonNeumannEntropy — legacy Symbol dispatch" begin
     N = 10
     S_new = QAtlas.fetch(TFIM(; J=1.0, h=1.0), VonNeumannEntropy(), OBC(N); ℓ=N ÷ 2)
-    S_legacy = QAtlas.fetch(
-        :TFIM, :entanglement_entropy, OBC(); N=N, J=1.0, h=1.0, ℓ=N ÷ 2
-    )
+    S_legacy = QAtlas.fetch(:TFIM, :entanglement_entropy, OBC(); N=N, J=1.0, h=1.0, ℓ=N ÷ 2)
     @test S_legacy ≈ S_new atol = 1e-12
 
     # Symbol aliases :ee, :EE, :S_vN, :EntanglementEntropy all canonicalise
