@@ -9,6 +9,14 @@ using Aqua
 const N_BLAS = min(Sys.CPU_THREADS, 64)
 BLAS.set_num_threads(N_BLAS)
 println("BLAS threads: $(BLAS.get_num_threads()) / $(Sys.CPU_THREADS) cores")
+
+# Default "fast" test profile keeps every ED at N ≤ 12 (fits in a few
+# GB of RAM) so PR CI runs in < 2 minutes on a 4-core GitHub runner.
+# Set `QATLAS_TEST_FULL=1` to also run N ∈ {14, 16} sweeps (sparse +
+# KrylovKit Lanczos, ~30 min on 128 GB / 36-core hardware).  Nightly
+# cron only.
+const QATLAS_TEST_FULL = get(ENV, "QATLAS_TEST_FULL", "0") != "0"
+println("QATLAS_TEST_FULL = $(QATLAS_TEST_FULL)")
 const dirs = ["core/", "universalities/", "models/", "standalone/", "verification/"]
 
 const FIG_BASE = joinpath(pkgdir(QAtlas), "docs", "src", "assets")

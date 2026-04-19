@@ -25,9 +25,9 @@ const AbstractModel = AbstractQAtlasModel
     Model{M} <: AbstractQAtlasModel  (deprecated)
 
 Phantom-typed Dict wrapper kept for backward compatibility.  The
-`Model(:TFIM; J=1.0, h=1.0)` constructor below still works but emits a
-deprecation path via [`_symbol_to_model`](@ref) when routed through
-`fetch(::Symbol, ::Symbol, ...)`.  Prefer concrete model structs for
+`Model(:TFIM; J=1.0, h=1.0)` constructor below still works but is
+routed through the Symbol-dispatch deprecation shim in
+`src/deprecate/legacy_fetch.jl`.  Prefer concrete model structs for
 new code.
 """
 struct Model{M} <: AbstractQAtlasModel
@@ -138,8 +138,8 @@ Quantity(q::AbstractString) = Quantity(Symbol(q))
 Return the stored / computed value of `quantity` for `model` under
 boundary condition `bc`.  The canonical signature takes a concrete
 model struct + concrete quantity struct + BC; a legacy
-`fetch(::Symbol, ::Symbol, bc; kwargs...)` shim is also provided via
-[`_symbol_to_model`](@ref) / [`_symbol_to_quantity`](@ref).
+`fetch(::Symbol, ::Symbol, bc; kwargs...)` shim is also provided in
+`src/deprecate/legacy_fetch.jl` for backward compatibility.
 
 Each `(model, quantity, bc)` triple must be implemented as a separate
 method; this top-level definition throws an informative error for

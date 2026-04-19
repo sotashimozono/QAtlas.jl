@@ -103,7 +103,7 @@ the proof that $E = 0$ is an exact eigenvalue at every momentum.
 ## Connections
 
 - **Lattice family**: Part of the [tight-binding model catalogue](index.md).
-  The Lieb lattice is bipartite like [Graphene](graphene.md) but has
+  The Lieb lattice is bipartite like [Honeycomb](honeycomb.md) but has
   a flat band due to its sublattice imbalance, unlike the
   equal-sublattice honeycomb.
 - **Flat-band contrast**: Flat band at $E = 0$ (bipartite origin),

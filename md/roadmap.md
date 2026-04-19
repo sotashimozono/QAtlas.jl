@@ -63,12 +63,35 @@ matrix and brute-force enumeration use the same convention, so results
 agree — but the effective coupling is doubled compared to larger
 lattices. This is documented but can surprise new contributors.
 
-### Two API styles
+### ~~Two API styles~~  ✅ Resolved (v0.13)
 
-The old `Model{:TFIM}` + `Quantity{:energy}` style and the new simple
-struct style (`IsingSquare()`, `Universality(:Ising)`) coexist. No
-immediate plan to unify, but new models should use the simple struct
-style. A future refactor could migrate TFIM/E8 to the new style.
+All models have been migrated to concrete parameter-carrying structs:
+
+- `TFIM(; J, h)`, `E8()`, `XXZ1D(; J, Δ)`, `Heisenberg1D(; J)`,
+  `IsingSquare(; J, Lx, Ly)`, `Honeycomb(; t, Lx, Ly)`,
+  `Kagome(; t, Lx, Ly)`, `Lieb(; t, Lx, Ly)`, `Triangular(; t, Lx, Ly)`,
+  `Universality{C}`.
+- Quantities are concrete structs: `Energy`, `FreeEnergy`,
+  `MagnetizationX/Y/Z`, `SusceptibilityXX/YY/ZZ`, `VonNeumannEntropy`,
+  `ThermalEntropy`, `RenyiEntropy(α)`, `ZZCorrelation{M}` (parametric),
+  `ZZStructureFactor`, `CentralCharge`, `LuttingerParameter`,
+  `LuttingerVelocity`, `FermiVelocity`, `E8Spectrum`,
+  `TightBindingSpectrum`, `ExactSpectrum`, `GroundStateEnergyDensity`,
+  `PartitionFunction`, `CriticalTemperature`, `CriticalExponents`,
+  `GrowthExponents`, …
+- `const SpinWaveVelocity = LuttingerVelocity` — type-level alias for
+  the 1D critical spin chain community.
+- BCs `OBC(N)`, `PBC(N)` carry their own size; `Infinite()` unchanged.
+- Legacy Symbol-dispatch calls (`fetch(:TFIM, :energy, OBC(); N, J, h)`
+  etc.) are routed through the deprecation shims in `src/deprecate/`
+  with a `maxlog=3` warning.  The directory can be `git rm`-ed
+  wholesale at v1.0 cut.
+- Aqua.jl static checks are enabled in `test/test_aqua.jl`
+  (ambiguities, deps_compat, stale_deps, piracies).
+
+Version bumped to 0.13.0.  See PRs #40 (foundation), #41 (TFIM + E8),
+#42 (classical + tight-binding + Graphene→Honeycomb rename), #44
+(XXZ1D).
 
 ## Future Directions
 
@@ -134,8 +157,17 @@ style. A future refactor could migrate TFIM/E8 to the new style.
 - Requires fixing the Lattice2DMonteCarlo LatticeCore compat issue.
 
 **Bethe ansatz beyond ground state**:
-- XXZ chain: Luttinger liquid parameter K, spin-wave velocity.
-- Heisenberg: des Cloizeaux-Pearson dispersion ε(k) = (π/2)|sin k|.
+- XXZ chain Luttinger parameters (K, u) — **done in v0.13** for the
+  full critical regime −1 < Δ ≤ 1.  Ground-state energy density
+  currently exposes only the three exact points Δ ∈ {−1, 0, 1}.
+- General-Δ Yang-Yang ground-state integral (Δ ∈ (−1, 1) smoothly
+  between the exact points) — deferred to a follow-up PR; several
+  equivalent forms in the literature differ by nontrivial
+  substitutions and sign conventions, requires careful boundary-limit
+  verification.
+- Heisenberg: des Cloizeaux-Pearson dispersion ε(k) = (π/2)|sin k| —
+  needed for dynamical structure factor; `LuttingerVelocity` already
+  returns the right Δ = 1 limit.
 - Finite-temperature Bethe ansatz (TBA) for thermodynamic quantities.
 
 **Kitaev models**:
@@ -158,4 +190,8 @@ style. A future refactor could migrate TFIM/E8 to the new style.
   from model/method/universality pages.
 - **Citations**: each stored value traces to a specific paper + equation.
 - **BLAS threading**: `runtests.jl` sets `BLAS.set_num_threads(Sys.CPU_THREADS)`.
+- **Julia threads**: invoke `Pkg.test` with
+  `julia_args=\`-t auto --heap-size-hint=96G\`` on the 36-core / 128GB
+  host to avoid swap thrash; default 1-thread runs OOM on the
+  entanglement-central-charge tests.
 - **Adaptive sizing**: ED tests use larger N when RAM > 50GB.
