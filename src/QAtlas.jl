@@ -11,6 +11,7 @@ export IsingSquare, PartitionFunction, CriticalTemperature, SpontaneousMagnetiza
 # --- Quantum Models ---
 export TFIM                                             # v0.13 concrete struct
 export E8                                               # v0.13 concrete struct
+export XXZ1D                                            # v0.13 new model
 export Honeycomb, TightBindingSpectrum                  # v0.13 rename: was Graphene
 # NOTE: `Kagome`, `Lieb`, `Triangular` are NOT exported — they conflict
 # with Lattice2D's topology types of the same name. Access them as
@@ -60,6 +61,7 @@ include("models/quantum/tightbinding/Kagome.jl")
 include("models/quantum/tightbinding/Lieb.jl")
 include("models/quantum/tightbinding/Triangular.jl")
 include("models/quantum/Heisenberg.jl")
+include("models/quantum/XXZ.jl")
 
 # --- Deprecation shims (legacy API) ---
 # Loaded last so they can route into any already-registered concrete
@@ -69,5 +71,6 @@ include("deprecate/legacy_tfim.jl")
 include("deprecate/legacy_e8.jl")
 include("deprecate/legacy_honeycomb.jl")
 export Graphene                                         # backward-compat alias
+include("deprecate/legacy_xxz.jl")
 
 end # module QAtlas
