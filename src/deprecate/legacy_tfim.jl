@@ -54,6 +54,13 @@ function fetch(m::Model{:TFIM}, ::Quantity{:mass_gap}, bc::OBC; kwargs...)
     return fetch(_tfim_from_legacy_model(m), MassGap(), _bc_with_legacy_N(bc, m); kwargs...)
 end
 
+# ── Entanglement entropy ────────────────────────────────────────────────
+function fetch(m::Model{:TFIM}, ::Quantity{:entanglement_entropy}, bc::OBC; kwargs...)
+    return fetch(
+        _tfim_from_legacy_model(m), VonNeumannEntropy(), _bc_with_legacy_N(bc, m); kwargs...
+    )
+end
+
 # ── Thermal quantities (TFIM_thermal.jl) ────────────────────────────────
 # Mapping: legacy Symbol Quantity → concrete struct used by the new API.
 const _LEGACY_TFIM_THERMAL_MAP = (
