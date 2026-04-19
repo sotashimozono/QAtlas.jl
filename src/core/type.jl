@@ -157,15 +157,6 @@ function fetch(
     )
 end
 
-"""
-    fetch(m::Symbol, q::Symbol, bc=Infinite(); kwargs...)
-
-Legacy symbol-dispatch shim.  Routes through `Model(m; ...)` +
-`Quantity(q)` and forwards kwargs to both the model constructor and the
-dispatched fetch method.  Retained for backward compatibility with
-existing downstream call sites (e.g. ReducedEnvExperiments.jl); new
-code should call `fetch(TFIM(; J, h), Energy(), OBC(N=...); ...)`.
-"""
-function fetch(m::Symbol, q::Symbol, bc::BoundaryCondition=Infinite(); kwargs...)
-    return fetch(Model(m; kwargs...), Quantity(q), bc; kwargs...)
-end
+# Note: the legacy `fetch(::Symbol, ::Symbol, bc; kwargs...)` shim has
+# been moved to `src/deprecate/legacy_fetch.jl` so the deprecation
+# surface is concentrated in one place.  See src/deprecate/README.md.
