@@ -248,6 +248,13 @@ transformation factorises across any contiguous bipartition up to a
 parity factor on A that commutes with $\rho_A$ (Fagotti-Calabrese
 2010).
 
+Full derivation of the per-mode entropy formula $S_A = \sum_k
+s_2(\nu_k)$ from the Gaussian-preservation theorem, the Majorana-
+covariance canonical form, and the contiguous-block JW
+factorisation:
+**[Peschel correlation-matrix method: TFIM entanglement entropy
+](../../calc/tfim-entanglement-peschel.md)**.
+
 ### References
 
 - P. Calabrese, J. Cardy, J. Stat. Mech. **0406**, P06002 (2004), Eq. (19).
