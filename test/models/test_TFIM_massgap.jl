@@ -36,14 +36,26 @@ end
 end
 
 @testset "TFIM MassGap — legacy Symbol dispatch" begin
-    # :mass_gap + aliases (:gap, :Δ, :MassGap) all route to the analytic value
-    @test QAtlas.fetch(:TFIM, :mass_gap, Infinite(); J=1.0, h=2.0) ≈ 2.0
-    @test QAtlas.fetch(:TFIM, :gap, Infinite(); J=1.0, h=2.0) ≈ 2.0
-    @test QAtlas.fetch(:TFIM, :MassGap, Infinite(); J=1.0, h=2.0) ≈ 2.0
-    @test QAtlas.fetch(:TFIM, :excitation_gap, Infinite(); J=1.0, h=2.0) ≈ 2.0
+    # :mass_gap + aliases (:gap, :MassGap, :excitation_gap) all route to the
+    # analytic value. The shim emits one `@info` per (model, quantity) pair;
+    # `@test_logs` catches those so the deprecation notices stay out of CI.
+    @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :TFIM, :mass_gap, Infinite(); J=1.0, h=2.0
+    )) ≈ 2.0
+    @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :TFIM, :gap, Infinite(); J=1.0, h=2.0
+    )) ≈ 2.0
+    @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :TFIM, :MassGap, Infinite(); J=1.0, h=2.0
+    )) ≈ 2.0
+    @test (@test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :TFIM, :excitation_gap, Infinite(); J=1.0, h=2.0
+    )) ≈ 2.0
 
     # OBC Symbol dispatch with legacy N kwarg
-    Δ_legacy = QAtlas.fetch(:TFIM, :mass_gap, OBC(); N=24, J=1.0, h=3.0)
+    Δ_legacy = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :TFIM, :mass_gap, OBC(); N=24, J=1.0, h=3.0
+    )
     Δ_new = QAtlas.fetch(TFIM(; J=1.0, h=3.0), MassGap(), OBC(24))
     @test Δ_legacy ≈ Δ_new
 end

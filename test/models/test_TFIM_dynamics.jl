@@ -20,7 +20,12 @@ function mean_far(N::Int, J::Float64, h::Float64, i0::Int)
     for r in rs
         s += real(
             QAtlas.fetch(
-                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0 + r, t=0.0
+                TFIM(; J=J, h=h),
+                ZZCorrelation{:dynamic}(),
+                OBC(; N=N);
+                i=i0,
+                j=i0 + r,
+                t=0.0,
             ),
         )
     end
@@ -39,14 +44,19 @@ end
         gs = V[:, 1]
 
         # Sanity: GS energy matches QAtlas BdG.
-        @test E[1] ≈ QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h) atol=1e-10
+        @test E[1] ≈ QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N)) atol=1e-10
 
         # σz σz at t = 0
         for i in 1:N, j in i:N
             ED = real(gs' * _op_site(_SZ, i, N) * _op_site(_SZ, j, N) * gs)
             QAT = real(
                 QAtlas.fetch(
-                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i, j=j, t=0.0
+                    TFIM(; J=J, h=h),
+                    ZZCorrelation{:dynamic}(),
+                    OBC(; N=N);
+                    i=i,
+                    j=j,
+                    t=0.0,
                 ),
             )
             @test QAT ≈ ED atol=1e-10
@@ -57,7 +67,12 @@ end
             ED = real(gs' * _op_site(_SX, i, N) * _op_site(_SX, j, N) * gs)
             QAT = real(
                 QAtlas.fetch(
-                    :TFIM, :sx_sx_correlation, OBC(); N=N, J=J, h=h, i=i, j=j, t=0.0
+                    TFIM(; J=J, h=h),
+                    XXCorrelation{:dynamic}(),
+                    OBC(; N=N);
+                    i=i,
+                    j=j,
+                    t=0.0,
                 ),
             )
             @test QAT ≈ ED atol=1e-10
@@ -71,7 +86,12 @@ end
                 exp(im * E[1] * t) *
                 (gs' * _op_site(_SZ, i, N) * Ut * _op_site(_SZ, j, N) * gs)
             QAT = QAtlas.fetch(
-                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i, j=j, t=t
+                TFIM(; J=J, h=h),
+                ZZCorrelation{:dynamic}(),
+                OBC(; N=N);
+                i=i,
+                j=j,
+                t=t,
             )
             @test real(QAT) ≈ real(ED) atol=1e-10
             @test imag(QAT) ≈ imag(ED) atol=1e-10
@@ -135,12 +155,22 @@ end
             i0 = N ÷ 4
             v1 = real(
                 QAtlas.fetch(
-                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0 + 10, t=0.0
+                    TFIM(; J=J, h=h),
+                    ZZCorrelation{:dynamic}(),
+                    OBC(; N=N);
+                    i=i0,
+                    j=i0 + 10,
+                    t=0.0,
                 ),
             )
             v2 = real(
                 QAtlas.fetch(
-                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0 + 20, t=0.0
+                    TFIM(; J=J, h=h),
+                    ZZCorrelation{:dynamic}(),
+                    OBC(; N=N);
+                    i=i0,
+                    j=i0 + 20,
+                    t=0.0,
                 ),
             )
             slope = log2(v2 / v1)         # since 20/10 = 2
@@ -172,12 +202,9 @@ end
             for (r1, r2) in pairs
                 v1 = real(
                     QAtlas.fetch(
-                        :TFIM,
-                        :sz_sz_correlation,
-                        OBC();
-                        N=N,
-                        J=J,
-                        h=h,
+                        TFIM(; J=J, h=h),
+                        ZZCorrelation{:dynamic}(),
+                        OBC(; N=N);
                         i=i0,
                         j=i0 + r1,
                         t=0.0,
@@ -185,12 +212,9 @@ end
                 )
                 v2 = real(
                     QAtlas.fetch(
-                        :TFIM,
-                        :sz_sz_correlation,
-                        OBC();
-                        N=N,
-                        J=J,
-                        h=h,
+                        TFIM(; J=J, h=h),
+                        ZZCorrelation{:dynamic}(),
+                        OBC(; N=N);
                         i=i0,
                         j=i0 + r2,
                         t=0.0,
@@ -216,7 +240,12 @@ end
         envelope = Float64[
             abs(
                 QAtlas.fetch(
-                    :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i0, j=i0, t=t
+                    TFIM(; J=J, h=h),
+                    ZZCorrelation{:dynamic}(),
+                    OBC(; N=N);
+                    i=i0,
+                    j=i0,
+                    t=t,
                 ),
             ) for t in ts
         ]
@@ -229,7 +258,12 @@ end
         N, J, h = 12, 1.0, 0.7
         for i in (1, 4, 8, 12)
             v = QAtlas.fetch(
-                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=i, j=i, t=0.0
+                TFIM(; J=J, h=h),
+                ZZCorrelation{:dynamic}(),
+                OBC(; N=N);
+                i=i,
+                j=i,
+                t=0.0,
             )
             @test real(v) ≈ 1.0 atol=1e-10
             @test abs(imag(v)) < 1e-10
@@ -242,14 +276,23 @@ end
         center = 5
         times = [0.0, 0.5, 1.0]
         C = QAtlas.fetch(
-            :TFIM, :sz_sz_spreading, OBC(); N=N, J=J, h=h, center=center, times=times
+            TFIM(; J=J, h=h),
+            ZZCorrelation{:lightcone}(),
+            OBC(; N=N);
+            center=center,
+            times=times,
         )
         @test size(C) == (3, N)
 
         # Each entry should match an individual call.
         for (it, t) in enumerate(times), ix in 1:N
             ref = QAtlas.fetch(
-                :TFIM, :sz_sz_correlation, OBC(); N=N, J=J, h=h, i=ix, j=center, t=t
+                TFIM(; J=J, h=h),
+                ZZCorrelation{:dynamic}(),
+                OBC(; N=N);
+                i=ix,
+                j=center,
+                t=t,
             )
             @test C[it, ix] ≈ ref atol=1e-10
         end

@@ -66,20 +66,20 @@ end
         β_low = 80.0   # well below the gap (Δ = 2|h-J| = 1)
 
         # Per-site GS energy from BdG
-        ε_thermal = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h, beta=β_low) / N
-        ε_gs = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h) / N
+        ε_thermal = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N); beta=β_low) / N
+        ε_gs = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N)) / N
         @test ε_thermal ≈ ε_gs atol=1e-12
 
         # Per-site free energy → ε at T = 0
-        f_thermal = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β_low)
+        f_thermal = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β_low)
         @test f_thermal ≈ ε_gs rtol=1e-6
 
         # Entropy → 0 at T = 0
-        s_low = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β_low)
+        s_low = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), OBC(; N=N); beta=β_low)
         @test abs(s_low) < 1e-6
 
         # Specific heat → 0 at T = 0
-        c_low = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β_low)
+        c_low = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β_low)
         @test abs(c_low) < 1e-6
 
         # Static σᶻ σᶻ thermal at β = ∞ matches the existing T = 0 entry —
@@ -87,24 +87,18 @@ end
         for h_phase in (0.5, 1.0, 1.5)
             for r in 1:4
                 v_th = QAtlas.fetch(
-                    :TFIM,
-                    :zz_static_thermal,
-                    OBC();
-                    N=10,
-                    J=1.0,
-                    h=h_phase,
+                    TFIM(; J=1.0, h=h_phase),
+                    ZZCorrelation{:static}(),
+                    OBC(; N=10);
                     beta=Inf,
                     i=2,
                     j=2 + r,
                 )
                 v_gs = real(
                     QAtlas.fetch(
-                        :TFIM,
-                        :sz_sz_correlation,
-                        OBC();
-                        N=10,
-                        J=1.0,
-                        h=h_phase,
+                        TFIM(; J=1.0, h=h_phase),
+                        ZZCorrelation{:dynamic}(),
+                        OBC(; N=10);
                         i=2,
                         j=2 + r,
                         t=0.0,
@@ -124,26 +118,26 @@ end
 
         # Free energy per site at β → 0:
         #   f → -T log 2 + O(β · h, β · J)
-        f_hi = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β_high)
+        f_hi = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β_high)
         @test f_hi ≈ -log(2) / β_high atol=1e-3 / β_high
 
         # Entropy per site at β → 0: s → log 2
-        s_hi = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β_high)
+        s_hi = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), OBC(; N=N); beta=β_high)
         @test s_hi ≈ log(2) atol=1e-6
 
         # Specific heat at β → 0: c_v → 0 quadratically in β
-        c_hi = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β_high)
+        c_hi = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β_high)
         @test abs(c_hi) < 1e-6
 
         # Transverse magnetisation at β → 0: m_x → 0 (Curie regime)
         mx_hi = QAtlas.fetch(
-            :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β_high
+            TFIM(; J=J, h=h), MagnetizationX(), OBC(; N=N); beta=β_high
         )
         @test abs(mx_hi) < 1e-3
 
         # Same in the thermodynamic limit.
-        f_inf = QAtlas.fetch(:TFIM, :free_energy, Infinite(); J=J, h=h, beta=β_high)
-        s_inf = QAtlas.fetch(:TFIM, :entropy, Infinite(); J=J, h=h, beta=β_high)
+        f_inf = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), Infinite(); beta=β_high)
+        s_inf = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), Infinite(); beta=β_high)
         @test f_inf ≈ -log(2) / β_high atol=1e-3 / β_high
         @test s_inf ≈ log(2) atol=1e-6
     end
@@ -154,35 +148,35 @@ end
     @testset "thermodynamic identities" begin
         N, J, h = 10, 1.0, 0.5
         for β in (0.3, 0.7, 1.5, 3.0)
-            ε = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h, beta=β) / N
-            f = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β)
-            s = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β)
+            ε = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N); beta=β) / N
+            f = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β)
+            s = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), OBC(; N=N); beta=β)
 
             # ε = f + T s = f + s/β
             @test ε ≈ f + s / β atol=1e-10
 
             # c_v from numerical second derivative of (β f).
             δ = 1e-3 * β
-            f_p = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β + δ)
-            f_m = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β - δ)
+            f_p = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β + δ)
+            f_m = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β - δ)
             βf = β * f
             βpfp = (β + δ) * f_p
             βmfm = (β - δ) * f_m
             c_num = -β^2 * (βpfp - 2 * βf + βmfm) / δ^2
-            c_an = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β)
+            c_an = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β)
             @test c_an ≈ c_num rtol=1e-3
 
             # χ_xx from numerical derivative of m_x w.r.t. h
             δh = 1e-4
             mp = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h + δh, beta=β
+                TFIM(; J=J, h=h + δh), MagnetizationX(), OBC(; N=N); beta=β
             )
             mm = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h - δh, beta=β
+                TFIM(; J=J, h=h - δh), MagnetizationX(), OBC(; N=N); beta=β
             )
             χ_num = (mp - mm) / (2 * δh)
             χ_an = QAtlas.fetch(
-                :TFIM, :transverse_susceptibility, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), SusceptibilityXX(), OBC(; N=N); beta=β
             )
             @test χ_an ≈ χ_num rtol=5e-3
         end
@@ -191,28 +185,28 @@ end
     @testset "thermodynamic identities (Infinite)" begin
         J, h = 1.0, 0.7
         for β in (0.3, 0.7, 1.5, 3.0)
-            ε = QAtlas.fetch(:TFIM, :energy, Infinite(); J=J, h=h, beta=β)
-            f = QAtlas.fetch(:TFIM, :free_energy, Infinite(); J=J, h=h, beta=β)
-            s = QAtlas.fetch(:TFIM, :entropy, Infinite(); J=J, h=h, beta=β)
+            ε = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), Infinite(); beta=β)
+            f = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), Infinite(); beta=β)
+            s = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), Infinite(); beta=β)
             @test ε ≈ f + s / β atol=1e-10
 
             δ = 1e-3 * β
-            f_p = QAtlas.fetch(:TFIM, :free_energy, Infinite(); J=J, h=h, beta=β + δ)
-            f_m = QAtlas.fetch(:TFIM, :free_energy, Infinite(); J=J, h=h, beta=β - δ)
+            f_p = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), Infinite(); beta=β + δ)
+            f_m = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), Infinite(); beta=β - δ)
             c_num = -β^2 * ((β + δ) * f_p - 2 * β * f + (β - δ) * f_m) / δ^2
-            c_an = QAtlas.fetch(:TFIM, :specific_heat, Infinite(); J=J, h=h, beta=β)
+            c_an = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), Infinite(); beta=β)
             @test c_an ≈ c_num rtol=1e-3
 
             δh = 1e-4
             mp = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, Infinite(); J=J, h=h + δh, beta=β
+                TFIM(; J=J, h=h + δh), MagnetizationX(), Infinite(); beta=β
             )
             mm = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, Infinite(); J=J, h=h - δh, beta=β
+                TFIM(; J=J, h=h - δh), MagnetizationX(), Infinite(); beta=β
             )
             χ_num = (mp - mm) / (2 * δh)
             χ_an = QAtlas.fetch(
-                :TFIM, :transverse_susceptibility, Infinite(); J=J, h=h, beta=β
+                TFIM(; J=J, h=h), SusceptibilityXX(), Infinite(); beta=β
             )
             @test χ_an ≈ χ_num rtol=5e-3
         end
@@ -227,12 +221,12 @@ end
             ed = _ed_thermo(N, J, h, β)
             mx_ed = _ed_transverse(N, J, h, β)
 
-            ε = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h, beta=β) / N
-            f = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β)
-            s = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β)
-            c = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β)
+            ε = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N); beta=β) / N
+            f = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β)
+            s = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), OBC(; N=N); beta=β)
+            c = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β)
             mx = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), MagnetizationX(), OBC(; N=N); beta=β
             )
 
             @test ε ≈ ed.ε atol=1e-10
@@ -254,7 +248,12 @@ end
                 op = _op_site(_SZ, i, N) * _op_site(_SZ, j, N)
                 ed_val = real(tr(ρ * op))
                 qa_val = QAtlas.fetch(
-                    :TFIM, :zz_static_thermal, OBC(); N=N, J=J, h=h, beta=β, i=i, j=j
+                    TFIM(; J=J, h=h),
+                    ZZCorrelation{:static}(),
+                    OBC(; N=N);
+                    beta=β,
+                    i=i,
+                    j=j,
                 )
                 @test qa_val ≈ ed_val atol=1e-10
             end
@@ -275,7 +274,7 @@ end
             χ_ed = β * (M2 - M1^2) / N
 
             χ_qa = QAtlas.fetch(
-                :TFIM, :longitudinal_susceptibility, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), SusceptibilityZZ(), OBC(; N=N); beta=β
             )
             @test χ_qa ≈ χ_ed atol=1e-10
         end
@@ -292,17 +291,17 @@ end
         errs_c = Float64[]
         errs_m = Float64[]
         for N in Ns
-            f_obc = QAtlas.fetch(:TFIM, :free_energy, OBC(); N=N, J=J, h=h, beta=β)
-            s_obc = QAtlas.fetch(:TFIM, :entropy, OBC(); N=N, J=J, h=h, beta=β)
-            c_obc = QAtlas.fetch(:TFIM, :specific_heat, OBC(); N=N, J=J, h=h, beta=β)
+            f_obc = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), OBC(; N=N); beta=β)
+            s_obc = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), OBC(; N=N); beta=β)
+            c_obc = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β)
             m_obc = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), MagnetizationX(), OBC(; N=N); beta=β
             )
-            f_inf = QAtlas.fetch(:TFIM, :free_energy, Infinite(); J=J, h=h, beta=β)
-            s_inf = QAtlas.fetch(:TFIM, :entropy, Infinite(); J=J, h=h, beta=β)
-            c_inf = QAtlas.fetch(:TFIM, :specific_heat, Infinite(); J=J, h=h, beta=β)
+            f_inf = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), Infinite(); beta=β)
+            s_inf = QAtlas.fetch(TFIM(; J=J, h=h), ThermalEntropy(), Infinite(); beta=β)
+            c_inf = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), Infinite(); beta=β)
             m_inf = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, Infinite(); J=J, h=h, beta=β
+                TFIM(; J=J, h=h), MagnetizationX(), Infinite(); beta=β
             )
             push!(errs_f, abs(f_obc - f_inf))
             push!(errs_s, abs(s_obc - s_inf))

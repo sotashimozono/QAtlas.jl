@@ -81,13 +81,19 @@ end
 @testset "TFIM VonNeumannEntropy — legacy Symbol dispatch" begin
     N = 10
     S_new = QAtlas.fetch(TFIM(; J=1.0, h=1.0), VonNeumannEntropy(), OBC(N); ℓ=N ÷ 2)
-    S_legacy = QAtlas.fetch(:TFIM, :entanglement_entropy, OBC(); N=N, J=1.0, h=1.0, ℓ=N ÷ 2)
+    S_legacy = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :TFIM, :entanglement_entropy, OBC(); N=N, J=1.0, h=1.0, ℓ=N ÷ 2
+    )
     @test S_legacy ≈ S_new atol = 1e-12
 
     # Symbol aliases :ee, :EE, :S_vN, :EntanglementEntropy all canonicalise
-    # to :entanglement_entropy.
+    # to :entanglement_entropy. Each raw-Symbol value keys its own one-shot
+    # `@info`, so wrap every call with `@test_logs` to keep CI quiet.
     for q in (:ee, :EE, :S_vN, :EntanglementEntropy)
-        @test QAtlas.fetch(:TFIM, q, OBC(); N=N, J=1.0, h=1.0, ℓ=N ÷ 2) ≈ S_new atol = 1e-12
+        S_alias = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+            :TFIM, q, OBC(); N=N, J=1.0, h=1.0, ℓ=N ÷ 2
+        )
+        @test S_alias ≈ S_new atol = 1e-12
     end
 end
 

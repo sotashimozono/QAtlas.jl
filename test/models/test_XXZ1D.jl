@@ -126,16 +126,29 @@ end
 end
 
 @testset "XXZ1D — legacy Symbol dispatch routes to new API" begin
-    # Deprecation log on every new (model, quantity) pair
-    e_sym = QAtlas.fetch(:XXZ, :energy, Infinite(); J=1.0, Δ=0.0)
+    # This testset deliberately reaches through the legacy Symbol shim in
+    # `src/deprecate/legacy_xxz.jl` to confirm that the forwarding to the
+    # concrete-struct fetch methods still produces the canonical values.
+    # The shim emits a one-shot `@info` per (model, quantity) pair the
+    # first time it's hit; `@test_logs` captures those infos so the
+    # deprecation noise does not leak into CI output.
+    e_sym = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :XXZ, :energy, Infinite(); J=1.0, Δ=0.0
+    )
     @test e_sym ≈ -1 / π atol = 1e-10
 
-    u_sym = QAtlas.fetch(:XXZ, :spin_wave_velocity, Infinite(); J=1.0, Δ=1.0)
+    u_sym = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :XXZ, :spin_wave_velocity, Infinite(); J=1.0, Δ=1.0
+    )
     @test u_sym ≈ π / 2 atol = 1e-12
 
-    u_fv = QAtlas.fetch(:XXZ, :fermi_velocity, Infinite(); J=1.0, Δ=0.0)
+    u_fv = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :XXZ, :fermi_velocity, Infinite(); J=1.0, Δ=0.0
+    )
     @test u_fv ≈ 1.0 atol = 1e-12
 
-    K_sym = QAtlas.fetch(:XXZ, :luttinger_parameter, Infinite(); J=1.0, Δ=0.0)
+    K_sym = @test_logs (:info, r"symbol-dispatch") QAtlas.fetch(
+        :XXZ, :luttinger_parameter, Infinite(); J=1.0, Δ=0.0
+    )
     @test K_sym ≈ 1.0 atol = 1e-12
 end

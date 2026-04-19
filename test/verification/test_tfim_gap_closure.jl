@@ -24,7 +24,7 @@ using QAtlas, Lattice2D, LinearAlgebra, Test
                 H = build_tfim(lat, J, h)
                 λ = sort(eigvals(Symmetric(H)))
                 E0_ed = λ[1]
-                E0_analytical = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h)
+                E0_analytical = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N))
                 @test E0_ed ≈ E0_analytical rtol = 1e-10
             end
         end

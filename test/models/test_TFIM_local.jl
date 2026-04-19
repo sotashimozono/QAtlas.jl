@@ -27,26 +27,26 @@
             (8, 1.0, 0.5, 2.0),    # ordered phase, β below edge-mode scale
         ]
             mx_loc = QAtlas.fetch(
-                :TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), MagnetizationXLocal(), OBC(; N=N); beta=β
             )
             @test mx_loc isa Vector{Float64}
             @test length(mx_loc) == N
 
             mx_avg_scalar = QAtlas.fetch(
-                :TFIM, :transverse_magnetization, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), MagnetizationX(), OBC(; N=N); beta=β
             )
             @test sum(mx_loc) / N ≈ mx_avg_scalar atol=1e-12
 
             mz_loc = QAtlas.fetch(
-                :TFIM, :magnetization_z_local, OBC(); N=N, J=J, h=h, beta=β
+                TFIM(; J=J, h=h), MagnetizationZLocal(), OBC(; N=N); beta=β
             )
             @test mz_loc == zeros(Float64, N)
 
-            ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
+            ε_loc = QAtlas.fetch(TFIM(; J=J, h=h), EnergyLocal(), OBC(; N=N); beta=β)
             @test ε_loc isa Vector{Float64}
             @test length(ε_loc) == N
 
-            E_total = QAtlas.fetch(:TFIM, :energy, OBC(); N=N, J=J, h=h, beta=β)
+            E_total = QAtlas.fetch(TFIM(; J=J, h=h), Energy(), OBC(; N=N); beta=β)
             @test sum(ε_loc) ≈ E_total atol=1e-10
         end
     end
@@ -57,9 +57,9 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "bond extraction vs Pfaffian correlator" begin
         N, J, h, β = 8, 1.0, 1.2, 1.0
-        ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
-        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
-        C = QAtlas.fetch(:TFIM, :zz_static_thermal, OBC(); N=N, J=J, h=h, beta=β)
+        ε_loc = QAtlas.fetch(TFIM(; J=J, h=h), EnergyLocal(), OBC(; N=N); beta=β)
+        mx_loc = QAtlas.fetch(TFIM(; J=J, h=h), MagnetizationXLocal(), OBC(; N=N); beta=β)
+        C = QAtlas.fetch(TFIM(; J=J, h=h), ZZCorrelation{:static}(), OBC(; N=N); beta=β)
 
         # ε_i reconstructed from the Pfaffian nearest-neighbour correlator.
         ε_ref = Vector{Float64}(undef, N)
@@ -76,8 +76,8 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "per-site ED comparison (N = 4)" begin
         N, J, h, β = 4, 1.0, 0.8, 1.3
-        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
-        ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
+        mx_loc = QAtlas.fetch(TFIM(; J=J, h=h), MagnetizationXLocal(), OBC(; N=N); beta=β)
+        ε_loc = QAtlas.fetch(TFIM(; J=J, h=h), EnergyLocal(), OBC(; N=N); beta=β)
 
         H = _build_tfim_dense(N, J, h)
         E, V = eigen(Matrix(H))
@@ -111,8 +111,8 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "β → 0 limit" begin
         N, J, h, β = 10, 1.0, 1.0, 1e-8
-        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
-        ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
+        mx_loc = QAtlas.fetch(TFIM(; J=J, h=h), MagnetizationXLocal(), OBC(; N=N); beta=β)
+        ε_loc = QAtlas.fetch(TFIM(; J=J, h=h), EnergyLocal(), OBC(; N=N); beta=β)
         @test maximum(abs, mx_loc) < 1e-6
         @test maximum(abs, ε_loc) < 1e-6
     end
@@ -124,8 +124,8 @@
     # ───────────────────────────────────────────────────────────────────────
     @testset "profile symmetry" begin
         N, J, h, β = 16, 1.0, 1.5, 1.5
-        mx_loc = QAtlas.fetch(:TFIM, :magnetization_x_local, OBC(); N=N, J=J, h=h, beta=β)
-        ε_loc = QAtlas.fetch(:TFIM, :energy_local, OBC(); N=N, J=J, h=h, beta=β)
+        mx_loc = QAtlas.fetch(TFIM(; J=J, h=h), MagnetizationXLocal(), OBC(; N=N); beta=β)
+        ε_loc = QAtlas.fetch(TFIM(; J=J, h=h), EnergyLocal(), OBC(; N=N); beta=β)
 
         # Reflection symmetry about the centre (OBC chain is invariant under
         # i ↔ N + 1 - i).
