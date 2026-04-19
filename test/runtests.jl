@@ -2,6 +2,7 @@ ENV["GKSwstype"] = "100"
 
 using QAtlas, Test, LinearAlgebra, Lattice2D, ForwardDiff, Random
 using SparseArrays, KrylovKit
+using Aqua
 
 # Use all available BLAS threads for dense eigensolves (ED).
 # On multi-core machines this dramatically speeds up eigvals/eigen.
@@ -25,6 +26,14 @@ include(joinpath(@__DIR__, "util", "tfim_dense_ed.jl"))
 @testset "tests" begin
     test_args = copy(ARGS)
     println("Passed arguments ARGS = $(test_args) to tests.")
+
+    # Aqua static QA first — runs in under a second and catches
+    # Project.toml drift (stale / missing compat) before the expensive
+    # physics tests.
+    @testset "test_aqua.jl" begin
+        @time include(joinpath(@__DIR__, "test_aqua.jl"))
+    end
+
     @time for dir in dirs
         dirpath = joinpath(@__DIR__, dir)
         println("\nTest $(dirpath)")

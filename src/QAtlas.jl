@@ -19,7 +19,20 @@ export Heisenberg1D, ExactSpectrum, GroundStateEnergyDensity
 # --- Core Implementation ---
 include("core/alias.jl")
 include("core/type.jl")
+include("core/quantities.jl")
 include("core/pfaffian.jl")
+
+# --- Quantity struct exports (new, axis-explicit naming) ---
+export Energy, FreeEnergy, SpecificHeat, MassGap, FidelitySusceptibility
+export ThermalEntropy, VonNeumannEntropy, RenyiEntropy
+export MagnetizationX, MagnetizationY, MagnetizationZ
+export MagnetizationXLocal, MagnetizationZLocal, EnergyLocal
+export SusceptibilityXX, SusceptibilityYY, SusceptibilityZZ
+export XXCorrelation, YYCorrelation, ZZCorrelation
+export XXStructureFactor, YYStructureFactor, ZZStructureFactor
+export CentralCharge, LuttingerParameter
+export FermiVelocity, LuttingerVelocity, SpinWaveVelocity
+export E8Spectrum
 
 # --- Universality Classes ---
 export Universality, CriticalExponents, GrowthExponents
@@ -44,5 +57,10 @@ include("models/quantum/tightbinding/Kagome.jl")
 include("models/quantum/tightbinding/Lieb.jl")
 include("models/quantum/tightbinding/Triangular.jl")
 include("models/quantum/Heisenberg.jl")
+
+# --- Deprecation shims (legacy API) ---
+# Loaded last so they can route into any already-registered concrete
+# `fetch` method.  See src/deprecate/README.md.
+include("deprecate/legacy_fetch.jl")
 
 end # module QAtlas
