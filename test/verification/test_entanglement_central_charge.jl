@@ -33,13 +33,21 @@ end
 # Ground-state dispatcher: dense eigen() for small N (cheap, simple);
 # sparse + KrylovKit Lanczos for N ≥ 14 where dense allocates tens of
 # gigabytes.  Returns (ψ0, cache_key) so callers can reuse across tests.
-_gs_tfim(lat, J, h, N) =
-    N ≤ 12 ? eigen(Symmetric(build_tfim(lat, J, h))).vectors[:, 1] :
-             ground_state_krylov(build_tfim_sparse(lat, J, h))
+function _gs_tfim(lat, J, h, N)
+    if N ≤ 12
+        eigen(Symmetric(build_tfim(lat, J, h))).vectors[:, 1]
+    else
+        ground_state_krylov(build_tfim_sparse(lat, J, h))
+    end
+end
 
-_gs_heisenberg(lat, J, N) =
-    N ≤ 12 ? eigen(Symmetric(build_spinhalf_heisenberg(lat, J))).vectors[:, 1] :
-             ground_state_krylov(build_spinhalf_heisenberg_sparse(lat, J))
+function _gs_heisenberg(lat, J, N)
+    if N ≤ 12
+        eigen(Symmetric(build_spinhalf_heisenberg(lat, J))).vectors[:, 1]
+    else
+        ground_state_krylov(build_spinhalf_heisenberg_sparse(lat, J))
+    end
+end
 
 # QATLAS_TEST_FULL=1 opts in to N ∈ {14, 16} via sparse ED.  Default is
 # the PR-CI-friendly fast path (N ≤ 12), dense ED only — total runtime
