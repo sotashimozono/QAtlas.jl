@@ -193,9 +193,7 @@ function _kitaev_ed_gs_per_site_sparse(lat, Kx::Real, Ky::Real, Kz::Real; seed::
     # Deterministic start vector so tests are reproducible.
     Random.seed!(seed)
     x0 = randn(ComplexF64, D)
-    vals, _, info = eigsolve(
-        H, x0, 1, :SR; ishermitian=true, tol=1e-10, krylovdim=30
-    )
+    vals, _, info = eigsolve(H, x0, 1, :SR; ishermitian=true, tol=1e-10, krylovdim=30)
     info.converged < 1 && @warn "Kitaev sparse ED failed to converge" info
     return real(vals[1]) / N
 end
