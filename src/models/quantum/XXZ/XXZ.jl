@@ -182,3 +182,56 @@ function fetch(model::XXZ1D, ::LuttingerVelocity, ::Infinite; kwargs...)
     @warn "XXZ1D LuttingerVelocity is only defined for -1 < Δ ≤ 1." Δ = Δ
     return NaN
 end
+
+# ── Finite-temperature, finite-N OBC via dense ED ──────────────────────
+#
+# General-Δ finite-T XXZ has no closed-form formula like the TFIM
+# BdG decomposition; the thermal Bethe ansatz gives the thermodynamic
+# limit only.  For MPS-benchmark use cases the working scale is
+# small-N (say N ≤ 10) where dense ED of the 2^N × 2^N spin-1/2
+# Hilbert space is trivially cheap and gives a *finite-N exact*
+# reference.  We implement that path here; closed-form thermal at
+# Δ = 0 (XX / free fermion) and TBA at general Δ in the
+# thermodynamic limit are separate follow-ups.
+
+"""
+    _xxz1d_hamiltonian_matrix(model::XXZ1D, N::Int) -> Matrix{ComplexF64}
+
+Assemble the `2^N × 2^N` OBC Hamiltonian
+
+    H = J Σᵢ [ Sˣ_i Sˣ_{i+1} + Sʸ_i Sʸ_{i+1} + Δ Sᶻ_i Sᶻ_{i+1} ]
+      = (J/4) Σᵢ [ σˣ σˣ + σʸ σʸ + Δ σᶻ σᶻ ]
+
+via explicit tensor products built from the Pauli primitives in
+`src/core/dense_ed.jl`.  Capped by `_MAX_ED_SITES`.
+"""
+function _xxz1d_hamiltonian_matrix(model::XXZ1D, N::Int)
+    N ≥ 2 || throw(ArgumentError("XXZ1D OBC chain needs N ≥ 2 (got N = $N)"))
+    J, Δ = model.J, model.Δ
+    D = 2^N
+    H = zeros(ComplexF64, D, D)
+    prefac = J / 4
+    for i in 1:(N - 1)
+        H .+= prefac .* _pauli_string(N, i => _σx, i + 1 => _σx)
+        H .+= prefac .* _pauli_string(N, i => _σy, i + 1 => _σy)
+        H .+= (prefac * Δ) .* _pauli_string(N, i => _σz, i + 1 => _σz)
+    end
+    return H
+end
+
+"""
+    fetch(model::XXZ1D, ::Energy, ::OBC; beta) -> Float64
+
+Per-site thermal energy `⟨H⟩_β / N` for the spin-½ OBC chain at finite
+size, computed by dense ED.  Works for any `Δ` and any `N ≤
+$(_MAX_ED_SITES)`.  Intended as a reference for MPS thermal methods
+(TPQMPS / Purification / METTS).
+
+```
+    ⟨H⟩_β / N = Tr(H exp(-βH)) / (N · Tr(exp(-βH)))
+```
+"""
+function fetch(model::XXZ1D, ::Energy, bc::OBC; beta::Real, kwargs...)
+    H = _xxz1d_hamiltonian_matrix(model, bc.N)
+    return _ed_thermal_energy(H, beta) / bc.N
+end

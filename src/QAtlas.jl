@@ -27,6 +27,7 @@ include("core/alias.jl")
 include("core/type.jl")
 include("core/quantities.jl")
 include("core/pfaffian.jl")
+include("core/dense_ed.jl")
 
 # --- Quantity struct exports (new, axis-explicit naming) ---
 export Energy, FreeEnergy, SpecificHeat, MassGap, FidelitySusceptibility
