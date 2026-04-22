@@ -107,7 +107,13 @@ Computed as a nested Gauss-Kronrod quadrature; `rtol` sets the
 outer-integral tolerance and 10× `rtol` the inner.
 
 At the isotropic point `Kx = Ky = Kz = 1` this returns
-`ε_gs ≈ −0.39581585...`, matching Kitaev's 2006 result.
+`ε_gs ≈ −0.78729862...` per site (Baskaran–Mandal–Shankar 2007,
+Eq. 9); for Kitaev's original `|K_γ| ≤ 1/2` convention the same call
+at `Kx = Ky = Kz = 0.5` gives `ε_gs ≈ −0.39364931...`, half of the
+`K = 1` value (H is linear in the couplings). Finite-size PBC sums
+converge to this TL value within `~10⁻³` at `Lx = Ly = 8` and
+`~10⁻⁶` at `Lx = Ly = 64` — see
+`test/models/test_KitaevHoneycomb.jl`.
 """
 function fetch(model::KitaevHoneycomb, ::Energy, ::Infinite; rtol::Float64=1e-8, kwargs...)
     inner(θ₁) = first(
