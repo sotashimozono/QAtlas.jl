@@ -172,9 +172,11 @@ end
     # flux-free ansatz matches ED on the real spin Hilbert space.
     lat2 = build_lattice(Honeycomb, 2, 2; boundary=OpenAxis())
     @test num_sites(lat2) == 8
-    for (Kx, Ky, Kz) in [(1.0, 1.0, 1.0),           # isotropic B-phase
+    for (Kx, Ky, Kz) in [
+        (1.0, 1.0, 1.0),           # isotropic B-phase
         (2.0, 0.5, 0.5),           # Ax-phase (gapped)
-        (0.3, 0.7, 1.0)]           # anisotropic
+        (0.3, 0.7, 1.0),
+    ]           # anisotropic
         m_ed = KitaevHoneycomb(; Kx=Kx, Ky=Ky, Kz=Kz)
         E_ed = _kitaev_ed_gs_per_site(lat2, Kx, Ky, Kz)
         E_fl = QAtlas.fetch(m_ed, Energy(), OBC(0); Lx=2, Ly=2)
