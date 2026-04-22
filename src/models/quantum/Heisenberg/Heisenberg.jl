@@ -158,3 +158,19 @@ finite-size extrapolation verification using ED at N = 4, 6, 8.
 function fetch(::Heisenberg1D, ::GroundStateEnergyDensity; J::Real=1.0)
     return J * (1 // 4 - log(2))
 end
+
+"""
+    fetch(::Heisenberg1D, ::Energy, ::OBC; beta, J=1.0) -> Float64
+
+Per-site thermal energy `⟨H⟩_β / N` for the spin-½ antiferromagnetic
+Heisenberg OBC chain at finite `N` (the isotropic point `Δ = 1` of
+[`XXZ1D`](@ref)).  Routes through [`fetch(::XXZ1D, ::Energy, ::OBC)`](@ref).
+
+Since `Heisenberg1D` currently carries no `J` field, callers must pass
+`J` as a kwarg (default `J = 1.0`).  Downstream bridges (e.g.
+ITensorModels `to_qatlas(::Heisenberg1D)`) lose `J` on conversion; use
+`XXZ1D(; J, Δ=1)` directly if you need a non-unit coupling.
+"""
+function fetch(::Heisenberg1D, ::Energy, bc::OBC; beta::Real, J::Real=1.0, kwargs...)
+    return fetch(XXZ1D(; J=J, Δ=1.0), Energy(), bc; beta=beta)
+end
