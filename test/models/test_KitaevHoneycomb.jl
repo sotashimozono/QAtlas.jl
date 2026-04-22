@@ -1,6 +1,8 @@
 using QAtlas: KitaevHoneycomb, Energy, MassGap, Infinite, PBC, OBC
 using Test
 using LinearAlgebra: eigvals, Hermitian, I as I_mat
+using SparseArrays: sparse, spzeros
+using KrylovKit: eigsolve
 using Lattice2D: build_lattice, Honeycomb, OpenAxis, PeriodicAxis
 using LatticeCore: num_sites, bonds
 
@@ -154,6 +156,79 @@ function _kitaev_ed_gs_per_site(lat, Kx::Real, Ky::Real, Kz::Real)
     end
     E_gs = real(eigvals(Hermitian(H))[1])
     return E_gs / N
+end
+
+"""
+    _kitaev_ed_gs_per_site_sparse(lat, Kx, Ky, Kz) -> Float64
+
+Sparse-matrix Kitaev ED via Lanczos (`eigsolve` with
+`ishermitian=true`). Needed once the Hilbert space exceeds the
+~2^16 dense limit; the Kitaev Hamiltonian is complex Hermitian
+(σʸ makes it so) so the existing `ground_state_krylov` — which
+assumes real symmetric — doesn't apply directly.
+"""
+function _kitaev_ed_gs_per_site_sparse(lat, Kx::Real, Ky::Real, Kz::Real; seed::Int=0)
+    σx = sparse(ComplexF64[0 1; 1 0])
+    σy = sparse(ComplexF64[0 -im; im 0])
+    σz = sparse(ComplexF64[1 0; 0 -1])
+    function embed2(A, B, i, j, N)
+        i1, j1, A1, B1 = i < j ? (i, j, A, B) : (j, i, B, A)
+        L = sparse(ComplexF64.(I_mat(2^(i1 - 1))))
+        M = sparse(ComplexF64.(I_mat(2^(j1 - i1 - 1))))
+        R = sparse(ComplexF64.(I_mat(2^(N - j1))))
+        return kron(kron(kron(kron(L, A1), M), B1), R)
+    end
+    N = num_sites(lat)
+    D = 2^N
+    H = spzeros(ComplexF64, D, D)
+    for b in bonds(lat)
+        if b.type === :type_1
+            H -= Kz * embed2(σz, σz, b.i, b.j, N)
+        elseif b.type === :type_2
+            H -= Kx * embed2(σx, σx, b.i, b.j, N)
+        elseif b.type === :type_3
+            H -= Ky * embed2(σy, σy, b.i, b.j, N)
+        end
+    end
+    # Deterministic start vector so tests are reproducible.
+    Random.seed!(seed)
+    x0 = randn(ComplexF64, D)
+    vals, _, info = eigsolve(
+        H, x0, 1, :SR; ishermitian=true, tol=1e-10, krylovdim=30
+    )
+    info.converged < 1 && @warn "Kitaev sparse ED failed to converge" info
+    return real(vals[1]) / N
+end
+
+@testset "KitaevHoneycomb PBC: sector-enumerated formula matches sparse ED at 3×3" begin
+    # Lx = Ly = 3 is the smallest symmetric torus where the flux-free
+    # sector formula reproduces the true spin-Hamiltonian ground
+    # state exactly (the 2×2 isotropic case sits in a vortex-bearing
+    # sector and is skipped — see the separate smaller-torus testset).
+    # 18 sites = 2^18 = 262144-dim Hilbert space, sparse Lanczos
+    # runs in a few seconds.
+    lat = build_lattice(Honeycomb, 3, 3; boundary=PeriodicAxis())
+    @test num_sites(lat) == 18
+    # Isotropic & generic anisotropic B-phase points: exact agreement
+    # (residual at machine precision).
+    for (Kx, Ky, Kz) in [(1.0, 1.0, 1.0), (0.3, 0.7, 1.0), (0.8, 1.0, 1.1)]
+        m = KitaevHoneycomb(; Kx=Kx, Ky=Ky, Kz=Kz)
+        E_ed = _kitaev_ed_gs_per_site_sparse(lat, Kx, Ky, Kz)
+        E_fl = QAtlas.fetch(m, Energy(), PBC(0); Lx=3, Ly=3)
+        @info "PBC 3×3 formula vs sparse ED (B-phase)" Kx Ky Kz E_ed E_fl Δ = E_ed - E_fl
+        @test abs(E_fl - E_ed) < 1e-8
+    end
+    # Gapped A-phase points: flux-free ansatz does not always sit in
+    # the true vortex sector on small tori, so agreement relaxes to
+    # O(10⁻³). Tight agreement requires either explicit vortex-sector
+    # enumeration or larger L.
+    for (Kx, Ky, Kz) in [(2.0, 0.5, 0.5), (0.5, 0.5, 2.0)]
+        m = KitaevHoneycomb(; Kx=Kx, Ky=Ky, Kz=Kz)
+        E_ed = _kitaev_ed_gs_per_site_sparse(lat, Kx, Ky, Kz)
+        E_fl = QAtlas.fetch(m, Energy(), PBC(0); Lx=3, Ly=3)
+        @info "PBC 3×3 formula vs sparse ED (A-phase)" Kx Ky Kz E_ed E_fl Δ = E_ed - E_fl
+        @test abs(E_fl - E_ed) < 5e-3
+    end
 end
 
 @testset "KitaevHoneycomb PBC: sector-enumerated formula matches ED on small tori" begin
