@@ -12,6 +12,7 @@ export IsingSquare, PartitionFunction, CriticalTemperature, SpontaneousMagnetiza
 export TFIM                                             # v0.13 concrete struct
 export E8                                               # v0.13 concrete struct
 export XXZ1D                                            # v0.13 new model
+export KitaevHoneycomb                                  # spin-½ Kitaev honeycomb
 export TightBindingSpectrum
 # NOTE: `Honeycomb`, `Kagome`, `Lieb`, `Triangular` are NOT exported —
 # they all conflict with Lattice2D's topology types of the same name.
@@ -67,6 +68,7 @@ include("models/quantum/TFIM/TFIM_thermal.jl")
 include("models/quantum/TFIM/TFIM_local.jl")
 include("models/quantum/TFIM/TFIM_entanglement.jl")
 include("models/quantum/Heisenberg/Heisenberg.jl")
+include("models/quantum/KitaevHoneycomb/KitaevHoneycomb.jl")
 include("models/quantum/XXZ/XXZ.jl")
 
 # --- Deprecation shims (legacy API) ---

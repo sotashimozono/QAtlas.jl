@@ -1,0 +1,222 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Kitaev honeycomb model — exact solutions
+#
+# Hamiltonian:
+#   H = − Σ_{⟨ij⟩ ∈ x-bonds} Kₓ σˣᵢσˣⱼ
+#       − Σ_{⟨ij⟩ ∈ y-bonds} Kᵧ σʸᵢσʸⱼ
+#       − Σ_{⟨ij⟩ ∈ z-bonds} K_z σᶻᵢσᶻⱼ
+#
+# on the 2D honeycomb lattice (Lieb/Kitaev convention). The three bond
+# types are assigned to the three nearest-neighbor directions emitted
+# by Lattice2D's `Honeycomb` topology:
+#
+#   :type_1 ↔ z-bond (A→B same cell)
+#   :type_2 ↔ x-bond (A→B upper-left cell, (+a₁, −a₂))
+#   :type_3 ↔ y-bond (A→B upper cell, (−a₂))
+#
+# Kitaev (2006) showed that after a Jordan–Wigner–like four-Majorana
+# mapping the gauge fields `u_{ij} = i bᵞᵢ bᵞⱼ` on each bond become
+# conserved Z₂ variables, and the ground state sits in the flux-free
+# sector (all plaquette fluxes `W_p = +1`, Lieb's theorem). In that
+# sector the matter Majoranas decouple into a free hopping problem on
+# the bipartite A/B lattice:
+#
+#   H_flux_free = (i/2) Σ_{⟨ij⟩, γ} Kᵞ c_i c_j,
+#
+# whose Bloch Hamiltonian on the two-sublattice basis is
+#
+#   H(k) = [  0     f(k)  ]
+#          [ f(k)*   0    ],
+#   f(k) = K_z + Kₓ exp(i θ₁) + Kᵧ exp(i θ₂)
+#        (θ₁ = k·a₁, θ₂ = k·a₂; Lattice2D basis vectors).
+#
+# Bands ±|f(k)| fill the negative one at T=0. Per site (2 sites per
+# unit cell):
+#
+#   |f|² = Kₓ² + Kᵧ² + K_z² + 2Kₓ Kᵧ cos θ₁
+#                           + 2Kᵧ K_z cos θ₂
+#                           + 2K_z Kₓ cos(θ₁ − θ₂).
+#
+# OBC of finite `Lx×Ly` uses the same flux-free-sector ansatz with
+# `u_{ij} = +1`, giving a real `Lx·Ly × Lx·Ly` bipartite hopping
+# matrix M whose singular values σ_k are the positive BdG single-
+# particle energies. Ground state energy = −Σₖ σₖ; per site = energy
+# divided by `2·Lx·Ly`.
+#
+# References
+#   - A. Kitaev, "Anyons in an exactly solved model and beyond",
+#     Ann. Phys. 321, 2 (2006).
+#   - E. H. Lieb, PRL 73, 2158 (1994) — flux-free ground state.
+# ─────────────────────────────────────────────────────────────────────────────
+
+using LinearAlgebra: svdvals
+using QuadGK: quadgk
+
+"""
+    KitaevHoneycomb(; Kx=1.0, Ky=1.0, Kz=1.0) <: AbstractQAtlasModel
+
+Kitaev honeycomb model with coupling amplitudes on the three bond
+types. `Kx = Ky = Kz` is the isotropic gapless point. See module header
+for the full Hamiltonian and solution outline.
+"""
+struct KitaevHoneycomb <: AbstractQAtlasModel
+    Kx::Float64
+    Ky::Float64
+    Kz::Float64
+end
+KitaevHoneycomb(; Kx::Real=1.0, Ky::Real=1.0, Kz::Real=1.0) =
+    KitaevHoneycomb(Float64(Kx), Float64(Ky), Float64(Kz))
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Internal: Bloch-form |f(k)|²
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    _kitaev_fk_abs²(m, θ₁, θ₂) -> Float64
+
+`|f(k)|² = Kₓ² + Kᵧ² + K_z² + 2Kₓ Kᵧ cos θ₁ + 2Kᵧ K_z cos θ₂ + 2K_z Kₓ cos(θ₁ − θ₂)`.
+"""
+@inline function _kitaev_fk_abs²(m::KitaevHoneycomb, θ₁::Real, θ₂::Real)
+    return (m.Kx^2 + m.Ky^2 + m.Kz^2
+            + 2 * m.Kx * m.Ky * cos(θ₁)
+            + 2 * m.Ky * m.Kz * cos(θ₂)
+            + 2 * m.Kz * m.Kx * cos(θ₁ - θ₂))
+end
+
+@inline _kitaev_fk_abs(m::KitaevHoneycomb, θ₁::Real, θ₂::Real) =
+    sqrt(max(_kitaev_fk_abs²(m, θ₁, θ₂), 0.0))
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Energy — Infinite (per site)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    fetch(model::KitaevHoneycomb, ::Energy, ::Infinite; rtol=1e-8) -> Float64
+
+Ground state energy **per site** in the thermodynamic limit:
+
+    ε_gs = − 1/(8π²) ∫₀^{2π} dθ₁ ∫₀^{2π} dθ₂ |f(θ₁, θ₂)|
+
+Computed as a nested Gauss-Kronrod quadrature; `rtol` sets the
+outer-integral tolerance and 10× `rtol` the inner.
+
+At the isotropic point `Kx = Ky = Kz = 1` this returns
+`ε_gs ≈ −0.39581585...`, matching Kitaev's 2006 result.
+"""
+function fetch(
+    model::KitaevHoneycomb, ::Energy, ::Infinite; rtol::Float64=1e-8, kwargs...
+)
+    inner(θ₁) = first(quadgk(θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂),
+        0.0, 2π; rtol=rtol * 10, atol=1e-14))
+    I, _ = quadgk(inner, 0.0, 2π; rtol=rtol, atol=1e-14)
+    return -I / (8π^2)
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Energy — PBC finite (per site)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    fetch(model::KitaevHoneycomb, ::Energy, bc::PBC; Lx, Ly) -> Float64
+
+Per-site ground state energy on a `Lx × Ly` unit-cell torus (PBC in
+both lattice directions). Discrete Bloch sum
+
+    E_gs = −(1/2) · (1/(Lx·Ly)) · Σ_{m,n} |f(2π m/Lx, 2π n/Ly)|.
+
+The factor 1/2 translates from per-unit-cell to per-site. `bc.N` is
+ignored; pass `Lx`, `Ly` as kwargs. (We'd otherwise need a 2D boundary
+condition type.)
+"""
+function fetch(model::KitaevHoneycomb, ::Energy, ::PBC; Lx::Integer, Ly::Integer)
+    Lx > 0 && Ly > 0 ||
+        error("KitaevHoneycomb PBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).")
+    total = 0.0
+    for m1 in 0:(Lx - 1), m2 in 0:(Ly - 1)
+        θ₁ = 2π * m1 / Lx
+        θ₂ = 2π * m2 / Ly
+        total += _kitaev_fk_abs(model, θ₁, θ₂)
+    end
+    return -total / (2 * Lx * Ly)
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Energy — OBC finite (per site)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    _obc_hopping_matrix(model, Lx, Ly) -> Matrix{Float64}
+
+`Lx·Ly × Lx·Ly` bipartite hopping matrix for the flux-free-sector
+Majorana problem with open boundary conditions in both lattice
+directions. `M[a, b] = K_γ` whenever the A-sublattice site of unit
+cell `a` connects to the B-sublattice site of unit cell `b` via a
+bond of type γ (matching Lattice2D's `Honeycomb` topology
+conventions: type_1 ↔ K_z within the same cell, type_2 ↔ K_x crossing
+`(+a₁, −a₂)`, type_3 ↔ K_y crossing `(−a₂)`). Bonds that would leave
+the `Lx × Ly` strip are dropped.
+
+Row indexing: `a = (m1 − 1) Ly + m2` for `(m1, m2) ∈ 1..Lx × 1..Ly`.
+"""
+function _obc_hopping_matrix(m::KitaevHoneycomb, Lx::Integer, Ly::Integer)
+    idx(m1, m2) = (m1 - 1) * Ly + m2
+    N = Lx * Ly
+    M = zeros(Float64, N, N)
+    for m1 in 1:Lx, m2 in 1:Ly
+        a = idx(m1, m2)
+        # z-bond: A(m1, m2) → B(m1, m2)
+        M[a, idx(m1, m2)] += m.Kz
+        # x-bond: A(m1, m2) → B(m1 + 1, m2 - 1)  iff in-range
+        if (m1 + 1 ≤ Lx) && (m2 - 1 ≥ 1)
+            M[a, idx(m1 + 1, m2 - 1)] += m.Kx
+        end
+        # y-bond: A(m1, m2) → B(m1, m2 - 1)      iff in-range
+        if m2 - 1 ≥ 1
+            M[a, idx(m1, m2 - 1)] += m.Ky
+        end
+    end
+    return M
+end
+
+"""
+    fetch(model::KitaevHoneycomb, ::Energy, ::OBC; Lx, Ly) -> Float64
+
+Per-site ground state energy on a `Lx × Ly` honeycomb strip with open
+boundaries in both lattice directions. Uses the flux-free-sector
+ansatz (`u_{ij} = +1`) and diagonalises the bipartite hopping matrix M
+returned by [`_obc_hopping_matrix`](@ref). Singular values `σ_k` of M
+are the positive Majorana single-particle energies; ground state
+energy = `−Σₖ σₖ`; per site = that divided by `2·Lx·Ly`.
+
+`bc.N` is ignored; pass `Lx`, `Ly` explicitly.
+"""
+function fetch(model::KitaevHoneycomb, ::Energy, ::OBC; Lx::Integer, Ly::Integer)
+    Lx > 0 && Ly > 0 ||
+        error("KitaevHoneycomb OBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).")
+    M = _obc_hopping_matrix(model, Lx, Ly)
+    σ = svdvals(M)
+    return -sum(σ) / (2 * Lx * Ly)
+end
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MassGap — Infinite
+# ═══════════════════════════════════════════════════════════════════════════════
+
+"""
+    fetch(model::KitaevHoneycomb, ::MassGap, ::Infinite) -> Float64
+
+Single-Majorana gap in the thermodynamic limit.
+
+    Δ = 2 · min_k |f(k)|.
+
+In the A/B/C gapless phase (each |Kᵧ| ≤ sum of the other two), `f(k)`
+has two linear (Dirac) zeros and `Δ = 0`. In the gapped A_z / A_x /
+A_y phases (`|Kᵧ|` exceeds the sum of the other two), |f| is bounded
+away from zero and `Δ = 2·( |K_γ_max| − |K_γ_other1| − |K_γ_other2| )`.
+"""
+function fetch(model::KitaevHoneycomb, ::MassGap, ::Infinite; kwargs...)
+    ax, ay, az = abs(model.Kx), abs(model.Ky), abs(model.Kz)
+    big = max(ax, ay, az)
+    rest = ax + ay + az - big
+    return 2 * max(big - rest, 0.0)
+end
