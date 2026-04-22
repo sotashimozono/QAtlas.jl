@@ -64,8 +64,9 @@ struct KitaevHoneycomb <: AbstractQAtlasModel
     Ky::Float64
     Kz::Float64
 end
-KitaevHoneycomb(; Kx::Real=1.0, Ky::Real=1.0, Kz::Real=1.0) =
+function KitaevHoneycomb(; Kx::Real=1.0, Ky::Real=1.0, Kz::Real=1.0)
     KitaevHoneycomb(Float64(Kx), Float64(Ky), Float64(Kz))
+end
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Internal: Bloch-form |f(k)|²
@@ -77,14 +78,19 @@ KitaevHoneycomb(; Kx::Real=1.0, Ky::Real=1.0, Kz::Real=1.0) =
 `|f(k)|² = Kₓ² + Kᵧ² + K_z² + 2Kₓ Kᵧ cos θ₁ + 2Kᵧ K_z cos θ₂ + 2K_z Kₓ cos(θ₁ − θ₂)`.
 """
 @inline function _kitaev_fk_abs²(m::KitaevHoneycomb, θ₁::Real, θ₂::Real)
-    return (m.Kx^2 + m.Ky^2 + m.Kz^2
-            + 2 * m.Kx * m.Ky * cos(θ₁)
-            + 2 * m.Ky * m.Kz * cos(θ₂)
-            + 2 * m.Kz * m.Kx * cos(θ₁ - θ₂))
+    return (
+        m.Kx^2 +
+        m.Ky^2 +
+        m.Kz^2 +
+        2 * m.Kx * m.Ky * cos(θ₁) +
+        2 * m.Ky * m.Kz * cos(θ₂) +
+        2 * m.Kz * m.Kx * cos(θ₁ - θ₂)
+    )
 end
 
-@inline _kitaev_fk_abs(m::KitaevHoneycomb, θ₁::Real, θ₂::Real) =
-    sqrt(max(_kitaev_fk_abs²(m, θ₁, θ₂), 0.0))
+@inline _kitaev_fk_abs(m::KitaevHoneycomb, θ₁::Real, θ₂::Real) = sqrt(
+    max(_kitaev_fk_abs²(m, θ₁, θ₂), 0.0)
+)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Energy — Infinite (per site)
@@ -103,11 +109,10 @@ outer-integral tolerance and 10× `rtol` the inner.
 At the isotropic point `Kx = Ky = Kz = 1` this returns
 `ε_gs ≈ −0.39581585...`, matching Kitaev's 2006 result.
 """
-function fetch(
-    model::KitaevHoneycomb, ::Energy, ::Infinite; rtol::Float64=1e-8, kwargs...
-)
-    inner(θ₁) = first(quadgk(θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂),
-        0.0, 2π; rtol=rtol * 10, atol=1e-14))
+function fetch(model::KitaevHoneycomb, ::Energy, ::Infinite; rtol::Float64=1e-8, kwargs...)
+    inner(θ₁) = first(
+        quadgk(θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂), 0.0, 2π; rtol=rtol * 10, atol=1e-14)
+    )
     I, _ = quadgk(inner, 0.0, 2π; rtol=rtol, atol=1e-14)
     return -I / (8π^2)
 end

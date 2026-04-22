@@ -50,18 +50,18 @@ end
 
 @testset "KitaevHoneycomb: MassGap follows the phase diagram" begin
     # Isotropic / generic gapless (B-phase): all |Kγ| ≤ sum of the others.
-    @test QAtlas.fetch(KitaevHoneycomb(; Kx=1.0, Ky=1.0, Kz=1.0),
-        MassGap(), Infinite()) == 0.0
-    @test QAtlas.fetch(KitaevHoneycomb(; Kx=0.8, Ky=1.0, Kz=1.1),
-        MassGap(), Infinite()) == 0.0
+    @test QAtlas.fetch(KitaevHoneycomb(; Kx=1.0, Ky=1.0, Kz=1.0), MassGap(), Infinite()) ==
+        0.0
+    @test QAtlas.fetch(KitaevHoneycomb(; Kx=0.8, Ky=1.0, Kz=1.1), MassGap(), Infinite()) ==
+        0.0
 
     # Az phase: Kz > Kx + Ky ⇒ Δ = 2·(Kz − Kx − Ky).
-    @test QAtlas.fetch(KitaevHoneycomb(; Kx=0.5, Ky=0.5, Kz=2.0),
-        MassGap(), Infinite()) ≈ 2.0 rtol = 1e-12
+    @test QAtlas.fetch(KitaevHoneycomb(; Kx=0.5, Ky=0.5, Kz=2.0), MassGap(), Infinite()) ≈
+        2.0 rtol = 1e-12
 
     # Ax phase: Kx > Ky + Kz.
-    @test QAtlas.fetch(KitaevHoneycomb(; Kx=2.0, Ky=0.5, Kz=0.5),
-        MassGap(), Infinite()) ≈ 2.0 rtol = 1e-12
+    @test QAtlas.fetch(KitaevHoneycomb(; Kx=2.0, Ky=0.5, Kz=0.5), MassGap(), Infinite()) ≈
+        2.0 rtol = 1e-12
 end
 
 @testset "KitaevHoneycomb: OBC argument validation" begin
