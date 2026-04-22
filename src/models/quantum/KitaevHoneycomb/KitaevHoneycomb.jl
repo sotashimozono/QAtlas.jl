@@ -128,27 +128,70 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
+    _kitaev_pbc_sector_energy(m, Lx, Ly, νx, νy) -> Float64
+
+Per-site ground state energy on the `Lx × Ly` torus **within a fixed
+topological flux sector** `(νx, νy) ∈ {0, 1/2}²`. `νx = 1/2` flips
+every bond that crosses the `m1 = Lx → m1 = 1` seam (anti-periodic
+fermion boundary condition along the x-direction); `νy = 1/2` does the
+same in the y-direction. The four sectors correspond to the four
+inequivalent choices `(W_x, W_y) ∈ {±1}²` of the two non-contractible
+Wilson-loop operators.
+
+Built as a singular-value decomposition of the Majorana hopping matrix
+`M` with entries `±K_γ`, where the sign flips whenever a bond of type
+γ crosses one of the selected seams. Per-site energy = `−Σ σ_k / (2·Lx·Ly)`.
+"""
+function _kitaev_pbc_sector_energy(
+    m::KitaevHoneycomb, Lx::Integer, Ly::Integer, νx::Int, νy::Int,
+)
+    idx(m1, m2) = (m1 - 1) * Ly + m2
+    N = Lx * Ly
+    M = zeros(Float64, N, N)
+    for m1 in 1:Lx, m2 in 1:Ly
+        a = idx(m1, m2)
+        # z-bond: (m1, m2) → (m1, m2), never crosses a seam.
+        M[a, idx(m1, m2)] += m.Kz
+        # x-bond: (m1, m2) → (m1 + 1 mod Lx, m2 − 1 mod Ly). Crosses the
+        # x-seam if m1 == Lx, the y-seam if m2 == 1. A seam crossing
+        # picks up the (−1)^ν sign for that direction.
+        b_m1, crossed_x = m1 == Lx ? (1, true) : (m1 + 1, false)
+        b_m2, crossed_y_xb = m2 == 1 ? (Ly, true) : (m2 - 1, false)
+        s_x = (crossed_x && νx == 1) ? -1 : 1
+        s_y_x = (crossed_y_xb && νy == 1) ? -1 : 1
+        M[a, idx(b_m1, b_m2)] += s_x * s_y_x * m.Kx
+        # y-bond: (m1, m2) → (m1, m2 − 1 mod Ly). Only the y-seam matters.
+        c_m2, crossed_y = m2 == 1 ? (Ly, true) : (m2 - 1, false)
+        s_y = (crossed_y && νy == 1) ? -1 : 1
+        M[a, idx(m1, c_m2)] += s_y * m.Ky
+    end
+    return -sum(svdvals(M)) / (2 * Lx * Ly)
+end
+
+"""
     fetch(model::KitaevHoneycomb, ::Energy, bc::PBC; Lx, Ly) -> Float64
 
 Per-site ground state energy on a `Lx × Ly` unit-cell torus (PBC in
-both lattice directions). Discrete Bloch sum
+both lattice directions) — enumerates all four topological flux
+sectors and returns the minimum. Each sector corresponds to a choice
+of fermion boundary conditions (`W_x, W_y ∈ {±1}`); Lieb's theorem
+fixes plaquette fluxes at `+1`, so the spin-Hamiltonian ground state
+is one of these four.
 
-    E_gs = −(1/2) · (1/(Lx·Ly)) · Σ_{m,n} |f(2π m/Lx, 2π n/Ly)|.
+Bond connectivity matches `Lattice2D.build_lattice(Honeycomb, Lx, Ly;
+boundary=PeriodicAxis())`. `bc.N` is ignored; pass `Lx`, `Ly` as kwargs.
 
-The factor 1/2 translates from per-unit-cell to per-site. `bc.N` is
-ignored; pass `Lx`, `Ly` as kwargs. (We'd otherwise need a 2D boundary
-condition type.)
+For large `L` the four sectors converge to the same energy and
+individual Bloch-sum terms dominate; for small `L` sector choice is
+essential (e.g. `Lx = Ly = 2` gives distinct sector energies differing
+by `~10%`).
 """
 function fetch(model::KitaevHoneycomb, ::Energy, ::PBC; Lx::Integer, Ly::Integer)
     Lx > 0 && Ly > 0 ||
         error("KitaevHoneycomb PBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).")
-    total = 0.0
-    for m1 in 0:(Lx - 1), m2 in 0:(Ly - 1)
-        θ₁ = 2π * m1 / Lx
-        θ₂ = 2π * m2 / Ly
-        total += _kitaev_fk_abs(model, θ₁, θ₂)
-    end
-    return -total / (2 * Lx * Ly)
+    return minimum(
+        _kitaev_pbc_sector_energy(model, Lx, Ly, νx, νy) for νx in 0:1, νy in 0:1
+    )
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════

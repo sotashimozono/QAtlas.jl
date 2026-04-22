@@ -156,6 +156,34 @@ function _kitaev_ed_gs_per_site(lat, Kx::Real, Ky::Real, Kz::Real)
     return E_gs / N
 end
 
+@testset "KitaevHoneycomb PBC: sector-enumerated formula matches ED on small tori" begin
+    # The PBC fetch enumerates all four topological flux sectors
+    # (νx, νy) ∈ {0, 1/2}² and takes the minimum. On finite tori this
+    # is essential; without sector enumeration the formula undershoots
+    # ED by up to ~15% at Lx=Ly=2 isotropic.
+    #
+    # Cross-check: asymmetric (3,2) / (2,3) tori where all four Wilson
+    # loops can be distinguished hit machine precision agreement.
+    # Anisotropic K's at (2,2) also agree to < 0.5% (residual is the
+    # known vortex-sector physics pathology of the smallest isotropic
+    # torus).
+    cases = [
+        ((3, 2), (1.0, 1.0, 1.0), 1e-10),      # exact match
+        ((2, 3), (1.0, 1.0, 1.0), 1e-10),      # exact match
+        ((3, 2), (0.3, 0.7, 1.0), 1e-10),      # exact match
+        ((2, 3), (2.0, 0.5, 0.5), 1e-10),      # exact match (Ax-phase)
+        ((2, 2), (2.0, 0.5, 0.5), 5e-3),       # Ax-phase: within 0.5%
+    ]
+    for ((Lx, Ly), (Kx, Ky, Kz), tol) in cases
+        m = KitaevHoneycomb(; Kx=Kx, Ky=Ky, Kz=Kz)
+        lat = build_lattice(Honeycomb, Lx, Ly; boundary=PeriodicAxis())
+        E_ed = _kitaev_ed_gs_per_site(lat, Kx, Ky, Kz)
+        E_fl = QAtlas.fetch(m, Energy(), PBC(0); Lx=Lx, Ly=Ly)
+        @info "PBC formula vs ED" Lx Ly Kx Ky Kz E_ed E_fl Δ = E_ed - E_fl
+        @test abs(E_fl - E_ed) < tol
+    end
+end
+
 @testset "KitaevHoneycomb OBC: flux-free formula matches ED on small clusters" begin
     # (a) Single z-bond (Lx = Ly = 1 OBC on Honeycomb reduces to just the
     # same-cell z-bond). H = -Kz σᶻσᶻ on 2 sites ⇒ Egs/site = -Kz/2.
