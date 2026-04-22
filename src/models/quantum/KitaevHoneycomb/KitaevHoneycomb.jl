@@ -143,7 +143,7 @@ Built as a singular-value decomposition of the Majorana hopping matrix
 γ crosses one of the selected seams. Per-site energy = `−Σ σ_k / (2·Lx·Ly)`.
 """
 function _kitaev_pbc_sector_energy(
-    m::KitaevHoneycomb, Lx::Integer, Ly::Integer, νx::Int, νy::Int,
+    m::KitaevHoneycomb, Lx::Integer, Ly::Integer, νx::Int, νy::Int
 )
     idx(m1, m2) = (m1 - 1) * Ly + m2
     N = Lx * Ly
