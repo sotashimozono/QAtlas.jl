@@ -163,7 +163,6 @@ end
             c_num = -β^2 * (βpfp - 2 * βf + βmfm) / δ^2
             c_an = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β)
             @test c_an ≈ c_num rtol=1e-3
-
         end
     end
 
