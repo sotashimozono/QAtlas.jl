@@ -32,7 +32,7 @@
 # `Infinite` (per-site, exact in the thermodynamic limit).
 # ─────────────────────────────────────────────────────────────────────────────
 
-using LinearAlgebra: eigvals, Symmetric, I
+using LinearAlgebra: eigvals, Symmetric
 using QuadGK: quadgk
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -169,21 +169,26 @@ Exact transverse susceptibility per site for the OBC TFIM,
     χ_xx(β) = (β/N) Var(Σᵢ σˣᵢ)
             = (β/N) Σᵢⱼ [ ⟨σˣᵢ σˣⱼ⟩_β − ⟨σˣᵢ⟩_β ⟨σˣⱼ⟩_β ]
 
-Diagonal entries use `⟨(σˣᵢ)²⟩ = 1` (Pauli identity).  Off-diagonal
-`⟨σˣᵢ σˣⱼ⟩_β` are computed from the equal-time 4-Majorana Pfaffian via
-`_sx_sx_corr_from_cached` (see `TFIM_dynamics.jl`).  No numerical
-differentiation.
+Uses the Majorana covariance matrix `Σ[a,b] = ⟨γₐγᵦ⟩ − δₐᵦ`.
+With `σˣᵢ = -i γ_{2i-1} γ_{2i}` the connected correlators follow from
+Wick's theorem:
+
+  Diagonal (i = j):   ⟨(σˣᵢ)²⟩_c = 1 − Σ[2i-1, 2i]²
+  Off-diagonal (i ≠ j): ⟨σˣᵢ σˣⱼ⟩_c = −Σ[2i-1,2j-1]·Σ[2i,2j]
+                                        + Σ[2i-1,2j]·Σ[2i,2j-1]
+
+No numerical differentiation; no Pfaffian library calls.
 """
 function _xx_uniform_susceptibility(N::Int, J::Float64, h::Float64, β::Real)
     hmat = _majorana_ham(N, J, h)
     Σ = _majorana_thermal_covariance(hmat, β)
-    R = Matrix{Float64}(I, 2N, 2N)
-    mx = [_sx_expect(Σ, i) for i in 1:N]
+    # ⟨σˣᵢ⟩ = Σ[2i-1, 2i]  (from _sx_expect)
+    mx = [Σ[2i - 1, 2i] for i in 1:N]
     # diagonal: ⟨(σˣᵢ)²⟩_c = 1 − ⟨σˣᵢ⟩²
     s = sum(1.0 - mx[i]^2 for i in 1:N)
-    # off-diagonal pairs (factor 2 for i<j and j<i)
+    # off-diagonal: Wick contraction of -iγ_{2i-1}γ_{2i} · -iγ_{2j-1}γ_{2j}
     for i in 1:N, j in (i + 1):N
-        cij = real(_sx_sx_corr_from_cached(Σ, R, i, j)) - mx[i] * mx[j]
+        cij = -Σ[2i - 1, 2j - 1] * Σ[2i, 2j] + Σ[2i - 1, 2j] * Σ[2i, 2j - 1]
         s += 2 * cij
     end
     return β * s / N
@@ -200,7 +205,7 @@ expectation.  Uses the Majorana covariance formula
 (see `TFIM_dynamics.jl`) and identifies `⟨σˣ_i⟩ = Σ[2i-1, 2i]`.
 
 The transverse susceptibility is computed via `_xx_uniform_susceptibility`
-(exact FDT variance, 4-Majorana Pfaffian), not by numerical differentiation.
+(exact Wick contraction, no numerical differentiation).
 """
 function _tfim_transverse_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::Real)
     hmat = _majorana_ham(N, J, h)
