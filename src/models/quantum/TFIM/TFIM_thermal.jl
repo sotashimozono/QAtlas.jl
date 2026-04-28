@@ -26,7 +26,7 @@
 #   :entropy                  s(β)        = β (ε - f)
 #   :specific_heat            c_v(β)      = ∂ε/∂T
 #   :transverse_magnetization m_x(β)      = ⟨σˣ_i⟩
-#   :transverse_susceptibility χ_xx(β)    = ∂m_x/∂h
+#   :transverse_susceptibility χ_xx(β)    = β · Var(Σᵢ σˣᵢ) / N
 #
 # All five are implemented for both `OBC` (per-site, exact at finite N) and
 # `Infinite` (per-site, exact in the thermodynamic limit).
@@ -162,32 +162,58 @@ function _tfim_thermo_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::
 end
 
 """
+    _xx_uniform_susceptibility(N, J, h, β) -> Float64
+
+Exact transverse susceptibility per site for the OBC TFIM,
+
+    χ_xx(β) = (β/N) Var(Σᵢ σˣᵢ)
+            = (β/N) Σᵢⱼ [ ⟨σˣᵢ σˣⱼ⟩_β − ⟨σˣᵢ⟩_β ⟨σˣⱼ⟩_β ]
+
+Uses the Majorana covariance matrix `Σ[a,b] = ⟨γₐγᵦ⟩ − δₐᵦ`.
+With `σˣᵢ = -i γ_{2i-1} γ_{2i}` the connected correlators follow from
+Wick's theorem:
+
+  Diagonal (i = j):   ⟨(σˣᵢ)²⟩_c = 1 − Σ[2i-1, 2i]²
+  Off-diagonal (i ≠ j): ⟨σˣᵢ σˣⱼ⟩_c = −Σ[2i-1,2j-1]·Σ[2i,2j]
+                                        + Σ[2i-1,2j]·Σ[2i,2j-1]
+
+No numerical differentiation; no Pfaffian library calls.
+"""
+function _xx_uniform_susceptibility(N::Int, J::Float64, h::Float64, β::Real)
+    hmat = _majorana_ham(N, J, h)
+    Σ = _majorana_thermal_covariance(hmat, β)
+    # ⟨σˣᵢ⟩ = Σ[2i-1, 2i]  (from _sx_expect)
+    mx = [Σ[2i - 1, 2i] for i in 1:N]
+    # diagonal: ⟨(σˣᵢ)²⟩_c = 1 − ⟨σˣᵢ⟩²
+    s = sum(1.0 - mx[i]^2 for i in 1:N)
+    # off-diagonal: Wick contraction of -iγ_{2i-1}γ_{2i} · -iγ_{2j-1}γ_{2j}
+    for i in 1:N, j in (i + 1):N
+        cij = -Σ[2i - 1, 2j - 1] * Σ[2i, 2j] + Σ[2i - 1, 2j] * Σ[2i, 2j - 1]
+        s += 2 * cij
+    end
+    return β * s / N
+end
+
+"""
     _tfim_transverse_obc(quantity, N, J, h, β) -> Float64
 
 Compute `m_x` or `χ_xx` per site for OBC finite N by direct site-resolved BdG
-expectation.  Uses the matrix exponential formula
+expectation.  Uses the Majorana covariance formula
 
     Σ(β) = -i tanh(β/2 · i h_BdG)
 
-(see `TFIM_dynamics.jl`) and identifies
+(see `TFIM_dynamics.jl`) and identifies `⟨σˣ_i⟩ = Σ[2i-1, 2i]`.
 
-    ⟨σˣ_i⟩ = Σ[2i-1, 2i].
-
-The transverse susceptibility is obtained by central numerical differentiation
-of the magnetisation with respect to `h`.
+The transverse susceptibility is computed via `_xx_uniform_susceptibility`
+(exact Wick contraction, no numerical differentiation).
 """
 function _tfim_transverse_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::Real)
-    function _mx_avg(h_)
-        hmat = _majorana_ham(N, J, h_)
-        Σ = _majorana_thermal_covariance(hmat, β)
-        return sum(_sx_expect(Σ, i) for i in 1:N) / N
-    end
-
+    hmat = _majorana_ham(N, J, h)
+    Σ = _majorana_thermal_covariance(hmat, β)
     if quantity === :transverse_magnetization
-        return _mx_avg(h)
+        return sum(_sx_expect(Σ, i) for i in 1:N) / N
     else  # :transverse_susceptibility
-        δ = max(1e-4, abs(h) * 1e-4)
-        return (_mx_avg(h + δ) - _mx_avg(h - δ)) / (2 * δ)
+        return _xx_uniform_susceptibility(N, J, h, β)
     end
 end
 

@@ -163,14 +163,6 @@ end
             c_num = -β^2 * (βpfp - 2 * βf + βmfm) / δ^2
             c_an = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), OBC(; N=N); beta=β)
             @test c_an ≈ c_num rtol=1e-3
-
-            # χ_xx from numerical derivative of m_x w.r.t. h
-            δh = 1e-4
-            mp = QAtlas.fetch(TFIM(; J=J, h=h + δh), MagnetizationX(), OBC(; N=N); beta=β)
-            mm = QAtlas.fetch(TFIM(; J=J, h=h - δh), MagnetizationX(), OBC(; N=N); beta=β)
-            χ_num = (mp - mm) / (2 * δh)
-            χ_an = QAtlas.fetch(TFIM(; J=J, h=h), SusceptibilityXX(), OBC(; N=N); beta=β)
-            @test χ_an ≈ χ_num rtol=5e-3
         end
     end
 
@@ -253,6 +245,26 @@ end
             χ_ed = β * (M2 - M1^2) / N
 
             χ_qa = QAtlas.fetch(TFIM(; J=J, h=h), SusceptibilityZZ(), OBC(; N=N); beta=β)
+            @test χ_qa ≈ χ_ed atol=1e-10
+        end
+    end
+
+    @testset "ED comparison: transverse susceptibility" begin
+        # SusceptibilityXX(OBC) returns β·Var(Mx)/N (equal-time fluctuation),
+        # which for a quantum system differs from the Kubo response ∂m_x/∂h.
+        # Validate against the same ED density-matrix variance formula.
+        N, J, h = 4, 1.0, 0.7
+        for β in (0.5, 1.0, 2.5)
+            H = _build_tfim_dense(N, J, h)
+            E, V = eigen(H)
+            Z = sum(exp.(-β .* (E .- E[1])))
+            ρ = V * (Diagonal(exp.(-β .* (E .- E[1]))) ./ Z) * V'
+            Mx = sum(_op_site(_SX, i, N) for i in 1:N)
+            M2 = real(tr(ρ * (Mx * Mx)))
+            M1 = real(tr(ρ * Mx))
+            χ_ed = β * (M2 - M1^2) / N
+
+            χ_qa = QAtlas.fetch(TFIM(; J=J, h=h), SusceptibilityXX(), OBC(; N=N); beta=β)
             @test χ_qa ≈ χ_ed atol=1e-10
         end
     end
