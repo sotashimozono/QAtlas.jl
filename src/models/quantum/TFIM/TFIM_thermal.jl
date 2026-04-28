@@ -26,13 +26,13 @@
 #   :entropy                  s(β)        = β (ε - f)
 #   :specific_heat            c_v(β)      = ∂ε/∂T
 #   :transverse_magnetization m_x(β)      = ⟨σˣ_i⟩
-#   :transverse_susceptibility χ_xx(β)    = ∂m_x/∂h
+#   :transverse_susceptibility χ_xx(β)    = β · Var(Σᵢ σˣᵢ) / N
 #
 # All five are implemented for both `OBC` (per-site, exact at finite N) and
 # `Infinite` (per-site, exact in the thermodynamic limit).
 # ─────────────────────────────────────────────────────────────────────────────
 
-using LinearAlgebra: eigvals, Symmetric
+using LinearAlgebra: eigvals, Symmetric, I
 using QuadGK: quadgk
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -162,32 +162,53 @@ function _tfim_thermo_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::
 end
 
 """
+    _xx_uniform_susceptibility(N, J, h, β) -> Float64
+
+Exact transverse susceptibility per site for the OBC TFIM,
+
+    χ_xx(β) = (β/N) Var(Σᵢ σˣᵢ)
+            = (β/N) Σᵢⱼ [ ⟨σˣᵢ σˣⱼ⟩_β − ⟨σˣᵢ⟩_β ⟨σˣⱼ⟩_β ]
+
+Diagonal entries use `⟨(σˣᵢ)²⟩ = 1` (Pauli identity).  Off-diagonal
+`⟨σˣᵢ σˣⱼ⟩_β` are computed from the equal-time 4-Majorana Pfaffian via
+`_sx_sx_corr_from_cached` (see `TFIM_dynamics.jl`).  No numerical
+differentiation.
+"""
+function _xx_uniform_susceptibility(N::Int, J::Float64, h::Float64, β::Real)
+    hmat = _majorana_ham(N, J, h)
+    Σ = _majorana_thermal_covariance(hmat, β)
+    R = Matrix{Float64}(I, 2N, 2N)
+    mx = [_sx_expect(Σ, i) for i in 1:N]
+    # diagonal: ⟨(σˣᵢ)²⟩_c = 1 − ⟨σˣᵢ⟩²
+    s = sum(1.0 - mx[i]^2 for i in 1:N)
+    # off-diagonal pairs (factor 2 for i<j and j<i)
+    for i in 1:N, j in (i + 1):N
+        cij = real(_sx_sx_corr_from_cached(Σ, R, i, j)) - mx[i] * mx[j]
+        s += 2 * cij
+    end
+    return β * s / N
+end
+
+"""
     _tfim_transverse_obc(quantity, N, J, h, β) -> Float64
 
 Compute `m_x` or `χ_xx` per site for OBC finite N by direct site-resolved BdG
-expectation.  Uses the matrix exponential formula
+expectation.  Uses the Majorana covariance formula
 
     Σ(β) = -i tanh(β/2 · i h_BdG)
 
-(see `TFIM_dynamics.jl`) and identifies
+(see `TFIM_dynamics.jl`) and identifies `⟨σˣ_i⟩ = Σ[2i-1, 2i]`.
 
-    ⟨σˣ_i⟩ = Σ[2i-1, 2i].
-
-The transverse susceptibility is obtained by central numerical differentiation
-of the magnetisation with respect to `h`.
+The transverse susceptibility is computed via `_xx_uniform_susceptibility`
+(exact FDT variance, 4-Majorana Pfaffian), not by numerical differentiation.
 """
 function _tfim_transverse_obc(quantity::Symbol, N::Int, J::Float64, h::Float64, β::Real)
-    function _mx_avg(h_)
-        hmat = _majorana_ham(N, J, h_)
-        Σ = _majorana_thermal_covariance(hmat, β)
-        return sum(_sx_expect(Σ, i) for i in 1:N) / N
-    end
-
+    hmat = _majorana_ham(N, J, h)
+    Σ = _majorana_thermal_covariance(hmat, β)
     if quantity === :transverse_magnetization
-        return _mx_avg(h)
+        return sum(_sx_expect(Σ, i) for i in 1:N) / N
     else  # :transverse_susceptibility
-        δ = max(1e-4, abs(h) * 1e-4)
-        return (_mx_avg(h + δ) - _mx_avg(h - δ)) / (2 * δ)
+        return _xx_uniform_susceptibility(N, J, h, β)
     end
 end
 
