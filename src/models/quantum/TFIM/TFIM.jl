@@ -213,13 +213,13 @@ end
 """
     fetch(model::TFIM, ::CentralCharge, ::Infinite) -> Float64
 
-Central charge of the TFIM critical point (h = J): c = 1/2 (Ising CFT).
-Returns NaN if not at the critical point (|h/J - 1| > 1e-6).
+Central charge of the TFIM:
+
+- `c = 1/2` at the critical point `h = J` (Ising CFT)
+- `c = 0`   in either gapped phase (`h ≠ J`) — no low-energy CFT description
+
+Criticality is detected by `|h/J - 1| ≤ 1e-6`.
 """
 function fetch(model::TFIM, ::CentralCharge, ::Infinite; kwargs...)
-    if abs(model.h / model.J - 1.0) > 1e-6
-        @warn "TFIM central charge c=1/2 only at the critical point h=J. Got h/J=$(model.h/model.J)."
-        return NaN
-    end
-    return 0.5
+    return abs(model.h / model.J - 1.0) ≤ 1e-6 ? 0.5 : 0.0
 end
