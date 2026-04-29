@@ -46,20 +46,64 @@ end
 end
 
 @testset "TFIM VonNeumannEntropy — Calabrese–Cardy log scaling at h = J" begin
-    # S(ℓ, N) = (c/6) log( (2N/π) sin(πℓ/N) ) + s₁ for an OBC chain
-    # at the Ising CFT critical point with c = 1/2.  At N = 100 the
-    # Peschel result should fit this form with c extracted within 5 %.
-    N = 100
+    # S(ℓ, N) = (c/6) log( (2N/π) sin(πℓ/N) ) + s₁ for an OBC chain at
+    # the Ising CFT critical point.  Reference value comes from
+    # `Universality(:Ising)` so the test breaks if either the registry
+    # entry or the extracted central charge drift away from the Ising
+    # CFT value c = 1/2.
+    c_ising = Float64(QAtlas.fetch(Universality(:Ising), CriticalExponents(); d=2).c)
+    @test c_ising ≈ 0.5 atol = 1e-12
+
+    function _extract_c_obc(N::Int, model)
+        ℓs = collect(10:10:(N - 10))
+        Ss = [QAtlas.fetch(model, VonNeumannEntropy(), OBC(N); ℓ=ℓ) for ℓ in ℓs]
+        ξs = [log((2N / π) * sin(π * ℓ / N)) for ℓ in ℓs]
+        n = length(ℓs)
+        ξ̄ = sum(ξs) / n
+        S̄ = sum(Ss) / n
+        slope =
+            sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
+        return 6 * slope
+    end
+
+    function _linear_fit(xs::AbstractVector{<:Real}, ys::AbstractVector{<:Real})
+        n = length(xs)
+        x̄ = sum(xs) / n
+        ȳ = sum(ys) / n
+        b = sum((xs[i] - x̄) * (ys[i] - ȳ) for i in 1:n) / sum((xs[i] - x̄)^2 for i in 1:n)
+        a = ȳ - b * x̄
+        return (a, b)
+    end
+
     model = TFIM(; J=1.0, h=1.0)
-    ℓs = collect(10:10:(N - 10))
-    Ss = [QAtlas.fetch(model, VonNeumannEntropy(), OBC(N); ℓ=ℓ) for ℓ in ℓs]
-    ξs = [log((2N / π) * sin(π * ℓ / N)) for ℓ in ℓs]
-    n = length(ℓs)
-    ξ̄ = sum(ξs) / n
-    S̄ = sum(Ss) / n
-    slope = sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
-    c_est = 6 * slope
-    @test c_est ≈ 0.5 rtol = 0.05
+    Ns = [50, 100, 200]
+    cs = [_extract_c_obc(N, model) for N in Ns]
+
+    # 1. Reference comparison at N = 100. The OBC alternating boundary
+    #    correction at fixed ℓ/N and even ℓ does not average to zero,
+    #    so the single-N residual is `~1.4e-2` and shrinks as 1/√N
+    #    (measured empirically across N ∈ [50, 100, 200, 400, 800]).
+    #    `atol = 0.02` is a reference comparison strictly stronger than
+    #    the previous `rtol = 0.05`, with margin over the empirical
+    #    residual.
+    @test cs[2] ≈ c_ising atol = 0.02
+
+    # 2. Convergence: the residual shrinks monotonically with N.
+    @test all(abs(cs[i + 1] - c_ising) < abs(cs[i] - c_ising) for i in 1:(length(cs) - 1))
+
+    # 3. All three finite-N estimates lie above c_ising — the alternating
+    #    boundary contribution at even ℓ is positive on the OBC critical
+    #    TFIM. A sign flip in the entropy would push them below.
+    @test all(c -> c > c_ising, cs)
+
+    # 4. FSS extrapolation: the residual scales as `c(N) - c_ising ≈
+    #    α / √N`. A 1/√N linear fit on the intercept matches c_ising
+    #    to `atol = 5e-3` — strictly stronger than the rtol = 0.05
+    #    single-N check.
+    invsqrtN = [1.0 / sqrt(N) for N in Ns]
+    c_inf, α = _linear_fit(invsqrtN, cs)
+    @test c_inf ≈ c_ising atol = 5e-3
+    @test α > 0  # boundary correction has positive sign on OBC critical TFIM
 end
 
 @testset "TFIM VonNeumannEntropy — thermal beta argument" begin
