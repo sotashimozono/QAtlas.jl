@@ -21,6 +21,7 @@ export TightBindingSpectrum
 # backward-compat top-level alias for `Honeycomb` (see src/deprecate/)
 # since the name does not collide with anything in Lattice2D.
 export Heisenberg1D, ExactSpectrum, GroundStateEnergyDensity
+export S1Heisenberg1D                                    # spin-1 (Haldane chain)
 
 # --- Core Implementation ---
 include("core/alias.jl")
@@ -69,6 +70,7 @@ include("models/quantum/TFIM/TFIM_thermal.jl")
 include("models/quantum/TFIM/TFIM_local.jl")
 include("models/quantum/TFIM/TFIM_entanglement.jl")
 include("models/quantum/Heisenberg/Heisenberg.jl")
+include("models/quantum/Heisenberg/HeisenbergS1.jl")
 include("models/quantum/KitaevHoneycomb/KitaevHoneycomb.jl")
 include("models/quantum/XXZ/XXZ.jl")
 
