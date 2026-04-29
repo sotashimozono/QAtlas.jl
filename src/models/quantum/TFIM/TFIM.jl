@@ -95,14 +95,14 @@ function fetch(
     model::TFIM,
     ::Energy,
     bc::OBC;
-    beta::Union{Float64,Nothing}=nothing,
-    betas::Union{AbstractVector{Float64},Nothing}=nothing,
+    beta::Union{Real,Nothing}=nothing,
+    betas::Union{AbstractVector{<:Real},Nothing}=nothing,
     kwargs...,
 )
     N = _bc_size(bc, kwargs)
     Λ = _tfim_bdg_spectrum(N, model.J, model.h)
     if betas !== nothing
-        return Float64[-sum(λ -> (λ / 2) * tanh(β * λ / 2), Λ) for β in betas]
+        return [-sum(λ -> (λ / 2) * tanh(β * λ / 2), Λ) for β in betas]
     elseif beta !== nothing
         return -sum(λ -> (λ / 2) * tanh(beta * λ / 2), Λ)
     else
@@ -134,8 +134,8 @@ function fetch(
     model::TFIM,
     ::Energy,
     ::Infinite;
-    beta::Union{Float64,Nothing}=nothing,
-    betas::Union{AbstractVector{Float64},Nothing}=nothing,
+    beta::Union{Real,Nothing}=nothing,
+    betas::Union{AbstractVector{<:Real},Nothing}=nothing,
     kwargs...,
 )
     J = model.J
