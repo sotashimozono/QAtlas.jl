@@ -222,16 +222,20 @@ end
 """
     fetch(model::XXZ1D, ::Energy, ::OBC; beta) -> Float64
 
-Per-site thermal energy `⟨H⟩_β / N` for the spin-½ OBC chain at finite
-size, computed by dense ED.  Works for any `Δ` and any `N ≤
-$(_MAX_ED_SITES)`.  Intended as a reference for MPS thermal methods
-(TPQMPS / Purification / METTS).
+**Total** thermal energy `⟨H⟩_β` for the spin-½ OBC chain at finite size,
+computed by dense ED.  Works for any `Δ` and any `N ≤ $(_MAX_ED_SITES)`.
+Intended as a reference for MPS thermal methods (TPQMPS / Purification /
+METTS).
 
 ```
-    ⟨H⟩_β / N = Tr(H exp(-βH)) / (N · Tr(exp(-βH)))
+    ⟨H⟩_β = Tr(H exp(-βH)) / Tr(exp(-βH))
 ```
+
+Convention matches [`fetch(::TFIM, ::Energy, ::OBC)`](@ref): finite-size
+boundary conditions return total energy; only `Infinite()` returns per-site
+(`⟨H⟩/N`, the only finite quantity in the thermodynamic limit).
 """
 function fetch(model::XXZ1D, ::Energy, bc::OBC; beta::Real, kwargs...)
     H = _xxz1d_hamiltonian_matrix(model, bc.N)
-    return _ed_thermal_energy(H, beta) / bc.N
+    return _ed_thermal_energy(H, beta)
 end
