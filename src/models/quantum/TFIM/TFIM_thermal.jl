@@ -237,24 +237,24 @@ const _TFIM_THERMAL_METHODS = (
 for (QTy, qsym) in _TFIM_THERMAL_METHODS
     @eval begin
         """
-            fetch(model::TFIM, ::$($QTy), ::Infinite; beta::Float64, kwargs...)
+            fetch(model::TFIM, ::$($QTy), ::Infinite; beta::Real, kwargs...)
 
         Per-site $($(string(qsym))) of the TFIM in the thermodynamic limit at
         inverse temperature `beta`.  Uses adaptive Gauss-Kronrod quadrature
         over the BdG dispersion `Λ(k) = 2√(J² + h² − 2Jh cos k)`.
         """
-        function fetch(model::TFIM, ::$QTy, ::Infinite; beta::Float64, kwargs...)
+        function fetch(model::TFIM, ::$QTy, ::Infinite; beta::Real, kwargs...)
             return _tfim_thermo_infinite($(QuoteNode(qsym)), model.J, model.h, beta)
         end
 
         """
-            fetch(model::TFIM, ::$($QTy), bc::OBC; beta::Float64, kwargs...)
+            fetch(model::TFIM, ::$($QTy), bc::OBC; beta::Real, kwargs...)
 
         Per-site $($(string(qsym))) of the OBC TFIM with `N = bc.N` sites at
         inverse temperature `beta`.  Computed exactly via the BdG
         diagonalisation.
         """
-        function fetch(model::TFIM, ::$QTy, bc::OBC; beta::Float64, kwargs...)
+        function fetch(model::TFIM, ::$QTy, bc::OBC; beta::Real, kwargs...)
             N = _bc_size(bc, kwargs)
             return _tfim_thermo_obc($(QuoteNode(qsym)), N, model.J, model.h, beta)
         end

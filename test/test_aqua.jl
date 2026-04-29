@@ -3,13 +3,16 @@ using Aqua
 # Aqua.jl: static QA checks (ambiguities, unbound args, stale deps,
 # undocumented public names, persistent tasks, piracy, project.toml).
 #
-# `ambiguities` is left opt-in (we inspect it manually below) because
-# LinearAlgebra + QuadGK overloads commonly surface benign ambiguities
-# that we do not want to make CI-blocking while still being visible.
+# `deps_compat` / `stale_deps` / `undocumented_names` family is the set
+# of checks that genuinely catch drift between `Project.toml` and the
+# source tree — keep them on.
 #
-# The `deps_compat` / `stale_deps` / `undocumented_names` family is the
-# set of checks that genuinely catch drift between `Project.toml` and
-# the source tree — keep them on.
+# `ambiguities` is hard-fail (closed in #100) — `Aqua.detect_ambiguities`
+# on the QAtlas module currently returns `[]`, and any new method added
+# in src/ that introduces an ambiguity should be caught at PR time.
+# Stdlib-inherited ambiguities (LinearAlgebra + QuadGK) live outside
+# QAtlas's own method tables and therefore do not surface from
+# `recursive=false`.
 
 @testset "Aqua QA" begin
     Aqua.test_all(
@@ -27,12 +30,11 @@ using Aqua
         unbound_args=true,
     )
 
-    @testset "ambiguities (soft)" begin
-        # Report but do not fail — many are inherited from stdlib combinations.
+    @testset "ambiguities (hard)" begin
         amb = Aqua.detect_ambiguities(QAtlas; recursive=false)
         if !isempty(amb)
-            @info "Aqua: ambiguities detected (non-fatal)" count = length(amb)
+            @error "Aqua: ambiguities introduced in QAtlas — fix or document" amb
         end
-        @test true  # soft check always passes
+        @test isempty(amb)
     end
 end
