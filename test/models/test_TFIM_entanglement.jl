@@ -62,8 +62,7 @@ end
         ξ̄ = sum(ξs) / n
         S̄ = sum(Ss) / n
         slope =
-            sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) /
-            sum((ξs[i] - ξ̄)^2 for i in 1:n)
+            sum((ξs[i] - ξ̄) * (Ss[i] - S̄) for i in 1:n) / sum((ξs[i] - ξ̄)^2 for i in 1:n)
         return 6 * slope
     end
 
@@ -71,8 +70,7 @@ end
         n = length(xs)
         x̄ = sum(xs) / n
         ȳ = sum(ys) / n
-        b = sum((xs[i] - x̄) * (ys[i] - ȳ) for i in 1:n) /
-            sum((xs[i] - x̄)^2 for i in 1:n)
+        b = sum((xs[i] - x̄) * (ys[i] - ȳ) for i in 1:n) / sum((xs[i] - x̄)^2 for i in 1:n)
         a = ȳ - b * x̄
         return (a, b)
     end
@@ -91,9 +89,7 @@ end
     @test cs[2] ≈ c_ising atol = 0.02
 
     # 2. Convergence: the residual shrinks monotonically with N.
-    @test all(
-        abs(cs[i + 1] - c_ising) < abs(cs[i] - c_ising) for i in 1:(length(cs) - 1)
-    )
+    @test all(abs(cs[i + 1] - c_ising) < abs(cs[i] - c_ising) for i in 1:(length(cs) - 1))
 
     # 3. All three finite-N estimates lie above c_ising — the alternating
     #    boundary contribution at even ℓ is positive on the OBC critical
