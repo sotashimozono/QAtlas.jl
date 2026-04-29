@@ -162,7 +162,7 @@ end
 """
     fetch(::Heisenberg1D, ::Energy, ::OBC; beta, J=1.0) -> Float64
 
-Per-site thermal energy `⟨H⟩_β / N` for the spin-½ antiferromagnetic
+**Total** thermal energy `⟨H⟩_β` for the spin-½ antiferromagnetic
 Heisenberg OBC chain at finite `N` (the isotropic point `Δ = 1` of
 [`XXZ1D`](@ref)).  Routes through [`fetch(::XXZ1D, ::Energy, ::OBC)`](@ref).
 

@@ -8,8 +8,8 @@ using QAtlas, Test, LinearAlgebra
     # so the XXZ OBC Hamiltonian satisfies Tr(H) = 0 exactly.  At β = 0
     # this means `⟨H⟩ = Tr(H) / 2^N = 0`.
     for Δ in (-0.5, 0.0, 0.7, 1.0), N in (4, 5, 6)
-        E_per_site = QAtlas.fetch(XXZ1D(; J=1.0, Δ=Δ), Energy(), OBC(N); beta=0.0)
-        @test abs(E_per_site) < 1e-12
+        E_total = QAtlas.fetch(XXZ1D(; J=1.0, Δ=Δ), Energy(), OBC(N); beta=0.0)
+        @test abs(E_total) < 1e-12
     end
 end
 
@@ -25,7 +25,7 @@ end
         E_gs = evals[1]
         gap = evals[2] - evals[1]
         β = 50.0
-        E_thermal = QAtlas.fetch(model, Energy(), OBC(N); beta=β) * N  # total energy
+        E_thermal = QAtlas.fetch(model, Energy(), OBC(N); beta=β)  # total energy
         # At β large, correction ≈ gap · exp(-β gap), bounded very loosely.
         tol = max(1e-10, 10 * gap * exp(-β * gap))
         @test abs(E_thermal - E_gs) ≤ tol
@@ -48,7 +48,7 @@ end
         emin2 = minimum(evals2)
         ws2 = exp.(-β .* (evals2 .- emin2))
         E2_direct = real(sum(evals2 .* ws2) / sum(ws2))
-        E2_fetch = QAtlas.fetch(XXZ1D(; J=J, Δ=Δ), Energy(), OBC(2); beta=β) * 2
+        E2_fetch = QAtlas.fetch(XXZ1D(; J=J, Δ=Δ), Energy(), OBC(2); beta=β)
         @test E2_fetch ≈ E2_direct rtol = 1e-10
 
         # N = 3: two bonds, H = bond(1,2)⊗I + I⊗bond(2,3).
@@ -59,7 +59,7 @@ end
         emin3 = minimum(evals3)
         ws3 = exp.(-β .* (evals3 .- emin3))
         E3_direct = real(sum(evals3 .* ws3) / sum(ws3))
-        E3_fetch = QAtlas.fetch(XXZ1D(; J=J, Δ=Δ), Energy(), OBC(3); beta=β) * 3
+        E3_fetch = QAtlas.fetch(XXZ1D(; J=J, Δ=Δ), Energy(), OBC(3); beta=β)
         @test E3_fetch ≈ E3_direct rtol = 1e-10
     end
 end
