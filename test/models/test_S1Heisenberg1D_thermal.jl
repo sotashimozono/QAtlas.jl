@@ -74,9 +74,7 @@ end
     for (J, N, β) in ((1.0, 3, 0.5), (1.0, 4, 1.0), (1.3, 4, 2.0))
         m = S1Heisenberg1D(; J=J)
         c_direct = QAtlas.fetch(m, SpecificHeat(), OBC(N); beta=β)
-        dE_dβ = ForwardDiff.derivative(
-            b -> QAtlas.fetch(m, Energy(), OBC(N); beta=b), β
-        )
+        dE_dβ = ForwardDiff.derivative(b -> QAtlas.fetch(m, Energy(), OBC(N); beta=b), β)
         c_ad = -β^2 * dE_dβ / N
         @test isapprox(c_direct, c_ad; atol=1e-9, rtol=1e-9)
     end
@@ -93,7 +91,5 @@ end
     @test_throws ArgumentError QAtlas._spin1_string(
         QAtlas._MAX_ED_SITES_S1 + 1, 1 => QAtlas._S1_x
     )
-    @test_throws ArgumentError QAtlas._s1_heisenberg_hamiltonian_matrix(
-        S1Heisenberg1D(), 1
-    )
+    @test_throws ArgumentError QAtlas._s1_heisenberg_hamiltonian_matrix(S1Heisenberg1D(), 1)
 end

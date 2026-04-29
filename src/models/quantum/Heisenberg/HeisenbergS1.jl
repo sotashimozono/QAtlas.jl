@@ -36,8 +36,7 @@ const _MAX_ED_SITES_S1 = 8
 # Spin-1 generators in the |+1⟩, |0⟩, |-1⟩ basis.
 const _S1_id = ComplexF64[1 0 0; 0 1 0; 0 0 1]
 const _S1_x = (ComplexF64(1) / sqrt(2)) * ComplexF64[0 1 0; 1 0 1; 0 1 0]
-const _S1_y =
-    (ComplexF64(1) / (im * sqrt(2))) * ComplexF64[0 1 0; -1 0 1; 0 -1 0]
+const _S1_y = (ComplexF64(1) / (im * sqrt(2))) * ComplexF64[0 1 0; -1 0 1; 0 -1 0]
 const _S1_z = ComplexF64[1 0 0; 0 0 0; 0 0 -1]
 
 """
@@ -49,9 +48,7 @@ site and the 3×3 identity elsewhere.
 """
 function _spin1_string(N::Int, site_ops::Pair{Int,Matrix{ComplexF64}}...)
     N ≤ _MAX_ED_SITES_S1 || throw(
-        ArgumentError(
-            "spin-1 dense ED is capped at N ≤ $(_MAX_ED_SITES_S1) (got N = $N)"
-        ),
+        ArgumentError("spin-1 dense ED is capped at N ≤ $(_MAX_ED_SITES_S1) (got N = $N)"),
     )
     lookup = Dict(site_ops...)
     ops = [get(lookup, k, _S1_id) for k in 1:N]
@@ -88,9 +85,7 @@ Capped by `_MAX_ED_SITES_S1`.
 function _s1_heisenberg_hamiltonian_matrix(model::S1Heisenberg1D, N::Int)
     N ≥ 2 || throw(ArgumentError("S1Heisenberg1D OBC chain needs N ≥ 2 (got N = $N)"))
     N ≤ _MAX_ED_SITES_S1 || throw(
-        ArgumentError(
-            "spin-1 dense ED is capped at N ≤ $(_MAX_ED_SITES_S1) (got N = $N)"
-        ),
+        ArgumentError("spin-1 dense ED is capped at N ≤ $(_MAX_ED_SITES_S1) (got N = $N)"),
     )
     J = model.J
     D = 3^N
@@ -101,8 +96,11 @@ function _s1_heisenberg_hamiltonian_matrix(model::S1Heisenberg1D, N::Int)
     for i in 1:(N - 1)
         d_left = 3^(i - 1)
         d_right = 3^(N - i - 1)
-        H .+= kron(Matrix{ComplexF64}(I, d_left, d_left), bond,
-                   Matrix{ComplexF64}(I, d_right, d_right))
+        H .+= kron(
+            Matrix{ComplexF64}(I, d_left, d_left),
+            bond,
+            Matrix{ComplexF64}(I, d_right, d_right),
+        )
     end
     return H
 end
