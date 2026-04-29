@@ -87,9 +87,28 @@ end
         @test λ0[2] ≈ -J * (N - 1) atol = 1e-12  # 2-fold degenerate
         @test λ0[3] > λ0[1] + 1e-10               # gap to excited state
 
-        # h → ∞ limit: E₀ → -h·N (all spins along x)
-        H_large = build_tfim(lat, J, 100.0)
-        λ_large = sort(eigvals(Symmetric(H_large)))
-        @test λ_large[1] ≈ -100.0 * N rtol = 0.01
+        # Strong-field limit: at large h the σˣ-eigenstate |+...+⟩ is the
+        # unperturbed ground state with E₀⁽⁰⁾ = -hN.  Treating the Ising
+        # term V = -J Σ σᶻᵢσᶻᵢ₊₁ as a perturbation, second-order
+        # Rayleigh–Schrödinger gives one excited state per bond at gap
+        # 4h with matrix element |⟨n|V|0⟩|² = J², so
+        #
+        #     E₀ ≈ -hN - J²(N - 1) / (4h)   + O(J⁴/h³)
+        #
+        # Empirically the PT² formula matches the dense ED to machine
+        # precision (~1e-10 relative) once h ≥ 100·J, with the residual
+        # the next-order O(J⁴/h³) correction.  The previous test
+        # compared to the unperturbed -hN with `rtol = 0.01` — 500×
+        # looser than the empirical leading-order residual at h = 100,
+        # so it would silently accept a wrong sign or prefactor in the
+        # σᶻ coupling.  Replace with the PT² reference at h ∈ {100, 1000}.
+        for h_large in (100.0, 1000.0)
+            H_large = build_tfim(lat, J, h_large)
+            λ_large = sort(eigvals(Symmetric(H_large)))
+            E0_pt = -h_large * N - J^2 * (N - 1) / (4 * h_large)
+            @test λ_large[1] ≈ E0_pt rtol = 1e-9
+            # Sign/sense check: PT² lowers E₀ below the unperturbed value.
+            @test λ_large[1] < -h_large * N
+        end
     end
 end
