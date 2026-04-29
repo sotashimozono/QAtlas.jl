@@ -80,3 +80,61 @@ function _ed_thermal_energy(H::AbstractMatrix, β::Real)
     F = eigen(Hermitian(H))
     return _ed_thermal_expectation(F.values, F.values, β)
 end
+
+"""
+    _ed_log_partition(evals::AbstractVector, β::Real) -> Float64
+
+`log Z(β) = log Σ exp(-β eₙ)` with an `emin` shift to avoid overflow at
+large `β`:
+
+    log Z = -β eₘᵢₙ + log Σ exp(-β (eₙ - eₘᵢₙ))
+"""
+function _ed_log_partition(evals::AbstractVector, β::Real)
+    emin = minimum(evals)
+    return -β * emin + log(sum(exp.(-β .* (evals .- emin))))
+end
+
+"""
+    _ed_thermal_free_energy(H::AbstractMatrix, β::Real) -> Float64
+
+Total Helmholtz free energy `F(β) = -log Z / β` from the eigenspectrum
+of a Hermitian `H`.  Per-site values: divide by `N` at the call site.
+"""
+function _ed_thermal_free_energy(H::AbstractMatrix, β::Real)
+    evals = eigvals(Hermitian(H))
+    return -_ed_log_partition(evals, β) / β
+end
+
+"""
+    _ed_thermal_entropy(H::AbstractMatrix, β::Real) -> Float64
+
+Total Gibbs entropy `S(β) = β·(⟨H⟩ - F) = -Σ wₙ log wₙ`, with
+`wₙ = exp(-β(eₙ - eₘᵢₙ)) / Z̃`.  The first form is what we evaluate
+because both pieces share the eigendecomposition.
+"""
+function _ed_thermal_entropy(H::AbstractMatrix, β::Real)
+    evals = eigvals(Hermitian(H))
+    E = _ed_thermal_expectation(evals, evals, β)
+    F = -_ed_log_partition(evals, β) / β
+    return β * (E - F)
+end
+
+"""
+    _ed_thermal_specific_heat(H::AbstractMatrix, β::Real) -> Float64
+
+Total heat capacity from the energy variance,
+
+    C(β) = β² · (⟨H²⟩ - ⟨H⟩²).
+
+Equivalent to `-β² · ∂⟨H⟩/∂β`; computed exactly from the eigenspectrum
+without numerical differentiation.
+"""
+function _ed_thermal_specific_heat(H::AbstractMatrix, β::Real)
+    evals = eigvals(Hermitian(H))
+    emin = minimum(evals)
+    ws = exp.(-β .* (evals .- emin))
+    Z = sum(ws)
+    E1 = sum(evals .* ws) / Z
+    E2 = sum(evals .^ 2 .* ws) / Z
+    return β^2 * (E2 - E1^2)
+end
