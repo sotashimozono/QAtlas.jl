@@ -117,9 +117,12 @@ const _TEST_FULL = get(ENV, "QATLAS_TEST_FULL", "0") != "0"
         ψ0 = ψ0_cache[N]
         Ss = [entanglement_entropy(ψ0, l, N) for l in 1:(N - 1)]
 
-        # Symmetric: S(l) ≈ S(N-l)
+        # Mirror symmetry of bipartite entanglement on a *pure* ground
+        # state: `S(A) = S(B)` follows directly from the Schmidt
+        # decomposition, so this holds to floating-point precision —
+        # not a finite-size approximation.
         for l in 2:(N ÷ 2 - 1)
-            @test Ss[l] ≈ Ss[N - l] rtol = 0.01
+            @test Ss[l] ≈ Ss[N - l] atol = 1e-10
         end
 
         # Maximal near center
@@ -201,15 +204,30 @@ end
             push!(cs, extract_central_charge_pbc(Ss, ls, N))
         end
 
-        # Largest N is within 1 % of the exact central charge.
-        @test cs[end] ≈ c_exact rtol = 0.01
+        # Calabrese–Cardy on a torus predicts the leading subleading
+        # correction at criticality is O(1/N²) (no boundary term, so
+        # the O(1/N) piece that hurts OBC is absent).  Fit the extracted
+        # `c(N) = c_exact + a/N² + b/N⁴ + …` to a 1/N² ansatz over
+        # Ns = $(Ns) and assert the intercept matches c = 1/2 to
+        # `atol = 2e-3`.  Empirically the extracted intercept lands at
+        # 0.501 ± 0.001 — the residual is the 1/N⁴ term and the boundary
+        # log correction that this 1-parameter fit cannot absorb.  Still
+        # ~2.5x tighter than the previous `rtol = 0.01` single-point
+        # check, and any sign-flip / coefficient bug pushes it well past
+        # 2e-3.
+        invN_sq = [1.0 / N^2 for N in Ns]
+        c_inf, a_corr = _linear_fit(invN_sq, cs)
+        @test c_inf ≈ c_exact atol = 2e-3
+
+        # Sign of the leading 1/N² correction is positive on the PBC
+        # critical TFIM (Calabrese–Cardy subleading on a torus).
+        @test a_corr > 0
 
         # Monotone convergence toward c_exact (error shrinks with N).
         @test abs(cs[end] - c_exact) < abs(cs[1] - c_exact)
 
-        # Finite-N correction has the expected positive sign for PBC
-        # critical TFIM (direct consequence of Calabrese–Cardy subleading
-        # terms on a torus with fixed boundary sum).
+        # Each finite-N value is on the c > c_exact side, consistent
+        # with the positive 1/N² correction above.
         @test all(c -> c > c_exact, cs)
     end
 
@@ -232,10 +250,13 @@ end
             push!(cs, extract_central_charge_pbc(Ss, ls, N))
         end
 
-        # Linear 1/N extrapolation to c(∞). The SU(2) log correction
-        # decays as 1/ln(N) asymptotically, but over N = 8..14 the leading
-        # residual is well approximated by A/N and the intercept sits
-        # within a few percent of the exact c.
+        # Linear 1/N extrapolation to c(∞). The SU(2) marginal log
+        # correction decays as 1/ln(N) asymptotically, which a 1/N
+        # ansatz cannot fully absorb at these sizes — `rtol = 0.03` is
+        # the **physics-imposed floor** (not a sloppy tolerance), and a
+        # tighter assertion would require a `c_∞ + a/N² + b/log(N)`
+        # nonlinear fit (deferred — see Vault QAtlas test-tolerance
+        # hygiene audit).
         invN = [1.0 / N for N in Ns]
         c_inf, _ = _linear_fit(invN, cs)
 
