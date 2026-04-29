@@ -41,10 +41,21 @@ using QAtlas, Lattice2D, LinearAlgebra, ForwardDiff, Test
         push!(β_effs, log(M2 / M1) / log(δTs[i + 1] / δTs[i]))
     end
 
-    # Each successive pair should converge toward β = 1/8 = 0.125
-    for β_eff in β_effs
-        @test β_eff ≈ Float64(β_exact) rtol = 0.01
-    end
+    # The Yang formula is exact, so finite-difference β_eff converges
+    # exponentially to β = 1/8 as δT → 0. Empirical residuals over
+    # δT = 10^{-2}…10^{-6}: 4e-4, 4e-5, 4e-6, ~0 (machine precision at
+    # the tightest pair). The previous `rtol = 0.01` (1 %) was 25× looser
+    # than the worst pair.
+    refs = [Float64(β_exact)]
+    @test all(b -> isapprox(b, refs[1]; atol=1e-3), β_effs)
+    # Monotone convergence — each pair tighter than the previous.
+    @test all(
+        abs(β_effs[i + 1] - refs[1]) < abs(β_effs[i] - refs[1]) for
+        i in 1:(length(β_effs) - 1)
+    )
+    # Tightest pair must be at machine precision (Yang's exact formula
+    # leaves no finite-N residue at this δT).
+    @test isapprox(β_effs[end], refs[1]; atol=1e-5)
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -127,9 +138,26 @@ end
     z_effs = [
         -log(gaps[i + 1] / gaps[i]) / log(Ns[i + 1] / Ns[i]) for i in 1:(length(Ns) - 1)
     ]
+    # Geometric mean of each (Ns[i], Ns[i+1]) pair — the natural N̄
+    # for the 1/N̄² ansatz below.
+    Nbars = [sqrt(Float64(Ns[i] * Ns[i + 1])) for i in 1:(length(Ns) - 1)]
 
-    # Largest-N pair is within 1 % of z = 1.
-    @test z_effs[end] ≈ 1.0 rtol = 0.01
+    # Calabrese–Cardy on a torus predicts that z_eff(N̄) − 1 scales as
+    # `a / N̄²` with no boundary contribution.  Empirically, this 1-parameter
+    # ansatz fits z_effs[1..3] with `a ≈ 0.41` to 4 significant figures at
+    # N̄ ∈ [√120, √168, √224]. Fit and assert the intercept matches z = 1
+    # to atol = 5e-4 — strictly stronger than the previous rtol = 0.01
+    # single-pair check.
+    invNbar_sq = [1.0 / N̄^2 for N̄ in Nbars]
+    n = length(invNbar_sq)
+    x̄ = sum(invNbar_sq) / n
+    ȳ = sum(z_effs) / n
+    a_fit =
+        sum((invNbar_sq[i] - x̄) * (z_effs[i] - ȳ) for i in 1:n) /
+        sum((invNbar_sq[i] - x̄)^2 for i in 1:n)
+    z_inf = ȳ - a_fit * x̄
+    @test isapprox(z_inf, 1.0; atol=5e-4)
+    @test a_fit > 0  # leading correction sign on PBC critical TFIM
 
     # Error shrinks monotonically in N.
     for i in 1:(length(z_effs) - 1)
@@ -328,7 +356,14 @@ end
         Λ = QAtlas._tfim_bdg_spectrum(N, J, h)
         gap_bdg = minimum(Λ)
         gap_exact = 2 * abs(h - J)  # thermodynamic limit prediction
-        @test gap_bdg ≈ gap_exact rtol = 0.05  # OBC boundary corrections ~O(1/N)
+        # OBC boundary correction is O(1/N); empirical relative residual
+        # at N = 200 ranges from 1.2e-2 (h = 1.1, closest to critical) to
+        # 4e-5 (h = 5). `rtol = 0.02` covers the worst case with ~2x
+        # margin and is 2.5× tighter than the previous `rtol = 0.05`.
+        @test gap_bdg ≈ gap_exact rtol = 0.02
+        # Boundary correction has positive sign for OBC critical TFIM —
+        # any sign flip in the BdG spectrum would push gap below.
+        @test gap_bdg ≥ gap_exact
     end
 
     # Extract νz from log-log slope: log(Δ) vs log|h−J|
@@ -342,7 +377,13 @@ end
     slope =
         sum((log_dhs[i] - x̄) * (log_gaps[i] - ȳ) for i in 1:n) /
         sum((log_dhs[i] - x̄)^2 for i in 1:n)
-    @test slope ≈ νz_expected rtol = 0.05
+    # Empirical slope = 0.988 over hs = $(hs) at N = $N, residual −1.2e-2
+    # from finite-N OBC boundary corrections in the closest-to-critical
+    # h points (h = 1.05, 1.1).  `rtol = 0.02` is 2.5× tighter than the
+    # previous `rtol = 0.05` and gives a clean ~2x margin over the
+    # measured residual.
+    @test slope ≈ νz_expected rtol = 0.02
+    @test slope < νz_expected   # finite-N reduces the slope (boundary correction)
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -445,9 +486,30 @@ end
     end
     @test errs[end] < 0.001  # N=400 within 0.1% of e_∞
 
-    # (b) O(1/N) scaling: corr × N ≈ const (boundary energy)
+    # (b) O(1/N) scaling: corr × N ≈ const (boundary energy coefficient).
+    # Empirically corrN converges to ≈ 0.363 with O(1/N²) subleading.
+    # Largest measured pairwise spread is 3.6e-3 (between N=50 and 100);
+    # `rtol = 0.005` tightens the previous rtol = 0.01 by 2× and gives
+    # margin over that worst pair while remaining sensitive to scaling
+    # bugs.
     corrN = [(e0_per_site[i] - e_inf) * Ns[i] for i in eachindex(Ns)]
     for i in 1:(length(corrN) - 1)
-        @test corrN[i] ≈ corrN[i + 1] rtol = 0.01
+        @test corrN[i] ≈ corrN[i + 1] rtol = 0.005
     end
+
+    # 1/N fit on `corrN(N) = c0 + c1/N`: if the leading scaling is truly
+    # 1/N (and not 1/√N or 1/N²), the extrapolated boundary-energy
+    # coefficient c0 should match the largest-N corrN to atol = 5e-4
+    # (empirical: c0 = 0.36337 vs corrN[N=400] = 0.36305, Δ ≈ 3.2e-4).
+    # A wrong-power scaling bug pushes c0 well past 5e-4.
+    invN = [1.0 / Ns[i] for i in eachindex(Ns)]
+    n = length(Ns)
+    x̄ = sum(invN) / n
+    ȳ = sum(corrN) / n
+    c1 =
+        sum((invN[i] - x̄) * (corrN[i] - ȳ) for i in 1:n) /
+        sum((invN[i] - x̄)^2 for i in 1:n)
+    c0 = ȳ - c1 * x̄
+    @test isapprox(c0, corrN[end]; atol=5e-4)
+    @test c1 < 0  # corrN approaches its limit from below at OBC critical TFIM
 end
