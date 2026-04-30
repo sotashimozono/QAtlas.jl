@@ -78,7 +78,7 @@ end
 # Energy granularity convention (see src/core/quantities.jl)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-native_energy_granularity(::TFIM, ::OBC)      = :total
+native_energy_granularity(::TFIM, ::OBC) = :total
 native_energy_granularity(::TFIM, ::Infinite) = :per_site
 
 # ═══════════════════════════════════════════════════════════════════════════════

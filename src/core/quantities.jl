@@ -407,9 +407,7 @@ function fetch(
     return fetch(model, Energy{:total}(), bc; kwargs...) / _bc_size(bc, kwargs)
 end
 
-function fetch(
-    model::AbstractQAtlasModel, ::Energy{:total}, bc::Union{OBC,PBC}; kwargs...
-)
+function fetch(model::AbstractQAtlasModel, ::Energy{:total}, bc::Union{OBC,PBC}; kwargs...)
     g = native_energy_granularity(model, bc)
     g === :total && error(
         "QAtlas Energy(:total): $(typeof(model)) declares native :total at " *

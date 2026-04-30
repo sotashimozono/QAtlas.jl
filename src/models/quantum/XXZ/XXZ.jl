@@ -75,7 +75,7 @@ _xxz1d_energy_free_fermion(J::Float64)::Float64 = -J / π
 _xxz1d_energy_heisenberg_af(J::Float64)::Float64 = J * (0.25 - log(2.0))
 _xxz1d_energy_heisenberg_fm(J::Float64)::Float64 = -J / 4
 
-native_energy_granularity(::XXZ1D, ::OBC)      = :total
+native_energy_granularity(::XXZ1D, ::OBC) = :total
 native_energy_granularity(::XXZ1D, ::Infinite) = :per_site
 
 """

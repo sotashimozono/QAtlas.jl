@@ -100,8 +100,8 @@ end
 # let it surface as the standard "no method registered" error.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-native_energy_granularity(::KitaevHoneycomb, ::OBC)      = :per_site
-native_energy_granularity(::KitaevHoneycomb, ::PBC)      = :per_site
+native_energy_granularity(::KitaevHoneycomb, ::OBC) = :per_site
+native_energy_granularity(::KitaevHoneycomb, ::PBC) = :per_site
 native_energy_granularity(::KitaevHoneycomb, ::Infinite) = :per_site
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -127,7 +127,9 @@ converge to this TL value within `~10⁻³` at `Lx = Ly = 8` and
 `~10⁻⁶` at `Lx = Ly = 64` — see
 `test/models/test_KitaevHoneycomb.jl`.
 """
-function fetch(model::KitaevHoneycomb, ::Energy{:per_site}, ::Infinite; rtol::Float64=1e-8, kwargs...)
+function fetch(
+    model::KitaevHoneycomb, ::Energy{:per_site}, ::Infinite; rtol::Float64=1e-8, kwargs...
+)
     inner(θ₁) = first(
         quadgk(θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂), 0.0, 2π; rtol=rtol * 10, atol=1e-14)
     )

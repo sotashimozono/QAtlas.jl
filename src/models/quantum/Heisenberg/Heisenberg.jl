@@ -174,6 +174,8 @@ Since `Heisenberg1D` currently carries no `J` field, callers must pass
 ITensorModels `to_qatlas(::Heisenberg1D)`) lose `J` on conversion; use
 `XXZ1D(; J, Δ=1)` directly if you need a non-unit coupling.
 """
-function fetch(::Heisenberg1D, ::Energy{:total}, bc::OBC; beta::Real, J::Real=1.0, kwargs...)
+function fetch(
+    ::Heisenberg1D, ::Energy{:total}, bc::OBC; beta::Real, J::Real=1.0, kwargs...
+)
     return fetch(XXZ1D(; J=J, Δ=1.0), Energy{:total}(), bc; beta=beta)
 end
