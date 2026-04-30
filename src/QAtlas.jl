@@ -46,6 +46,9 @@ export CentralCharge, LuttingerParameter, CorrelationLength
 export FermiVelocity, LuttingerVelocity, SpinWaveVelocity
 export E8Spectrum
 
+# --- TFIM Infinite dynamic helpers ---
+export tfim_quasiparticle_dispersion, tfim_two_spinon_dos
+
 # --- Universality Classes ---
 export Universality, CriticalExponents, GrowthExponents
 export Ising2D, KPZ1D, MeanField  # backward-compatible aliases
@@ -70,11 +73,14 @@ include("models/quantum/tightbinding/regular/Lieb.jl")
 include("models/quantum/tightbinding/regular/Triangular.jl")
 include("models/quantum/TFIM/TFIM.jl")
 include("models/quantum/TFIM/TFIM_dynamics.jl")
+include("models/quantum/TFIM/TFIM_xx_static.jl")
 include("models/quantum/TFIM/TFIM_thermal.jl")
 include("models/quantum/TFIM/TFIM_pbc_thermal.jl")
 include("models/quantum/TFIM/TFIM_zaxis.jl")
 include("models/quantum/TFIM/TFIM_local.jl")
 include("models/quantum/TFIM/TFIM_entanglement.jl")
+include("models/quantum/TFIM/TFIM_cft_entanglement.jl")
+include("models/quantum/TFIM/TFIM_infinite_dynamics.jl")
 include("models/quantum/TFIM/TFIM_registry.jl")  # populates REGISTRY for TFIM
 include("models/quantum/Heisenberg/Heisenberg.jl")
 include("models/quantum/Heisenberg/HeisenbergS1.jl")

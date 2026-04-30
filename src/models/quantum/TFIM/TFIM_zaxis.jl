@@ -154,23 +154,9 @@ end
 # Infinite-N static σᶻσᶻ structure factor
 # ═══════════════════════════════════════════════════════════════════════════════
 
-"""
-    fetch(model::TFIM, ::ZZStructureFactor, ::Infinite;
-          beta::Real, q::Real, N_proxy::Int = 80, kwargs...) -> Float64
-
-Static longitudinal structure factor `S_zz(q, β)` in the thermodynamic
-limit, computed as the Fourier transform of the static `⟨σᶻ_i σᶻ_j⟩_β`
-correlator at large N.  Implemented by calling
-`_zz_static_structure_factor(N_proxy, …)` in `TFIM_dynamics.jl`.
-
-Default `N_proxy = 80` is sufficient for ~3-digit accuracy at moderate
-β in the gapped phase.  The proxy value of N is exposed as a kwarg so
-the user can trade off CPU against precision for their specific
-(J, h, β, q).
-"""
-function fetch(
-    model::TFIM, ::ZZStructureFactor, ::Infinite;
-    beta::Real, q::Real, N_proxy::Int=80, kwargs...,
-)
-    return _zz_static_structure_factor(N_proxy, model.J, model.h, beta, q)
-end
+# NOTE: The static (ω-omitted) `ZZStructureFactor, Infinite` was originally
+# defined here.  In v0.18 it was unified with the dynamic variant inside
+# `TFIM_infinite_dynamics.jl` to avoid a method-overwrite conflict — the
+# new method is a router that branches on whether `ω` is supplied.  The
+# static behaviour is preserved bit-for-bit (the router falls through to
+# `_zz_static_structure_factor(N_proxy, ...)` when `ω === nothing`).
