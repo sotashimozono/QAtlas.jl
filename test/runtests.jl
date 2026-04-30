@@ -17,7 +17,9 @@ println("BLAS threads: $(BLAS.get_num_threads()) / $(Sys.CPU_THREADS) cores")
 # cron only.
 const QATLAS_TEST_FULL = get(ENV, "QATLAS_TEST_FULL", "0") != "0"
 println("QATLAS_TEST_FULL = $(QATLAS_TEST_FULL)")
-const dirs = ["core/", "universalities/", "models/", "standalone/", "verification/"]
+const dirs = [
+    "core/", "universalities/", "models/", "identities/", "standalone/", "verification/"
+]
 
 const FIG_BASE = joinpath(pkgdir(QAtlas), "docs", "src", "assets")
 const PATHS = Dict()
@@ -30,6 +32,7 @@ include(joinpath(@__DIR__, "util", "spinhalf_ed.jl"))
 include(joinpath(@__DIR__, "util", "sparse_ed.jl"))
 include(joinpath(@__DIR__, "util", "bloch.jl"))
 include(joinpath(@__DIR__, "util", "tfim_dense_ed.jl"))
+include(joinpath(@__DIR__, "util", "thermodynamic_identities.jl"))
 
 @testset "tests" begin
     test_args = copy(ARGS)
