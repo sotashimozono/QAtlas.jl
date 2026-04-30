@@ -235,3 +235,125 @@
     references=["Peschel 2003"],
     notes="Free-fermion correlation-matrix method; pass subsystem length ℓ.",
 )
+
+# ── PBC free-fermion thermal (per-site) — TFIM_pbc_thermal.jl ─────────
+@register(
+    TFIM,
+    Energy{:per_site},
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+    references=["Lieb-Schultz-Mattis 1961", "Sachdev 2011"],
+    notes="Per-site ε(β) with parity-projected fermion sectors (NS + R).",
+)
+@register(
+    TFIM,
+    FreeEnergy,
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+    references=["Lieb-Schultz-Mattis 1961"],
+)
+@register(
+    TFIM,
+    ThermalEntropy,
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+)
+@register(
+    TFIM,
+    SpecificHeat,
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+)
+@register(
+    TFIM,
+    MagnetizationX,
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+)
+@register(
+    TFIM,
+    SusceptibilityXX,
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+)
+@register(
+    TFIM,
+    MassGap,
+    PBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_pbc_thermal.jl",
+    notes="Smallest excitation across NS (two-mode flip) and R (one-mode flip) sectors.",
+)
+
+# ── Z-axis Infinite (TFIM_zaxis.jl) ──────────────────────────────────
+@register(
+    TFIM,
+    MagnetizationZ,
+    Infinite,
+    method=:analytic,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_zaxis.jl",
+    references=["Pfeuty 1970"],
+    notes="m_z = (1 - (h/J)²)^(1/8) for h < J, else 0 (T = 0 spontaneous).",
+)
+@register(
+    TFIM,
+    SpontaneousMagnetization,
+    Infinite,
+    method=:analytic,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_zaxis.jl",
+    references=["Pfeuty 1970"],
+    notes="Same value as MagnetizationZ; order-parameter alias.",
+)
+@register(
+    TFIM,
+    CorrelationLength,
+    Infinite,
+    method=:analytic,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_zaxis.jl",
+    notes="ξ = 1/(2|h-J|) (gapped phase); Inf at criticality.",
+)
+@register(
+    TFIM,
+    SusceptibilityZZ,
+    Infinite,
+    method=:bdg,
+    reliability=:medium,
+    tested_in="test/models/test_TFIM_zaxis.jl",
+    notes="OBC large-N proxy (N_proxy kwarg controls precision).",
+)
+@register(
+    TFIM,
+    ZZStructureFactor,
+    Infinite,
+    method=:bdg,
+    reliability=:medium,
+    tested_in="test/models/test_TFIM_zaxis.jl",
+    notes="Static S_zz(q) via OBC large-N proxy of correlator Fourier sum.",
+)
+
+# ── ZZ correlator connected mode (OBC) ───────────────────────────────
+@register(
+    TFIM,
+    ZZCorrelation{:connected},
+    OBC,
+    method=:bdg,
+    reliability=:high,
+    tested_in="test/models/test_TFIM_zaxis.jl",
+    notes="Connected = static for TFIM by Z₂ symmetry; explicit method for clarity.",
+)
