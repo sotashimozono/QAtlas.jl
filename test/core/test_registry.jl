@@ -1,12 +1,32 @@
 using Test
 using QAtlas
-using QAtlas: TFIM, Energy, MassGap, CentralCharge, FreeEnergy,
-    ThermalEntropy, SpecificHeat, MagnetizationX, MagnetizationXLocal,
-    MagnetizationZLocal, EnergyLocal, SusceptibilityXX, SusceptibilityZZ,
-    ZZStructureFactor, ZZCorrelation, XXCorrelation, VonNeumannEntropy,
-    FidelitySusceptibility, OBC, PBC, Infinite, Implementation,
-    implementation_status, implementation_status_markdown,
-    has_native_fetch, REGISTRY
+using QAtlas:
+    TFIM,
+    Energy,
+    MassGap,
+    CentralCharge,
+    FreeEnergy,
+    ThermalEntropy,
+    SpecificHeat,
+    MagnetizationX,
+    MagnetizationXLocal,
+    MagnetizationZLocal,
+    EnergyLocal,
+    SusceptibilityXX,
+    SusceptibilityZZ,
+    ZZStructureFactor,
+    ZZCorrelation,
+    XXCorrelation,
+    VonNeumannEntropy,
+    FidelitySusceptibility,
+    OBC,
+    PBC,
+    Infinite,
+    Implementation,
+    implementation_status,
+    implementation_status_markdown,
+    has_native_fetch,
+    REGISTRY
 
 # Tests for the declarative implementation registry (`src/core/registry.jl`
 # + `src/models/quantum/TFIM/TFIM_registry.jl`).  The registry exists so
@@ -24,8 +44,9 @@ using QAtlas: TFIM, Energy, MassGap, CentralCharge, FreeEnergy,
 @testset "REGISTRY is populated for TFIM at load time" begin
     @test !isempty(REGISTRY)
     @test all(e isa Implementation for e in REGISTRY)
-    @test any(e.model === TFIM && e.quantity === Energy{:total} && e.bc === OBC
-              for e in REGISTRY)
+    @test any(
+        e.model === TFIM && e.quantity === Energy{:total} && e.bc === OBC for e in REGISTRY
+    )
 end
 
 @testset "implementation_status() returns Tables.jl-shaped rows" begin
@@ -34,8 +55,9 @@ end
     @test !isempty(rows)
     sample = first(rows)
     # NamedTuple with the documented field set
-    expected_keys = (:model, :quantity, :bc, :method, :reliability,
-                     :tested_in, :references, :notes)
+    expected_keys = (
+        :model, :quantity, :bc, :method, :reliability, :tested_in, :references, :notes
+    )
     @test keys(sample) === expected_keys
     @test sample.model isa Type
     @test sample.quantity isa Type
@@ -72,8 +94,8 @@ end
 @testset "implementation_status(queue) returns one row per registered triple" begin
     m = TFIM(; J=1.0, h=1.0)
     queue = [
-        (m, Energy(:total),       OBC(8)),       # registered
-        (m, MassGap(),            Infinite()),   # registered
+        (m, Energy(:total), OBC(8)),       # registered
+        (m, MassGap(), Infinite()),   # registered
         (m, FidelitySusceptibility(), OBC(8)),   # NOT registered → dropped
     ]
     rows = implementation_status(queue)
@@ -82,8 +104,7 @@ end
     @test rows[2].quantity === MassGap
 
     # Type-only triples (no instances needed)
-    type_queue = [(TFIM, Energy{:per_site}, Infinite),
-                  (TFIM, CentralCharge,     Infinite)]
+    type_queue = [(TFIM, Energy{:per_site}, Infinite), (TFIM, CentralCharge, Infinite)]
     rows_t = implementation_status(type_queue)
     @test length(rows_t) == 2
     @test rows_t[1].quantity === Energy{:per_site}

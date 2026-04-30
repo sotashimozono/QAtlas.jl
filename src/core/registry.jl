@@ -62,7 +62,9 @@ Push a new [`Implementation`](@ref) row into [`REGISTRY`](@ref).
 Usually called via the [`@register`](@ref) macro for ergonomics.
 """
 function register!(
-    model_T::Type, quantity_T::Type, bc_T::Type;
+    model_T::Type,
+    quantity_T::Type,
+    bc_T::Type;
     method::Symbol=:unknown,
     reliability::Symbol=:unknown,
     tested_in::Union{String,Nothing}=nothing,
@@ -72,9 +74,14 @@ function register!(
     push!(
         REGISTRY,
         Implementation(
-            model_T, quantity_T, bc_T,
-            method, reliability,
-            tested_in, String[r for r in references], String(notes),
+            model_T,
+            quantity_T,
+            bc_T,
+            method,
+            reliability,
+            tested_in,
+            String[r for r in references],
+            String(notes),
         ),
     )
     return nothing
@@ -98,14 +105,16 @@ The three positional arguments are spliced as types; the remaining
 """
 macro register(model_T, quantity_T, bc_T, kwargs...)
     kw_exprs = map(kwargs) do kw
-        kw isa Expr && kw.head === :(=) ||
-            error("@register: expected key=value, got $kw")
+        kw isa Expr && kw.head === :(=) || error("@register: expected key=value, got $kw")
         return Expr(:kw, kw.args[1], esc(kw.args[2]))
     end
     return Expr(
-        :call, register!,
+        :call,
+        register!,
         Expr(:parameters, kw_exprs...),
-        esc(model_T), esc(quantity_T), esc(bc_T),
+        esc(model_T),
+        esc(quantity_T),
+        esc(bc_T),
     )
 end
 
@@ -141,11 +150,18 @@ end
 # Query API
 # ──────────────────────────────────────────────────────────────────────
 
-_to_nt(e::Implementation) = (
-    model=e.model, quantity=e.quantity, bc=e.bc,
-    method=e.method, reliability=e.reliability,
-    tested_in=e.tested_in, references=e.references, notes=e.notes,
-)
+function _to_nt(e::Implementation)
+    (
+        model=e.model,
+        quantity=e.quantity,
+        bc=e.bc,
+        method=e.method,
+        reliability=e.reliability,
+        tested_in=e.tested_in,
+        references=e.references,
+        notes=e.notes,
+    )
+end
 
 """
     implementation_status() -> Vector{NamedTuple}
@@ -171,12 +187,14 @@ ThermalMPS workload, query the queue you intend to validate against.
 """
 implementation_status() = [_to_nt(e) for e in REGISTRY]
 
-implementation_status(::Type{M}) where {M<:AbstractQAtlasModel} =
+function implementation_status(::Type{M}) where {M<:AbstractQAtlasModel}
     [_to_nt(e) for e in REGISTRY if e.model === M]
+end
 implementation_status(model::AbstractQAtlasModel) = implementation_status(typeof(model))
 
-implementation_status(::Type{Q}) where {Q<:AbstractQuantity} =
+function implementation_status(::Type{Q}) where {Q<:AbstractQuantity}
     [_to_nt(e) for e in REGISTRY if e.quantity === Q]
+end
 implementation_status(quantity::AbstractQuantity) = implementation_status(typeof(quantity))
 
 function implementation_status(queue::AbstractVector)
@@ -218,21 +236,28 @@ Render `entries` (any iterable of `NamedTuple` rows from
 [`implementation_status`](@ref)) as a GitHub-flavoured Markdown table
 to `io`.
 """
-function implementation_status_markdown(
-    io::IO=stdout, entries=implementation_status()
-)
+function implementation_status_markdown(io::IO=stdout, entries=implementation_status())
     println(io, "| Model | Quantity | BC | Method | Reliability | Tested in | References |")
     println(io, "|---|---|---|---|---|---|---|")
     for e in entries
         println(
             io,
-            "| ", _short_type(e.model),
-            " | ", _short_type(e.quantity),
-            " | ", _short_type(e.bc),
-            " | `", e.method, "`",
-            " | `", e.reliability, "`",
-            " | ", something(e.tested_in, "—"),
-            " | ", isempty(e.references) ? "—" : join(e.references, "; "),
+            "| ",
+            _short_type(e.model),
+            " | ",
+            _short_type(e.quantity),
+            " | ",
+            _short_type(e.bc),
+            " | `",
+            e.method,
+            "`",
+            " | `",
+            e.reliability,
+            "`",
+            " | ",
+            something(e.tested_in, "—"),
+            " | ",
+            isempty(e.references) ? "—" : join(e.references, "; "),
             " |",
         )
     end
