@@ -111,9 +111,7 @@ const SPECIFIC_HEAT_FROM_ENERGY = ThermoIdentity(
     Type[Energy{:per_site}, SpecificHeat],
     function (model, bc, params)
         β = params.β
-        dε_dβ = ForwardDiff.derivative(
-            b -> fetch(model, Energy(:per_site), bc; beta=b), β
-        )
+        dε_dβ = ForwardDiff.derivative(b -> fetch(model, Energy(:per_site), bc; beta=b), β)
         c_v = fetch(model, SpecificHeat(), bc; beta=β)
         return -β^2 * Float64(dε_dβ), Float64(c_v)
     end,
@@ -143,8 +141,9 @@ function _has_dispatch(model, ::Type{Q}, bc) where {Q}
     return which(fetch, Tuple{typeof(model),Q,typeof(bc)}) !== _CATCH_ALL_FETCH_METHOD
 end
 
-_can_run(identity::ThermoIdentity, model, bc) =
+function _can_run(identity::ThermoIdentity, model, bc)
     all(Q -> _has_dispatch(model, Q, bc), identity.requires)
+end
 
 # ──────────────────────────────────────────────────────────────────────
 # Harness
@@ -188,8 +187,7 @@ function verify_thermodynamic_identities(
                 push!(
                     results,
                     IdentityCheckResult(
-                        model, bc, identity.name, params,
-                        NaN, NaN, NaN, NaN, :skipped,
+                        model, bc, identity.name, params, NaN, NaN, NaN, NaN, :skipped
                     ),
                 )
                 continue
@@ -201,8 +199,7 @@ function verify_thermodynamic_identities(
             push!(
                 results,
                 IdentityCheckResult(
-                    model, bc, identity.name, params,
-                    lhs, rhs, abs_err, rel_err, status,
+                    model, bc, identity.name, params, lhs, rhs, abs_err, rel_err, status
                 ),
             )
         end
