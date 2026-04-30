@@ -182,14 +182,10 @@ spin Rényi entropy for a contiguous block.
 Cost is `O(ℓ³)` from the Hermitian eigendecomposition of `i Σ_A`,
 identical to the von Neumann path.
 """
-function fetch(
-    model::TFIM, q::RenyiEntropy, bc::OBC; ℓ::Int, beta::Float64=Inf, kwargs...
-)
+function fetch(model::TFIM, q::RenyiEntropy, bc::OBC; ℓ::Int, beta::Float64=Inf, kwargs...)
     N = _bc_size(bc, kwargs)
     1 ≤ ℓ ≤ N - 1 || throw(
-        ArgumentError(
-            "RenyiEntropy: ℓ must satisfy 1 ≤ ℓ ≤ N - 1; got ℓ = $ℓ, N = $N."
-        ),
+        ArgumentError("RenyiEntropy: ℓ must satisfy 1 ≤ ℓ ≤ N - 1; got ℓ = $ℓ, N = $N.")
     )
     α = q.α
     hmat = _majorana_ham(N, model.J, model.h)

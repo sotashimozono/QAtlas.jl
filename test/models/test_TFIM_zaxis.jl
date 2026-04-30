@@ -32,8 +32,9 @@
         # Critical and disordered phases — m_z = 0 exactly.
         for h in (1.0, 1.0001, 2.0, 5.0)
             @test QAtlas.fetch(TFIM(; J=1.0, h=h), MagnetizationZ(), Infinite()) == 0.0
-            @test QAtlas.fetch(TFIM(; J=1.0, h=h), SpontaneousMagnetization(), Infinite()) ==
-                0.0
+            @test QAtlas.fetch(
+                TFIM(; J=1.0, h=h), SpontaneousMagnetization(), Infinite()
+            ) == 0.0
         end
         # Non-unit J: scale invariance under (J, h) → (αJ, αh).
         for α in (0.5, 2.0)
@@ -104,8 +105,7 @@
                 @test χ_inf ≈ χ_obc atol=1e-12
                 # Custom N_proxy should also match the corresponding OBC value.
                 χ_inf_40 = QAtlas.fetch(
-                    TFIM(; J=1.0, h=h), SusceptibilityZZ(), Infinite();
-                    beta=β, N_proxy=40,
+                    TFIM(; J=1.0, h=h), SusceptibilityZZ(), Infinite(); beta=β, N_proxy=40
                 )
                 χ_obc_40 = QAtlas.fetch(
                     TFIM(; J=1.0, h=h), SusceptibilityZZ(), OBC(; N=40); beta=β

@@ -79,8 +79,7 @@ end
 
 # Single-particle BdG energy at momentum k.  Generic in (J, h) for downstream
 # analytic derivatives.
-@inline _tfim_Λ(k::Real, J::Real, h::Real) =
-    2 * sqrt(J^2 + h^2 - 2 * J * h * cos(k))
+@inline _tfim_Λ(k::Real, J::Real, h::Real) = 2 * sqrt(J^2 + h^2 - 2 * J * h * cos(k))
 
 # ∂Λ/∂h = 4(h - J cos k)/Λ          (from Λ² = 4(J² + h² − 2Jh cos k))
 @inline _tfim_dΛdh(k::Real, J::Real, h::Real) = 4 * (h - J * cos(k)) / _tfim_Λ(k, J, h)
@@ -114,7 +113,9 @@ struct _SectorState{T<:Real}
     d2Ldh2::T                # ∂²_h log Z_α^σ
 end
 
-function _sector_state(N::Int, J::Real, h::Real, β::Real, sector::Symbol, kind::Symbol, sign::Int)
+function _sector_state(
+    N::Int, J::Real, h::Real, β::Real, sector::Symbol, kind::Symbol, sign::Int
+)
     ks = _tfim_pbc_momenta(N, sector)
     T = promote_type(typeof(β), typeof(J), typeof(h))
     log_Z = zero(T)
@@ -192,8 +193,8 @@ function _all_sector_states(N::Int, J::Real, h::Real, β::Real)
     return (
         _sector_state(N, J, h, β, :NS, :cosh, +1),
         _sector_state(N, J, h, β, :NS, :sinh, +1),
-        _sector_state(N, J, h, β, :R,  :cosh, +1),
-        _sector_state(N, J, h, β, :R,  :sinh, +1),
+        _sector_state(N, J, h, β, :R, :cosh, +1),
+        _sector_state(N, J, h, β, :R, :sinh, +1),
     )
 end
 
@@ -318,15 +319,15 @@ The mass gap is `min(E_excited) − min(E_GS)` across both sectors.
 """
 function _tfim_pbc_mass_gap(N::Int, J::Float64, h::Float64)
     Λ_NS = sort!([_tfim_Λ(k, J, h) for k in _tfim_pbc_momenta(N, :NS)])
-    Λ_R  = sort!([_tfim_Λ(k, J, h) for k in _tfim_pbc_momenta(N, :R)])
+    Λ_R = sort!([_tfim_Λ(k, J, h) for k in _tfim_pbc_momenta(N, :R)])
 
     E_GS_NS = -sum(Λ_NS) / 2
-    E_GS_R  = -sum(Λ_R)  / 2
+    E_GS_R = -sum(Λ_R) / 2
 
     # NS even-parity excitation: flip the two smallest modes
     E_ex_NS = E_GS_NS + (length(Λ_NS) ≥ 2 ? Λ_NS[1] + Λ_NS[2] : Λ_NS[1])
     # R odd-parity excitation: flip the smallest mode
-    E_ex_R  = E_GS_R  + Λ_R[1]
+    E_ex_R = E_GS_R + Λ_R[1]
 
     candidates = Float64[E_GS_NS, E_GS_R, E_ex_NS, E_ex_R]
     sort!(candidates)

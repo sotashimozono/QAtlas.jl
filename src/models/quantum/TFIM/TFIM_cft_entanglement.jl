@@ -61,9 +61,7 @@ constant `S_0` is dropped, so downstream fits should include an offset.
 Off-critical at finite β requires composing the gapped CC mass with the
 thermal CFT scaling and is not implemented here.
 """
-function _tfim_cc_entanglement(
-    J::Real, h::Real, ℓ::Integer, β::Real; α::Real=1.0
-)::Float64
+function _tfim_cc_entanglement(J::Real, h::Real, ℓ::Integer, β::Real; α::Real=1.0)::Float64
     c = 0.5
     prefac = α == 1 ? c / 3 : (c / 6) * (1 + 1 / α)
     critical = isapprox(h, J; atol=1e-10)
@@ -133,9 +131,7 @@ length `ℓ` in the infinite TFIM.  Coefficient
 
 The non-universal `S_0` offset is dropped.
 """
-function fetch(
-    model::TFIM, q::RenyiEntropy, ::Infinite; ℓ::Int, beta::Real=Inf, kwargs...
-)
+function fetch(model::TFIM, q::RenyiEntropy, ::Infinite; ℓ::Int, beta::Real=Inf, kwargs...)
     ℓ ≥ 1 || throw(ArgumentError("RenyiEntropy Infinite: ℓ must be ≥ 1; got $ℓ."))
     return _tfim_cc_entanglement(model.J, model.h, ℓ, beta; α=q.α)
 end

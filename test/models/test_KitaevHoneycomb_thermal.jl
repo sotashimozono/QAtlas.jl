@@ -23,8 +23,8 @@
 # =============================================================================
 
 using QAtlas
-using QAtlas: KitaevHoneycomb, Energy, FreeEnergy, ThermalEntropy, SpecificHeat,
-              OBC, Infinite
+using QAtlas:
+    KitaevHoneycomb, Energy, FreeEnergy, ThermalEntropy, SpecificHeat, OBC, Infinite
 using Test
 using LinearAlgebra
 using ForwardDiff
@@ -148,8 +148,7 @@ using ForwardDiff
             @test ε ≈ f + s / β atol = 1e-9
 
             dε = ForwardDiff.derivative(
-                b -> QAtlas.fetch(m, Energy(:per_site), OBC(0); Lx=Lx, Ly=Ly, beta=b),
-                β,
+                b -> QAtlas.fetch(m, Energy(:per_site), OBC(0); Lx=Lx, Ly=Ly, beta=b), β
             )
             c = QAtlas.fetch(m, SpecificHeat(), OBC(0); Lx=Lx, Ly=Ly, beta=β)
             @test c ≈ -β^2 * dε rtol = 1e-3

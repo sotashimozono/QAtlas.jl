@@ -12,15 +12,16 @@
 using QAtlas, Test
 
 @testset "TFIM Infinite dynamics" begin
-
     @testset "Single-quasiparticle dispersion sanity" begin
         for h in (0.5, 1.0, 1.5)
             model = TFIM(; J=1.0, h=h)
             Δ_inf = QAtlas.fetch(model, MassGap(), Infinite())
             # k = 0 → 2|h - J|
-            @test tfim_quasiparticle_dispersion(model, 0.0) ≈ 2 * abs(model.h - model.J) atol = 1e-12
+            @test tfim_quasiparticle_dispersion(model, 0.0) ≈ 2 * abs(model.h - model.J) atol =
+                1e-12
             # k = π → 2(h + J)
-            @test tfim_quasiparticle_dispersion(model, π) ≈ 2 * (model.h + model.J) atol = 1e-12
+            @test tfim_quasiparticle_dispersion(model, π) ≈ 2 * (model.h + model.J) atol =
+                1e-12
             # min over k = MassGap
             ks = range(0, π; length=1000)
             Λs = [tfim_quasiparticle_dispersion(model, k) for k in ks]
@@ -40,9 +41,15 @@ using QAtlas, Test
     @testset "Dynamic ZZ structure factor at criticality (smoke)" begin
         model = TFIM(; J=1.0, h=1.0)
         S = QAtlas.fetch(
-            model, ZZStructureFactor(), Infinite();
-            beta=Inf, q=π / 2, ω=1.0,
-            N_proxy=32, t_max=10.0, dt=0.2,
+            model,
+            ZZStructureFactor(),
+            Infinite();
+            beta=Inf,
+            q=π / 2,
+            ω=1.0,
+            N_proxy=32,
+            t_max=10.0,
+            dt=0.2,
         )
         @test isfinite(S)
     end
@@ -51,10 +58,7 @@ using QAtlas, Test
         # Make sure the router preserves the `ω === nothing` behaviour
         # already provided by TFIM_zaxis.jl.
         model = TFIM(; J=1.0, h=0.7)
-        S_static = QAtlas.fetch(
-            model, ZZStructureFactor(), Infinite();
-            beta=5.0, q=π / 3,
-        )
+        S_static = QAtlas.fetch(model, ZZStructureFactor(), Infinite(); beta=5.0, q=π / 3)
         @test isfinite(S_static)
         @test S_static ≥ 0.0
     end
@@ -69,12 +73,17 @@ using QAtlas, Test
         ωs = -8.0:0.5:8.0
         S_omega_sum = sum(
             QAtlas.fetch(
-                model, ZZStructureFactor(), Infinite();
-                beta=10.0, q=q, ω=ω,
-                N_proxy=32, t_max=10.0, dt=0.2,
+                model,
+                ZZStructureFactor(),
+                Infinite();
+                beta=10.0,
+                q=q,
+                ω=ω,
+                N_proxy=32,
+                t_max=10.0,
+                dt=0.2,
             ) * 0.5 for ω in ωs
         )
         @test isfinite(S_omega_sum)
     end
-
 end

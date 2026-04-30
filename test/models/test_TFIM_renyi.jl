@@ -57,9 +57,7 @@ using QAtlas, Lattice2D, LinearAlgebra, Test
             evals = filter(x -> x > 1e-15, evals)
             for α in (0.5, 2.0, 3.0)
                 S_ed = log(sum(p^α for p in evals)) / (1 - α)
-                S_qa = QAtlas.fetch(
-                    TFIM(; J=1.0, h=h), RenyiEntropy(α), OBC(N); ℓ=ℓ
-                )
+                S_qa = QAtlas.fetch(TFIM(; J=1.0, h=h), RenyiEntropy(α), OBC(N); ℓ=ℓ)
                 @test S_qa ≈ S_ed atol = 1e-10
             end
         end

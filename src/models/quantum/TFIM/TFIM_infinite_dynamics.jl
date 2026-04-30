@@ -151,8 +151,7 @@ thermal covariance are computed once; the evolution matrix `R(t)` is
 recomputed at every time step (single 2N × 2N `expm`).
 """
 function _tfim_zz_structure_factor_dynamic_proxy(
-    J::Real, h::Real, β::Real, q::Real, ω::Real,
-    N_proxy::Int, t_max::Real, dt::Real,
+    J::Real, h::Real, β::Real, q::Real, ω::Real, N_proxy::Int, t_max::Real, dt::Real
 )
     Jf = Float64(J)
     hf = Float64(h)
@@ -164,7 +163,7 @@ function _tfim_zz_structure_factor_dynamic_proxy(
     hmat = _majorana_ham(N, Jf, hf)
     Σ = _majorana_thermal_covariance(hmat, β)
 
-    ts = collect(-t_max:dt:t_max)
+    ts = collect((-t_max):dt:t_max)
     S = 0.0 + 0.0im
 
     for t in ts
@@ -222,11 +221,15 @@ work; the dynamic path is intended primarily as a benchmark for
 TPQMPS / DMRG dynamic structure factor reference values.
 """
 function fetch(
-    model::TFIM, ::ZZStructureFactor, ::Infinite;
-    beta::Real, q::Real,
+    model::TFIM,
+    ::ZZStructureFactor,
+    ::Infinite;
+    beta::Real,
+    q::Real,
     ω::Union{Real,Nothing}=nothing,
     N_proxy::Int=ω === nothing ? 80 : 64,
-    t_max::Real=20.0, dt::Real=0.1,
+    t_max::Real=20.0,
+    dt::Real=0.1,
     kwargs...,
 )
     if ω === nothing
@@ -235,6 +238,6 @@ function fetch(
         return _zz_static_structure_factor(N_proxy, model.J, model.h, beta, q)
     end
     return _tfim_zz_structure_factor_dynamic_proxy(
-        model.J, model.h, beta, q, ω, N_proxy, t_max, dt,
+        model.J, model.h, beta, q, ω, N_proxy, t_max, dt
     )
 end

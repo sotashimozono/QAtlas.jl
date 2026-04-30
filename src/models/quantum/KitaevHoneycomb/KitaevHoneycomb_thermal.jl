@@ -282,13 +282,7 @@ function fetch(
     if beta === nothing
         # T = 0 GS path: ε_gs = -(1/(8π²)) ∫ |f| d²θ.
         inner(θ₁) = first(
-            quadgk(
-                θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂),
-                0.0,
-                2π;
-                rtol=rtol * 10,
-                atol=1e-14,
-            )
+            quadgk(θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂), 0.0, 2π; rtol=rtol * 10, atol=1e-14)
         )
         I, _ = quadgk(inner, 0.0, 2π; rtol=rtol, atol=1e-14)
         return -I / (8π^2)
@@ -324,9 +318,7 @@ end
 # Mirrors `_TFIM_THERMAL_METHODS` table in `TFIM_thermal.jl`.
 
 const _KITAEV_THERMAL_METHODS = (
-    (FreeEnergy, :free_energy),
-    (ThermalEntropy, :entropy),
-    (SpecificHeat, :specific_heat),
+    (FreeEnergy, :free_energy), (ThermalEntropy, :entropy), (SpecificHeat, :specific_heat)
 )
 
 for (QTy, qsym) in _KITAEV_THERMAL_METHODS
@@ -348,9 +340,7 @@ for (QTy, qsym) in _KITAEV_THERMAL_METHODS
             rtol::Float64=1e-8,
             kwargs...,
         )
-            return _kitaev_thermo_infinite(
-                $(QuoteNode(qsym)), model, beta; rtol=rtol
-            )
+            return _kitaev_thermo_infinite($(QuoteNode(qsym)), model, beta; rtol=rtol)
         end
 
         """
@@ -371,12 +361,9 @@ for (QTy, qsym) in _KITAEV_THERMAL_METHODS
             beta::Real,
             kwargs...,
         )
-            Lx > 0 && Ly > 0 || error(
-                "KitaevHoneycomb OBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).",
-            )
-            return _kitaev_thermo_obc(
-                $(QuoteNode(qsym)), model, Lx, Ly, beta
-            )
+            Lx > 0 && Ly > 0 ||
+                error("KitaevHoneycomb OBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).")
+            return _kitaev_thermo_obc($(QuoteNode(qsym)), model, Lx, Ly, beta)
         end
     end
 end

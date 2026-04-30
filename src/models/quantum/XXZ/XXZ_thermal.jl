@@ -362,22 +362,12 @@ function _xxz1d_static_corr(
 end
 
 # Generate fetch methods for the four (mode, axis) combinations we support.
-const _XXZ1D_CORR_AXES = (
-    (XXCorrelation, _σx),
-    (YYCorrelation, _σy),
-    (ZZCorrelation, _σz),
-)
+const _XXZ1D_CORR_AXES = ((XXCorrelation, _σx), (YYCorrelation, _σy), (ZZCorrelation, _σz))
 
 for (CorrTy, σα) in _XXZ1D_CORR_AXES
     @eval begin
         function fetch(
-            model::XXZ1D,
-            ::$CorrTy{:static},
-            bc::OBC;
-            beta::Real,
-            i::Int,
-            j::Int,
-            kwargs...,
+            model::XXZ1D, ::$CorrTy{:static}, bc::OBC; beta::Real, i::Int, j::Int, kwargs...
         )
             N = _bc_size(bc, kwargs)
             F = _xxz1d_thermal_kernel(model, N, beta)
@@ -526,9 +516,7 @@ Rényi entropy of order `α = q.α` for the first `ℓ` sites,
 `α = 1` is rejected at the `RenyiEntropy` constructor; use
 `VonNeumannEntropy()` for that limit.
 """
-function fetch(
-    model::XXZ1D, q::RenyiEntropy, bc::OBC; ℓ::Int, beta::Real=Inf, kwargs...
-)
+function fetch(model::XXZ1D, q::RenyiEntropy, bc::OBC; ℓ::Int, beta::Real=Inf, kwargs...)
     N = _bc_size(bc, kwargs)
     ρA = _xxz1d_reduced_density_matrix(model, N, ℓ, beta)
     λ = real.(eigvals(Hermitian(ρA)))

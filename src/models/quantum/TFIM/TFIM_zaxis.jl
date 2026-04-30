@@ -144,8 +144,7 @@ IR divergence) for any β > 0 in either phase is what makes the proxy
 sensible.
 """
 function fetch(
-    model::TFIM, ::SusceptibilityZZ, ::Infinite;
-    beta::Real, N_proxy::Int=80, kwargs...,
+    model::TFIM, ::SusceptibilityZZ, ::Infinite; beta::Real, N_proxy::Int=80, kwargs...
 )
     return _zz_uniform_susceptibility(N_proxy, model.J, model.h, beta)
 end

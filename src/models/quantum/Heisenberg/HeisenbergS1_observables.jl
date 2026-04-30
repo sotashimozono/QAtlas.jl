@@ -45,9 +45,7 @@ end
 
 const _S1_AXIS_MATS = (x=_S1_x, y=_S1_y, z=_S1_z)
 
-for (Q, axis_sym) in (
-    (:MagnetizationX, :x), (:MagnetizationY, :y), (:MagnetizationZ, :z)
-)
+for (Q, axis_sym) in ((:MagnetizationX, :x), (:MagnetizationY, :y), (:MagnetizationZ, :z))
     axis_str = string(axis_sym)
     @eval begin
         """
@@ -63,9 +61,7 @@ for (Q, axis_sym) in (
         temperature, so this is a non-trivial check only for symmetry-
         breaking finite-β samples (and for benchmarking sampler bias).
         """
-        function fetch(
-            model::S1Heisenberg1D, ::$Q, bc::OBC; beta::Real, kwargs...
-        )
+        function fetch(model::S1Heisenberg1D, ::$Q, bc::OBC; beta::Real, kwargs...)
             N = bc.N
             kernel = _s1_thermal_kernel(model, N, beta)
             M = _s1_total_mag(N, _S1_AXIS_MATS.$axis_sym)
@@ -81,9 +77,8 @@ end
 # χ_αα(β) = β · Var(M_α) / N,   M_α = Σᵢ Sᵅᵢ
 #         = β · (⟨M_α²⟩ − ⟨M_α⟩²) / N
 
-for (Q, axis_sym) in (
-    (:SusceptibilityXX, :x), (:SusceptibilityYY, :y), (:SusceptibilityZZ, :z)
-)
+for (Q, axis_sym) in
+    ((:SusceptibilityXX, :x), (:SusceptibilityYY, :y), (:SusceptibilityZZ, :z))
     axis_str = string(axis_sym)
     @eval begin
         """
@@ -96,9 +91,7 @@ for (Q, axis_sym) in (
         At infinite temperature each site contributes `Tr((Sᵅ)²)/3 = 2/3` so
         `χ_αα → 2β/3` for any axis.
         """
-        function fetch(
-            model::S1Heisenberg1D, ::$Q, bc::OBC; beta::Real, kwargs...
-        )
+        function fetch(model::S1Heisenberg1D, ::$Q, bc::OBC; beta::Real, kwargs...)
             N = bc.N
             kernel = _s1_thermal_kernel(model, N, beta)
             M = _s1_total_mag(N, _S1_AXIS_MATS.$axis_sym)
@@ -114,9 +107,7 @@ end
 # Two-point correlators  (static / connected, OBC)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-for (Q, axis_sym) in (
-    (:XXCorrelation, :x), (:YYCorrelation, :y), (:ZZCorrelation, :z)
-)
+for (Q, axis_sym) in ((:XXCorrelation, :x), (:YYCorrelation, :y), (:ZZCorrelation, :z))
     axis_str = string(axis_sym)
     @eval begin
         """
@@ -128,12 +119,20 @@ for (Q, axis_sym) in (
         indices `1 ≤ i, j ≤ N`; equal sites give `⟨(S^α)²⟩_β`.
         """
         function fetch(
-            model::S1Heisenberg1D, ::$Q{:static}, bc::OBC;
-            beta::Real, i::Int, j::Int, kwargs...,
+            model::S1Heisenberg1D,
+            ::$Q{:static},
+            bc::OBC;
+            beta::Real,
+            i::Int,
+            j::Int,
+            kwargs...,
         )
             N = bc.N
-            (1 ≤ i ≤ N && 1 ≤ j ≤ N) ||
-                throw(ArgumentError("$($Q){:static}: site indices must satisfy 1 ≤ i,j ≤ N (got i=$i, j=$j, N=$N)"))
+            (1 ≤ i ≤ N && 1 ≤ j ≤ N) || throw(
+                ArgumentError(
+                    "$($Q){:static}: site indices must satisfy 1 ≤ i,j ≤ N (got i=$i, j=$j, N=$N)",
+                ),
+            )
             kernel = _s1_thermal_kernel(model, N, beta)
             S = _S1_AXIS_MATS.$axis_sym
             O = i == j ? _spin1_string(N, i => S * S) : _spin1_string(N, i => S, j => S)
@@ -149,8 +148,13 @@ for (Q, axis_sym) in (
         for the spin-1 OBC Heisenberg chain.
         """
         function fetch(
-            model::S1Heisenberg1D, ::$Q{:connected}, bc::OBC;
-            beta::Real, i::Int, j::Int, kwargs...,
+            model::S1Heisenberg1D,
+            ::$Q{:connected},
+            bc::OBC;
+            beta::Real,
+            i::Int,
+            j::Int,
+            kwargs...,
         )
             N = bc.N
             (1 ≤ i ≤ N && 1 ≤ j ≤ N) || throw(
@@ -186,9 +190,7 @@ for (Q, axis_sym) in ((:MagnetizationXLocal, :x), (:MagnetizationZLocal, :z))
         Heisenberg chain.  Sums to `N · MagnetizationX/Y/Z` (per-site bulk
         average) by construction.
         """
-        function fetch(
-            model::S1Heisenberg1D, ::$Q, bc::OBC; beta::Real, kwargs...
-        )
+        function fetch(model::S1Heisenberg1D, ::$Q, bc::OBC; beta::Real, kwargs...)
             N = bc.N
             kernel = _s1_thermal_kernel(model, N, beta)
             S = _S1_AXIS_MATS.$axis_sym
@@ -275,9 +277,8 @@ dB = d^(N-ℓ)`.  Reshaping ρ as `(dA, dB, dA, dB)` and contracting the B
 indices then gives `ρ_A`.
 """
 function _s1_partial_trace_A(ρ::AbstractMatrix, ℓ::Int, N::Int)
-    1 ≤ ℓ ≤ N - 1 || throw(
-        ArgumentError("partial trace: ℓ must satisfy 1 ≤ ℓ ≤ N-1 (got ℓ=$ℓ, N=$N)"),
-    )
+    1 ≤ ℓ ≤ N - 1 ||
+        throw(ArgumentError("partial trace: ℓ must satisfy 1 ≤ ℓ ≤ N-1 (got ℓ=$ℓ, N=$N)"))
     d = 3
     dA = d^ℓ
     dB = d^(N - ℓ)
@@ -337,9 +338,8 @@ function fetch(
     model::S1Heisenberg1D, q::RenyiEntropy, bc::OBC; ℓ::Int, beta::Real=Inf, kwargs...
 )
     N = bc.N
-    1 ≤ ℓ ≤ N - 1 || throw(
-        ArgumentError("RenyiEntropy: ℓ must satisfy 1 ≤ ℓ ≤ N - 1 (got ℓ=$ℓ, N=$N)"),
-    )
+    1 ≤ ℓ ≤ N - 1 ||
+        throw(ArgumentError("RenyiEntropy: ℓ must satisfy 1 ≤ ℓ ≤ N - 1 (got ℓ=$ℓ, N=$N)"))
     α = q.α
     kernel = _s1_thermal_kernel(model, N, beta)
     ρA = _s1_partial_trace_A(kernel.ρ, ℓ, N)

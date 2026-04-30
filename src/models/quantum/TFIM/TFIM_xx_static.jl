@@ -141,9 +141,7 @@ function fetch(
     N_proxy::Int=80,
     kwargs...,
 )
-    return fetch(
-        model, XXCorrelation{:static}(), OBC(N_proxy); beta=beta, i=i, j=j
-    )
+    return fetch(model, XXCorrelation{:static}(), OBC(N_proxy); beta=beta, i=i, j=j)
 end
 
 """
@@ -164,7 +162,5 @@ function fetch(
     N_proxy::Int=80,
     kwargs...,
 )
-    return fetch(
-        model, XXCorrelation{:connected}(), OBC(N_proxy); beta=beta, i=i, j=j
-    )
+    return fetch(model, XXCorrelation{:connected}(), OBC(N_proxy); beta=beta, i=i, j=j)
 end

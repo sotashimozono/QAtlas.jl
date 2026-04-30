@@ -112,9 +112,8 @@ end
         zz_connected = zz_static - _direct_expect(Sz1, ρ) * _direct_expect(Sz2, ρ)
         @test QAtlas.fetch(m, ZZCorrelation(; mode=:static), OBC(N); beta=β, i=1, j=2) ≈
             zz_static rtol=1e-12
-        @test QAtlas.fetch(
-            m, ZZCorrelation(; mode=:connected), OBC(N); beta=β, i=1, j=2
-        ) ≈ zz_connected rtol=1e-12
+        @test QAtlas.fetch(m, ZZCorrelation(; mode=:connected), OBC(N); beta=β, i=1, j=2) ≈
+            zz_connected rtol=1e-12
 
         # i = j case: ⟨Sz²⟩ on a single site
         Sz2_local = Sz1 * Sz1
@@ -129,13 +128,10 @@ end
         m = S1Heisenberg1D(; J=J)
         H = _s1_heisenberg_hamiltonian_matrix(m, N)
         ρ = _direct_thermal_rho(H, β)
-        for (Q, S) in (
-            (XXCorrelation(; mode=:static), _S1_x),
-            (YYCorrelation(; mode=:static), _S1_y),
-        )
+        for (Q, S) in
+            ((XXCorrelation(; mode=:static), _S1_x), (YYCorrelation(; mode=:static), _S1_y))
             for (i, j) in ((1, N), (1, 2), (2, 2))
-                O = i == j ? _spin1_string(N, i => S * S) :
-                    _spin1_string(N, i => S, j => S)
+                O = i == j ? _spin1_string(N, i => S * S) : _spin1_string(N, i => S, j => S)
                 expected = _direct_expect(O, ρ)
                 @test QAtlas.fetch(m, Q, OBC(N); beta=β, i=i, j=j) ≈ expected rtol=1e-10
             end
@@ -165,8 +161,7 @@ end
 
     # Haldane gap — White-Huse 1993 DMRG value.
     @test QAtlas.fetch(S1Heisenberg1D(; J=1.0), MassGap(), Infinite()) ≈ 0.41048 rtol=1e-12
-    @test QAtlas.fetch(S1Heisenberg1D(; J=2.5), MassGap(), Infinite()) ≈
-        0.41048 * 2.5 rtol=1e-12
+    @test QAtlas.fetch(S1Heisenberg1D(; J=2.5), MassGap(), Infinite()) ≈ 0.41048 * 2.5 rtol=1e-12
 end
 
 # ──────────────────────────────────────────────────────────────────────

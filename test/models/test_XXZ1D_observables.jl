@@ -120,7 +120,8 @@ end
         @test QAtlas.fetch(m, SusceptibilityZZ(), OBC(N); beta=β) ≈ χzz_ed atol = 1e-10
 
         # Two-point correlators (all axes, both modes)
-        for (qty, σ) in ((XXCorrelation, _SX_dir), (YYCorrelation, _SY_dir), (ZZCorrelation, _SZ_dir))
+        for (qty, σ) in
+            ((XXCorrelation, _SX_dir), (YYCorrelation, _SY_dir), (ZZCorrelation, _SZ_dir))
             for i in 1:N, j in i:N
                 if i == j
                     continue  # σᵅ² = I, skipped

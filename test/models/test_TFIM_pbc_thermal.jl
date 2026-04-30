@@ -63,7 +63,9 @@ end
         β_low = 80.0
         ed = _ed_thermo_pbc(N, J, h, β_low)
 
-        ε_thermal = QAtlas.fetch(TFIM(; J=J, h=h), Energy(:per_site), PBC(; N=N); beta=β_low)
+        ε_thermal = QAtlas.fetch(
+            TFIM(; J=J, h=h), Energy(:per_site), PBC(; N=N); beta=β_low
+        )
         @test ε_thermal ≈ ed.ε rtol=1e-10
 
         f_low = QAtlas.fetch(TFIM(; J=J, h=h), FreeEnergy(), PBC(; N=N); beta=β_low)
@@ -117,12 +119,8 @@ end
             @test ε ≈ f + s / β atol=1e-9
 
             δ = 1e-3 * β
-            ε_p = QAtlas.fetch(
-                TFIM(; J=J, h=h), Energy(:per_site), PBC(; N=N); beta=β + δ
-            )
-            ε_m = QAtlas.fetch(
-                TFIM(; J=J, h=h), Energy(:per_site), PBC(; N=N); beta=β - δ
-            )
+            ε_p = QAtlas.fetch(TFIM(; J=J, h=h), Energy(:per_site), PBC(; N=N); beta=β + δ)
+            ε_m = QAtlas.fetch(TFIM(; J=J, h=h), Energy(:per_site), PBC(; N=N); beta=β - δ)
             c_fd = -β^2 * (ε_p - ε_m) / (2 * δ)
             c_an = QAtlas.fetch(TFIM(; J=J, h=h), SpecificHeat(), PBC(; N=N); beta=β)
             @test c_an ≈ c_fd rtol=1e-3

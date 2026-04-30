@@ -235,12 +235,7 @@ for QTy in (
 end
 
 # Site-resolved local observables (Vector{Float64}).
-for QTy in (
-    :MagnetizationXLocal,
-    :MagnetizationYLocal,
-    :MagnetizationZLocal,
-    :EnergyLocal,
-)
+for QTy in (:MagnetizationXLocal, :MagnetizationYLocal, :MagnetizationZLocal, :EnergyLocal)
     @eval function fetch(
         ::Heisenberg1D, ::$QTy, bc::OBC; beta::Real, J::Real=1.0, kwargs...
     )
@@ -284,19 +279,11 @@ function fetch(
     J::Real=1.0,
     kwargs...,
 )
-    return fetch(
-        XXZ1D(; J=J, Δ=1.0), VonNeumannEntropy(), bc; ℓ=ℓ, beta=beta, kwargs...
-    )
+    return fetch(XXZ1D(; J=J, Δ=1.0), VonNeumannEntropy(), bc; ℓ=ℓ, beta=beta, kwargs...)
 end
 
 function fetch(
-    ::Heisenberg1D,
-    q::RenyiEntropy,
-    bc::OBC;
-    ℓ::Int,
-    beta::Real=Inf,
-    J::Real=1.0,
-    kwargs...,
+    ::Heisenberg1D, q::RenyiEntropy, bc::OBC; ℓ::Int, beta::Real=Inf, J::Real=1.0, kwargs...
 )
     return fetch(XXZ1D(; J=J, Δ=1.0), q, bc; ℓ=ℓ, beta=beta, kwargs...)
 end

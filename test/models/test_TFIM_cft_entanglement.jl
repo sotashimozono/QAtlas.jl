@@ -68,9 +68,7 @@ using QAtlas, Test
         model = TFIM(; J=1.0, h=1.0)
         ℓ = 50
         S_T0 = QAtlas.fetch(model, VonNeumannEntropy(), Infinite(); ℓ=ℓ, beta=Inf)
-        S_lowT = QAtlas.fetch(
-            model, VonNeumannEntropy(), Infinite(); ℓ=ℓ, beta=1.0e6
-        )
+        S_lowT = QAtlas.fetch(model, VonNeumannEntropy(), Infinite(); ℓ=ℓ, beta=1.0e6)
         # (2β/π) sinh(πℓ/β) → 2ℓ as β → ∞ → match T=0 closed form.
         @test S_lowT ≈ S_T0 rtol = 1e-3
     end
@@ -100,11 +98,7 @@ using QAtlas, Test
 
     @testset "Argument validation: ℓ ≥ 1" begin
         model = TFIM(; J=1.0, h=1.0)
-        @test_throws ArgumentError QAtlas.fetch(
-            model, VonNeumannEntropy(), Infinite(); ℓ=0
-        )
-        @test_throws ArgumentError QAtlas.fetch(
-            model, RenyiEntropy(2.0), Infinite(); ℓ=0
-        )
+        @test_throws ArgumentError QAtlas.fetch(model, VonNeumannEntropy(), Infinite(); ℓ=0)
+        @test_throws ArgumentError QAtlas.fetch(model, RenyiEntropy(2.0), Infinite(); ℓ=0)
     end
 end

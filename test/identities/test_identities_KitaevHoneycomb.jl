@@ -1,7 +1,7 @@
 using Test
 using QAtlas
-using QAtlas: KitaevHoneycomb, Energy, FreeEnergy, ThermalEntropy, SpecificHeat,
-              OBC, Infinite
+using QAtlas:
+    KitaevHoneycomb, Energy, FreeEnergy, ThermalEntropy, SpecificHeat, OBC, Infinite
 using ForwardDiff
 
 # Self-validation harness (`test/util/thermodynamic_identities.jl`)
@@ -50,8 +50,7 @@ end
         @test ε ≈ f + s / β atol = 1e-9
 
         dε = ForwardDiff.derivative(
-            b -> QAtlas.fetch(model, Energy(:per_site), OBC(0); Lx=Lx, Ly=Ly, beta=b),
-            β,
+            b -> QAtlas.fetch(model, Energy(:per_site), OBC(0); Lx=Lx, Ly=Ly, beta=b), β
         )
         c = QAtlas.fetch(model, SpecificHeat(), OBC(0); Lx=Lx, Ly=Ly, beta=β)
         @test c ≈ -β^2 * dε rtol = 1e-3
