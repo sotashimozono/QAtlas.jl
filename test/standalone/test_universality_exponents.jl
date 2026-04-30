@@ -18,6 +18,23 @@ function check_scaling_relations(e; d::Int=0)
     end
 end
 
+# `atol = 0.01` is a *physics-imposed* floor, not laziness — see #118 audit.
+#
+# The 3D bootstrap exponents we ship (Ising / XY / Heisenberg) inherit the
+# precision of their source data (KPSDV 2016 etc.).  Worst-case residuals
+# of `α + 2β + γ - 2`, `γ - β(δ-1)`, `γ - ν(2-η)`, `2 - α - dν` measured
+# at PR time:
+#
+#   3D Ising       — max ≈ 1.0e-5  (could tighten to atol = 1e-4)
+#   3D XY          — max ≈ 7.1e-5  (could tighten to atol = 1e-3)
+#   3D Heisenberg  — max ≈ 4.5e-4  (cannot tighten below atol ≈ 1e-3)
+#
+# Heisenberg sets the floor: tightening per call site would only shave a
+# factor or two off the loosest class while opening every numerical-data
+# refresh to spurious failures.  The single `atol = 0.01` here gives ~20×
+# margin uniformly and stays robust to upstream value updates.  This is
+# the (a)/(b)/(c)-style classification from #118: a deliberately soft
+# tolerance with a one-line justification.
 function check_scaling_relations_approx(e; d::Int=0)
     @test e.α + 2 * e.β + e.γ ≈ 2 atol = 0.01      # Rushbrooke
     @test e.γ ≈ e.β * (e.δ - 1) atol = 0.01         # Widom
