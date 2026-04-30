@@ -27,8 +27,12 @@ export S1Heisenberg1D                                    # spin-1 (Haldane chain
 include("core/alias.jl")
 include("core/type.jl")
 include("core/quantities.jl")
+include("core/registry.jl")
 include("core/pfaffian.jl")
 include("core/dense_ed.jl")
+
+# --- Implementation registry public API ---
+export Implementation, implementation_status, implementation_status_markdown
 
 # --- Quantity struct exports (new, axis-explicit naming) ---
 export Energy, FreeEnergy, SpecificHeat, MassGap, FidelitySusceptibility
@@ -69,6 +73,7 @@ include("models/quantum/TFIM/TFIM_dynamics.jl")
 include("models/quantum/TFIM/TFIM_thermal.jl")
 include("models/quantum/TFIM/TFIM_local.jl")
 include("models/quantum/TFIM/TFIM_entanglement.jl")
+include("models/quantum/TFIM/TFIM_registry.jl")  # populates REGISTRY for TFIM
 include("models/quantum/Heisenberg/Heisenberg.jl")
 include("models/quantum/Heisenberg/HeisenbergS1.jl")
 include("models/quantum/KitaevHoneycomb/KitaevHoneycomb.jl")
