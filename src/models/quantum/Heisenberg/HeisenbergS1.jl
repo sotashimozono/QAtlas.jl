@@ -109,8 +109,10 @@ end
 # fetch — finite-N OBC thermal observables via dense ED
 # ═══════════════════════════════════════════════════════════════════════════════
 
+native_energy_granularity(::S1Heisenberg1D, ::OBC) = :total
+
 """
-    fetch(model::S1Heisenberg1D, ::Energy, ::OBC; beta) -> Float64
+    fetch(model::S1Heisenberg1D, ::Energy{:total}, ::OBC; beta) -> Float64
 
 **Total** thermal energy `⟨H⟩_β` of the spin-1 OBC Heisenberg chain at
 finite `N ≤ $(_MAX_ED_SITES_S1)`, computed by dense ED.
@@ -119,10 +121,10 @@ finite `N ≤ $(_MAX_ED_SITES_S1)`, computed by dense ED.
     ⟨H⟩_β = Tr(H exp(-βH)) / Tr(exp(-βH))
 ```
 
-Convention matches [`fetch(::TFIM, ::Energy, ::OBC)`](@ref): finite-size
-boundary conditions return total energy.
+Convention matches [`fetch(::TFIM, ::Energy{:total}, ::OBC)`](@ref):
+1D finite-size boundary conditions return total energy natively.
 """
-function fetch(model::S1Heisenberg1D, ::Energy, bc::OBC; beta::Real, kwargs...)
+function fetch(model::S1Heisenberg1D, ::Energy{:total}, bc::OBC; beta::Real, kwargs...)
     H = _s1_heisenberg_hamiltonian_matrix(model, bc.N)
     return _ed_thermal_energy(H, beta)
 end

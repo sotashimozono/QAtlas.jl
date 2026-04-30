@@ -75,8 +75,11 @@ _xxz1d_energy_free_fermion(J::Float64)::Float64 = -J / π
 _xxz1d_energy_heisenberg_af(J::Float64)::Float64 = J * (0.25 - log(2.0))
 _xxz1d_energy_heisenberg_fm(J::Float64)::Float64 = -J / 4
 
+native_energy_granularity(::XXZ1D, ::OBC) = :total
+native_energy_granularity(::XXZ1D, ::Infinite) = :per_site
+
 """
-    fetch(model::XXZ1D, ::Energy, ::Infinite) -> Float64
+    fetch(model::XXZ1D, ::Energy{:per_site}, ::Infinite) -> Float64
 
 Ground-state energy **per site** of the infinite XXZ chain in units of
 the Hamiltonian `J`.  Currently exposes the three canonical values:
@@ -88,7 +91,7 @@ the Hamiltonian `J`.  Currently exposes the three canonical values:
 For every other `Δ` a warning is emitted and `NaN` is returned — the
 general-`Δ` Bethe-ansatz integral is tracked as a v0.13 follow-up.
 """
-function fetch(model::XXZ1D, ::Energy, ::Infinite; kwargs...)
+function fetch(model::XXZ1D, ::Energy{:per_site}, ::Infinite; kwargs...)
     J, Δ = model.J, model.Δ
     if isapprox(Δ, 0.0; atol=1e-12)
         return _xxz1d_energy_free_fermion(J)
@@ -220,7 +223,7 @@ function _xxz1d_hamiltonian_matrix(model::XXZ1D, N::Int)
 end
 
 """
-    fetch(model::XXZ1D, ::Energy, ::OBC; beta) -> Float64
+    fetch(model::XXZ1D, ::Energy{:total}, ::OBC; beta) -> Float64
 
 **Total** thermal energy `⟨H⟩_β` for the spin-½ OBC chain at finite size,
 computed by dense ED.  Works for any `Δ` and any `N ≤ $(_MAX_ED_SITES)`.
@@ -235,7 +238,7 @@ Convention matches [`fetch(::TFIM, ::Energy, ::OBC)`](@ref): finite-size
 boundary conditions return total energy; only `Infinite()` returns per-site
 (`⟨H⟩/N`, the only finite quantity in the thermodynamic limit).
 """
-function fetch(model::XXZ1D, ::Energy, bc::OBC; beta::Real, kwargs...)
+function fetch(model::XXZ1D, ::Energy{:total}, bc::OBC; beta::Real, kwargs...)
     H = _xxz1d_hamiltonian_matrix(model, bc.N)
     return _ed_thermal_energy(H, beta)
 end
