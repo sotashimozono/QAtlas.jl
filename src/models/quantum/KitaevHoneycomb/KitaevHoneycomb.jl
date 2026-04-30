@@ -93,11 +93,23 @@ end
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Energy granularity convention: Kitaev is a 2D model — per-site is the
+# native granularity at every BC.  The total-energy generic conversion in
+# `src/core/quantities.jl` would need `_bc_size(bc, kwargs)` to read
+# `Lx, Ly` from kwargs; we leave `Energy(:total)` unsupported for now and
+# let it surface as the standard "no method registered" error.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+native_energy_granularity(::KitaevHoneycomb, ::OBC)      = :per_site
+native_energy_granularity(::KitaevHoneycomb, ::PBC)      = :per_site
+native_energy_granularity(::KitaevHoneycomb, ::Infinite) = :per_site
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Energy — Infinite (per site)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::KitaevHoneycomb, ::Energy, ::Infinite; rtol=1e-8) -> Float64
+    fetch(model::KitaevHoneycomb, ::Energy{:per_site}, ::Infinite; rtol=1e-8) -> Float64
 
 Ground state energy **per site** in the thermodynamic limit:
 
@@ -115,7 +127,7 @@ converge to this TL value within `~10⁻³` at `Lx = Ly = 8` and
 `~10⁻⁶` at `Lx = Ly = 64` — see
 `test/models/test_KitaevHoneycomb.jl`.
 """
-function fetch(model::KitaevHoneycomb, ::Energy, ::Infinite; rtol::Float64=1e-8, kwargs...)
+function fetch(model::KitaevHoneycomb, ::Energy{:per_site}, ::Infinite; rtol::Float64=1e-8, kwargs...)
     inner(θ₁) = first(
         quadgk(θ₂ -> _kitaev_fk_abs(model, θ₁, θ₂), 0.0, 2π; rtol=rtol * 10, atol=1e-14)
     )
@@ -169,7 +181,7 @@ function _kitaev_pbc_sector_energy(
 end
 
 """
-    fetch(model::KitaevHoneycomb, ::Energy, bc::PBC; Lx, Ly) -> Float64
+    fetch(model::KitaevHoneycomb, ::Energy{:per_site}, bc::PBC; Lx, Ly) -> Float64
 
 Per-site ground state energy on a `Lx × Ly` unit-cell torus (PBC in
 both lattice directions) — enumerates all four topological flux
@@ -186,7 +198,7 @@ individual Bloch-sum terms dominate; for small `L` sector choice is
 essential (e.g. `Lx = Ly = 2` gives distinct sector energies differing
 by `~10%`).
 """
-function fetch(model::KitaevHoneycomb, ::Energy, ::PBC; Lx::Integer, Ly::Integer)
+function fetch(model::KitaevHoneycomb, ::Energy{:per_site}, ::PBC; Lx::Integer, Ly::Integer)
     Lx > 0 && Ly > 0 ||
         error("KitaevHoneycomb PBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).")
     return minimum(
@@ -233,7 +245,7 @@ function _obc_hopping_matrix(m::KitaevHoneycomb, Lx::Integer, Ly::Integer)
 end
 
 """
-    fetch(model::KitaevHoneycomb, ::Energy, ::OBC; Lx, Ly) -> Float64
+    fetch(model::KitaevHoneycomb, ::Energy{:per_site}, ::OBC; Lx, Ly) -> Float64
 
 Per-site ground state energy on a `Lx × Ly` honeycomb strip with open
 boundaries in both lattice directions. Uses the flux-free-sector
@@ -244,7 +256,7 @@ energy = `−Σₖ σₖ`; per site = that divided by `2·Lx·Ly`.
 
 `bc.N` is ignored; pass `Lx`, `Ly` explicitly.
 """
-function fetch(model::KitaevHoneycomb, ::Energy, ::OBC; Lx::Integer, Ly::Integer)
+function fetch(model::KitaevHoneycomb, ::Energy{:per_site}, ::OBC; Lx::Integer, Ly::Integer)
     Lx > 0 && Ly > 0 ||
         error("KitaevHoneycomb OBC: Lx, Ly must be positive (got Lx=$Lx, Ly=$Ly).")
     M = _obc_hopping_matrix(model, Lx, Ly)

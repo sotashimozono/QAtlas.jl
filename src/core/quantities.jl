@@ -18,12 +18,59 @@
 # ─── Scalar thermodynamics ──────────────────────────────────────────────
 
 """
-    Energy() <: AbstractQuantity
+    Energy{G}() <: AbstractQuantity
+    Energy()                 # G = :natural — model-and-BC-natural granularity
+    Energy(:total)           # explicit ⟨H⟩
+    Energy(:per_site)        # explicit ⟨H⟩ / N
 
-Ground-state / thermal energy expectation.  Per-site or total depends on
-the model's convention (documented on the model's `fetch` method).
+Ground-state / thermal energy expectation.  The type parameter `G` makes
+the granularity (total vs per-site) a dispatch axis instead of a hidden
+docstring contract.
+
+`Energy()` resolves to the model's native granularity via the
+[`native_energy_granularity`](@ref) trait — keeping every existing
+`fetch(model, Energy(), bc; ...)` call site working unchanged.  Use the
+explicit constructors when the caller needs a specific granularity (e.g.
+the thermodynamic-identity harness comparing `f + T·s` against per-site
+`ε`).
+
+The non-native granularity is provided automatically by a generic
+conversion fallback for 1D BCs (`OBC` / `PBC`) that uses
+[`_bc_size`](@ref).  Models on lattices whose size is not captured by
+`bc.N` (e.g. 2D Kitaev with `Lx, Ly` kwargs) currently support only
+their declared native granularity.
 """
-struct Energy <: AbstractQuantity end
+struct Energy{G} <: AbstractQuantity
+    function Energy{G}() where {G}
+        G isa Symbol || error("Energy granularity must be a Symbol, got $(typeof(G))")
+        G in (:natural, :total, :per_site) ||
+            error("unknown Energy granularity :$G; expected :natural, :total, or :per_site")
+        return new{G}()
+    end
+end
+Energy() = Energy{:natural}()
+Energy(g::Symbol) = Energy{g}()
+
+"""
+    native_energy_granularity(model, bc) -> :total | :per_site
+
+Trait declaring which granularity the given `model` returns natively for
+[`Energy`](@ref) at boundary condition `bc`.  Used by the `Energy()`
+(`:natural`) router and by the generic conversion fallbacks.
+
+Every model that supports `Energy` must add a method per supported BC,
+e.g.
+
+```julia
+QAtlas.native_energy_granularity(::TFIM, ::OBC) = :total
+QAtlas.native_energy_granularity(::TFIM, ::Infinite) = :per_site
+```
+
+A missing method is caught at the call site as a `MethodError`, which
+is intentional: it forces new models to declare the convention rather
+than silently inheriting an unrelated default.
+"""
+function native_energy_granularity end
 
 """
     FreeEnergy() <: AbstractQuantity
@@ -330,3 +377,45 @@ struct E8Spectrum <: AbstractQuantity end
 # `GrowthExponents`) are currently defined in their respective model /
 # universality source files as bare `struct X end`.  Later commits
 # (M1.6-M1.8) subtype them to `AbstractQuantity` in place.
+
+# ─── Energy granularity routing (depends on BoundaryCondition / _bc_size) ───
+#
+# `Energy()` is dispatch-routed to the model's native granularity through the
+# `native_energy_granularity` trait.  The non-native granularity is provided
+# by a generic conversion fallback that uses `_bc_size`.  Models on lattices
+# whose system size is not encoded in `bc.N` (Kitaev's `Lx, Ly` kwargs) can
+# define `fetch(::Model, ::Energy{:total}, bc; ...)` directly to bypass the
+# fallback.
+
+function fetch(
+    model::AbstractQAtlasModel, ::Energy{:natural}, bc::BoundaryCondition; kwargs...
+)
+    g = native_energy_granularity(model, bc)
+    return fetch(model, Energy{g}(), bc; kwargs...)
+end
+
+function fetch(
+    model::AbstractQAtlasModel, ::Energy{:per_site}, bc::Union{OBC,PBC}; kwargs...
+)
+    g = native_energy_granularity(model, bc)
+    g === :per_site && error(
+        "QAtlas Energy(:per_site): $(typeof(model)) declares native :per_site at " *
+        "$(typeof(bc)) but no direct method is registered.  Implement " *
+        "`fetch(::$(typeof(model)), ::Energy{:per_site}, ::$(typeof(bc)); ...)` " *
+        "to register it.",
+    )
+    return fetch(model, Energy{:total}(), bc; kwargs...) / _bc_size(bc, kwargs)
+end
+
+function fetch(
+    model::AbstractQAtlasModel, ::Energy{:total}, bc::Union{OBC,PBC}; kwargs...
+)
+    g = native_energy_granularity(model, bc)
+    g === :total && error(
+        "QAtlas Energy(:total): $(typeof(model)) declares native :total at " *
+        "$(typeof(bc)) but no direct method is registered.  Implement " *
+        "`fetch(::$(typeof(model)), ::Energy{:total}, ::$(typeof(bc)); ...)` " *
+        "to register it.",
+    )
+    return fetch(model, Energy{:per_site}(), bc; kwargs...) * _bc_size(bc, kwargs)
+end

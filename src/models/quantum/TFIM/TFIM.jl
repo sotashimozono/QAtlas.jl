@@ -75,13 +75,22 @@ function _tfim_bdg_spectrum(N::Int, J::Float64, h::Float64)::Vector{Float64}
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Energy granularity convention (see src/core/quantities.jl)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+native_energy_granularity(::TFIM, ::OBC)      = :total
+native_energy_granularity(::TFIM, ::Infinite) = :per_site
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Energy: OBC finite-N
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::TFIM, ::Energy, bc::OBC; beta, betas) -> Float64 or Vector{Float64}
+    fetch(model::TFIM, ::Energy{:total}, bc::OBC; beta, betas) -> Float64 or Vector{Float64}
 
-Total energy ⟨H⟩(β) for the OBC TFIM with N sites.
+Total energy ⟨H⟩(β) for the OBC TFIM with N sites.  Native granularity
+for finite-N TFIM (per-site is provided by the generic conversion
+fallback in `src/core/quantities.jl`).
 
 - `N` is read from `bc.N` (`OBC(N)` / `OBC(; N)`) or from `kwargs[:N]`
   as a legacy fallback.
@@ -93,7 +102,7 @@ Uses the exact BdG formula:  ⟨H⟩ = -Σₙ (Λₙ/2) tanh(β Λₙ / 2)
 """
 function fetch(
     model::TFIM,
-    ::Energy,
+    ::Energy{:total},
     bc::OBC;
     beta::Union{Real,Nothing}=nothing,
     betas::Union{AbstractVector{<:Real},Nothing}=nothing,
@@ -116,9 +125,11 @@ end
 # ═══════════════════════════════════════════════════════════════════════════════
 
 """
-    fetch(model::TFIM, ::Energy, ::Infinite; beta, betas) -> Float64 or Vector{Float64}
+    fetch(model::TFIM, ::Energy{:per_site}, ::Infinite; beta, betas) -> Float64 or Vector{Float64}
 
 Energy *per site* ⟨H⟩/N in the thermodynamic limit (PBC, N → ∞).
+Native granularity at `Infinite()` (total energy diverges and has no
+defined value here).
 
     ε(β) = -(1/π) ∫₀^π dk  Λ(k)/2 · tanh(β Λ(k) / 2)
 
@@ -132,7 +143,7 @@ Uses adaptive Gauss-Kronrod quadrature (QuadGK).
 """
 function fetch(
     model::TFIM,
-    ::Energy,
+    ::Energy{:per_site},
     ::Infinite;
     beta::Union{Real,Nothing}=nothing,
     betas::Union{AbstractVector{<:Real},Nothing}=nothing,
