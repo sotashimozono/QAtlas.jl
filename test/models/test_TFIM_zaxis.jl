@@ -98,9 +98,7 @@
         # smaller N_proxy is enough — the "Infinite ↔ OBC" identity is a
         # pass-through, not a physical claim, so over-sweeping (h, β) just
         # multiplies the cost.  Default proxy: ordered phase, finite β.
-        χ_inf = QAtlas.fetch(
-            TFIM(; J=1.0, h=0.5), SusceptibilityZZ(), Infinite(); beta=1.0
-        )
+        χ_inf = QAtlas.fetch(TFIM(; J=1.0, h=0.5), SusceptibilityZZ(), Infinite(); beta=1.0)
         χ_obc = QAtlas.fetch(
             TFIM(; J=1.0, h=0.5), SusceptibilityZZ(), OBC(; N=80); beta=1.0
         )
