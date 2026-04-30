@@ -52,18 +52,24 @@ end
     end
 
     @testset "Critical exponent β = 1/8 near T_c" begin
-        # M ~ (T_c - T)^{1/8} as T → T_c⁻
-        # log M / log(T_c - T) → 1/8
-        # Test at two temperatures near T_c
-        δT1 = 0.001
-        δT2 = 0.01
+        # M ~ (T_c - T)^{1/8} as T → T_c⁻ ⟹ log(M₁/M₂) / log(δT₁/δT₂) → 1/8.
+        #
+        # The original test used δT = (1e-3, 1e-2) which has a real corrections-
+        # to-scaling residual of ~4e-4 — the previous `rtol = 0.05` was 100×
+        # looser than the physics actually warrants.  Pushing both points one
+        # decade closer to T_c (1e-7, 1e-6) drops the measured residual to
+        # ~3.9e-8 (Yang's closed form is analytic, so the only floor is
+        # roundoff from the small-δT log subtraction), giving a clean ~10×
+        # margin against `atol = 1e-7`.  Tracked under the #118 test-tolerance
+        # hygiene audit.
+        δT1 = 1e-7
+        δT2 = 1e-6
         T1 = Tc - δT1
         T2 = Tc - δT2
         M1 = QAtlas.fetch(IsingSquare(), SpontaneousMagnetization(); β=1 / T1)
         M2 = QAtlas.fetch(IsingSquare(), SpontaneousMagnetization(); β=1 / T2)
-        # Effective exponent: log(M1/M2) / log(δT1/δT2) ≈ β = 1/8
         β_eff = log(M1 / M2) / log(δT1 / δT2)
-        @test β_eff ≈ 1 / 8 rtol = 0.05  # within 5% of exact
+        @test β_eff ≈ 1 / 8 atol = 1e-7
     end
 
     @testset "J scaling" begin
