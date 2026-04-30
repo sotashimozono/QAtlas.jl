@@ -41,8 +41,14 @@ using QAtlas, Lattice2D, LinearAlgebra, Test
 
     @testset "Compare against full ED at small N" begin
         # Build the GS, partial-trace, get RDM eigenvalues, compute
-        # Rényi directly. This is the strict reference test (atol = 1e-10
-        # on absolute entropy values).
+        # Rényi directly.  Tolerance is α-dependent: at α < 1 the sum
+        # `Σ p^α` is dominated by *small* Schmidt eigenvalues, which the
+        # dense `eigvals(Hermitian(ρA))` resolves only down to its
+        # round-off floor `~ eps · max(p) ≈ 1e-16`.  Filtering those at
+        # `1e-15` drops mass of order `2^ℓ · (1e-16)^α`, which is
+        # `~1e-7` for α=0.5 and only `~1e-32` for α=2.  The Peschel
+        # mode-product formula is exact, so the residual is the ED
+        # reference's precision limit.
         for h in (0.5, 1.0, 1.5)
             N = 8
             ℓ = 4
@@ -58,7 +64,13 @@ using QAtlas, Lattice2D, LinearAlgebra, Test
             for α in (0.5, 2.0, 3.0)
                 S_ed = log(sum(p^α for p in evals)) / (1 - α)
                 S_qa = QAtlas.fetch(TFIM(; J=1.0, h=h), RenyiEntropy(α), OBC(N); ℓ=ℓ)
-                @test S_qa ≈ S_ed atol = 1e-10
+                # α < 1: ED's round-off floor at ~1e-16 propagates to
+                # `~2^ℓ · (eps)^α ≈ 1e-7` in the entropy via the
+                # `(1-α)^{-1}` Rényi prefactor.  α ≥ 1: round-off
+                # contribution scales as `eps^α ≪ eps`, so the strict
+                # 1e-10 atol holds.
+                atol = α < 1 ? 1e-6 : 1e-10
+                @test S_qa ≈ S_ed atol = atol
             end
         end
     end

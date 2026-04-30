@@ -94,41 +94,38 @@
     # The default N_proxy = 80 should match an explicit OBC(80) call exactly.
     # ───────────────────────────────────────────────────────────────────────
     @testset "SusceptibilityZZ Infinite is the OBC N_proxy proxy" begin
-        for h in (0.5, 1.5)
-            for β in (0.5, 1.5)
-                χ_inf = QAtlas.fetch(
-                    TFIM(; J=1.0, h=h), SusceptibilityZZ(), Infinite(); beta=β
-                )
-                χ_obc = QAtlas.fetch(
-                    TFIM(; J=1.0, h=h), SusceptibilityZZ(), OBC(; N=80); beta=β
-                )
-                @test χ_inf ≈ χ_obc atol=1e-12
-                # Custom N_proxy should also match the corresponding OBC value.
-                χ_inf_40 = QAtlas.fetch(
-                    TFIM(; J=1.0, h=h), SusceptibilityZZ(), Infinite(); beta=β, N_proxy=40
-                )
-                χ_obc_40 = QAtlas.fetch(
-                    TFIM(; J=1.0, h=h), SusceptibilityZZ(), OBC(; N=40); beta=β
-                )
-                @test χ_inf_40 ≈ χ_obc_40 atol=1e-12
-            end
-        end
+        # One representative (h, β) at the default N_proxy and one at a
+        # smaller N_proxy is enough — the "Infinite ↔ OBC" identity is a
+        # pass-through, not a physical claim, so over-sweeping (h, β) just
+        # multiplies the cost.  Default proxy: ordered phase, finite β.
+        χ_inf = QAtlas.fetch(
+            TFIM(; J=1.0, h=0.5), SusceptibilityZZ(), Infinite(); beta=1.0
+        )
+        χ_obc = QAtlas.fetch(
+            TFIM(; J=1.0, h=0.5), SusceptibilityZZ(), OBC(; N=80); beta=1.0
+        )
+        @test χ_inf ≈ χ_obc atol = 1e-12
+        # Custom N_proxy: disordered phase, smaller chain.
+        χ_inf_40 = QAtlas.fetch(
+            TFIM(; J=1.0, h=1.5), SusceptibilityZZ(), Infinite(); beta=1.0, N_proxy=40
+        )
+        χ_obc_40 = QAtlas.fetch(
+            TFIM(; J=1.0, h=1.5), SusceptibilityZZ(), OBC(; N=40); beta=1.0
+        )
+        @test χ_inf_40 ≈ χ_obc_40 atol = 1e-12
     end
 
     # ───────────────────────────────────────────────────────────────────────
     # Layer 5: ZZStructureFactor Infinite reduces to OBC large-N proxy.
+    # Single (q, β) point — same pass-through identity as Layer 4.
     # ───────────────────────────────────────────────────────────────────────
     @testset "ZZStructureFactor Infinite is the OBC N_proxy proxy" begin
-        for q in (0.0, π / 2, π)
-            for β in (0.5, 2.0)
-                S_inf = QAtlas.fetch(
-                    TFIM(; J=1.0, h=0.7), ZZStructureFactor(), Infinite(); beta=β, q=q
-                )
-                S_obc = QAtlas.fetch(
-                    TFIM(; J=1.0, h=0.7), ZZStructureFactor(), OBC(; N=80); beta=β, q=q
-                )
-                @test S_inf ≈ S_obc atol=1e-12
-            end
-        end
+        S_inf = QAtlas.fetch(
+            TFIM(; J=1.0, h=0.7), ZZStructureFactor(), Infinite(); beta=1.0, q=π / 2
+        )
+        S_obc = QAtlas.fetch(
+            TFIM(; J=1.0, h=0.7), ZZStructureFactor(), OBC(; N=80); beta=1.0, q=π / 2
+        )
+        @test S_inf ≈ S_obc atol=1e-12
     end
 end

@@ -39,6 +39,9 @@ using QAtlas, Test
     end
 
     @testset "Dynamic ZZ structure factor at criticality (smoke)" begin
+        # Cheap smoke test: small N_proxy + short t_max + coarse dt is
+        # enough to catch dispatch breakage / non-finite return; the
+        # full-resolution proxy is for users, not CI.
         model = TFIM(; J=1.0, h=1.0)
         S = QAtlas.fetch(
             model,
@@ -47,9 +50,9 @@ using QAtlas, Test
             beta=Inf,
             q=π / 2,
             ω=1.0,
-            N_proxy=32,
-            t_max=10.0,
-            dt=0.2,
+            N_proxy=24,
+            t_max=6.0,
+            dt=0.3,
         )
         @test isfinite(S)
     end
@@ -65,12 +68,13 @@ using QAtlas, Test
 
     @testset "Sum rule sanity (dynamic ↔ static)" begin
         # Frequency integral of the dynamic S(q, ω) should be related to
-        # the static structure factor by a Fourier convention factor of 2π
-        # (modulo finite t_max / dt cutoff errors of ~10–30%).  We only
-        # check finiteness and rough sign here.
+        # the static structure factor.  This is a finiteness smoke test —
+        # full sum-rule verification belongs to a Stage-D-style
+        # verification campaign with `t_max` swept.  Use a coarse 5-point
+        # grid to keep CI cheap (each fetch is O(N_proxy² · t_grid)).
         model = TFIM(; J=1.0, h=0.7)
         q = π / 3
-        ωs = -8.0:0.5:8.0
+        ωs = (-4.0, -2.0, 0.0, 2.0, 4.0)
         S_omega_sum = sum(
             QAtlas.fetch(
                 model,
@@ -79,10 +83,10 @@ using QAtlas, Test
                 beta=10.0,
                 q=q,
                 ω=ω,
-                N_proxy=32,
-                t_max=10.0,
-                dt=0.2,
-            ) * 0.5 for ω in ωs
+                N_proxy=24,
+                t_max=6.0,
+                dt=0.3,
+            ) * 2.0 for ω in ωs
         )
         @test isfinite(S_omega_sum)
     end

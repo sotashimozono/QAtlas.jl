@@ -136,11 +136,12 @@ mode with covariance singular value `ν ∈ [0, 1]`:
 
 Numerically stable at the corner cases:
 
-- `ν → 1` (pure mode): one branch is `1^α = 1`, the other is
-  `0^α = 0`, so `log(1 + 0)/(1 − α) = 0`.  Implemented by clamping
-  the log argument with `eps(Float64)` so the vanishing branch
-  contributes a quantity of order `α · log(eps)` that is then
-  log-sum-exp-suppressed by the dominant `α · log(1)` branch.
+- `ν → 1` (pure mode): the vanishing branch is *dropped* rather than
+  clamped to `eps(Float64)` — clamping injects an `α · log(eps)` error
+  that becomes visible at small `α < 1` (the dominant branch is
+  `α log 1 ≈ 0`, so a clamped contribution of `exp(α log eps)` no
+  longer underflows).  See `test/models/test_TFIM_renyi.jl` "Compare
+  against full ED".
 - `ν → 0` (maximally mixed): both branches are `(1/2)^α`, giving
   `s_α = log(2^{1-α}) / (1 − α) = log 2`.
 - `α → ∞`: `s_α → -log p_max = -log((1+ν)/2)` (min-entropy limit).
@@ -150,12 +151,21 @@ function _peschel_mode_renyi(ν::Real, α::Real)::Float64
     νc = clamp(abs(ν), 0.0, 1.0)
     p⁻ = (1 - νc) / 2
     p⁺ = (1 + νc) / 2
-    # log-sum-exp on (α log p⁺, α log p⁻) avoids underflow when one
-    # branch vanishes (ν ≈ 1) or when α is large.  `max(p, eps)` is the
-    # standard guard against `log(0)`; the corresponding term decays
-    # faster than the dominant one and is correctly suppressed by LSE.
-    a = α * log(max(p⁺, eps(Float64)))
-    b = α * log(max(p⁻, eps(Float64)))
+    # Drop a vanishing branch (`p ≲ eps`) rather than clamping its
+    # log to `log(eps)`.  Clamping is fine for α ≥ 1 (the artificial
+    # `α · log(eps) ≲ -36` is killed by the dominant LSE term), but at
+    # α < 1 the artefact `exp(α · log(eps)) ≈ exp(-36 α)` is much
+    # larger than round-off and corrupts the sub-extensive Rényi at the
+    # ~10⁻⁸ level.
+    if p⁺ ≤ eps(Float64)
+        # ν = -1 case (cannot happen after the `abs` above, but defensive).
+        return α * log(p⁻) / (1 - α)
+    end
+    if p⁻ ≤ eps(Float64)
+        return α * log(p⁺) / (1 - α)  # = 0 for ν = 1 since log(1) = 0.
+    end
+    a = α * log(p⁺)
+    b = α * log(p⁻)
     M = max(a, b)
     L = M + log(exp(a - M) + exp(b - M))
     return L / (1 - α)
