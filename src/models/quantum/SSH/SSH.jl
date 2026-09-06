@@ -112,13 +112,14 @@ function _ssh_obc_spectrum(N::Int, v::Float64, w::Float64)::Vector{Float64}
         H[j + 1, j] = t
     end
     vals = eigvals(Symmetric(H))
-    pos = filter(e -> e >= -1e-12, vals)
-    sort!(pos)
-    length(pos) >= N || error(
-        "_ssh_obc_spectrum: chiral symmetry gave $(length(pos)) non-negative eigenvalues, " *
-        "expected ≥ $N (numerical degeneracy near a zero mode? v = $v, w = $w, N = $N).",
-    )
-    return pos[1:N]
+    sort!(vals)
+    # The UPPER half, not "the first N of the non-negative ones". Those differ exactly
+    # where this model is most interesting: at v = 0 the two end sites decouple, the
+    # spectrum carries a two-fold exact zero, and the non-negative eigenvalues number N+1.
+    # Taking the lowest N of them kept both zeros and dropped a particle level, so the
+    # returned set no longer satisfied its own contract that ± it is the full spectrum
+    # (measured at N = 4, v = 0, w = 1: [0,0,1,1] against the true [0,1,1,1]).
+    return vals[(N + 1):(2N)]
 end
 
 # |q(k)| = √(v² + w² + 2 v w cos k), the upper band energy at momentum k.

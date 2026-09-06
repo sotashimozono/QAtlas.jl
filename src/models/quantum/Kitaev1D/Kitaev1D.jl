@@ -127,13 +127,16 @@ function _kitaev1d_bdg_spectrum(N::Int, μ::Float64, t::Float64, Δ::Float64)::V
 
     H_bdg = [A B; -B -A]
     vals = eigvals(Symmetric(H_bdg))
-    # Drop the negative half (eigenvalues come in ± pairs); keep the
-    # non-negative branch even if one is numerically ~0 (Majorana zero
-    # mode in the topological phase) — TFIM filters at 1e-10, but here
-    # the topological zero mode is *the* observable we need to expose.
-    pos = filter(v -> v >= -1e-12, vals)
-    sort!(pos)
-    return pos[1:N]
+    # The UPPER half. Eigenvalues come in ± pairs, so this is the quasiparticle branch,
+    # and it keeps the Majorana zero mode the topological phase needs exposed.
+    #
+    # Not "the first N of the non-negative ones", which is what this was: at the sweet
+    # spot μ = 0, t = Δ the zero mode is EXACTLY zero and doubly degenerate, so the
+    # non-negative eigenvalues number N+1. Taking the lowest N kept both zeros and
+    # dropped a quasiparticle level (measured at N = 4, μ = 0, t = Δ = 1: [0,0,2,2]
+    # against the true [0,2,2,2]) — at the one point the comment above it was written
+    # to protect.
+    return vals[(N + 1):(2N)]
 end
 
 # ═══════════════════════════════════════════════════════════════════════════════
