@@ -37,7 +37,10 @@ using QAtlas:
         # Cross-model identity: Kitaev1D(μ=-2h, t=J, Δ=J) reproduces the
         # TFIM(J,h) BdG spectrum. Not a single-value verify card.
         N = 20
-        for (J, h) in [(1.0, 0.5), (1.0, 1.5), (1.0, 1.0), (0.7, 0.3)]
+        # h = 0 is the zero-mode point, and it is the case the old half-spectrum broke:
+        # it kept both zeros, so the top K entries carried one that TFIM had filtered out.
+        for (J, h) in
+            [(1.0, 0.5), (1.0, 1.5), (1.0, 1.0), (0.7, 0.3), (1.0, 0.0), (0.7, 0.0)]
             μ_eq = -2h
             spec_kitaev = QAtlas._kitaev1d_bdg_spectrum(N, μ_eq, J, J)
             spec_tfim = QAtlas._tfim_bdg_spectrum(N, J, h)
