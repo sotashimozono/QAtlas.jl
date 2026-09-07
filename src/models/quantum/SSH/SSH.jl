@@ -113,12 +113,8 @@ function _ssh_obc_spectrum(N::Int, v::Float64, w::Float64)::Vector{Float64}
     end
     vals = eigvals(Symmetric(H))
     sort!(vals)
-    # The UPPER half, not "the first N of the non-negative ones". Those differ exactly
-    # where this model is most interesting: at v = 0 the two end sites decouple, the
-    # spectrum carries a two-fold exact zero, and the non-negative eigenvalues number N+1.
-    # Taking the lowest N of them kept both zeros and dropped a particle level, so the
-    # returned set no longer satisfied its own contract that ± it is the full spectrum
-    # (measured at N = 4, v = 0, w = 1: [0,0,1,1] against the true [0,1,1,1]).
+    # The UPPER half. Not `filter(non-negative)[1:N]`, which at v = 0 keeps both members
+    # of the exact zero pair and drops a particle level.
     return vals[(N + 1):(2N)]
 end
 

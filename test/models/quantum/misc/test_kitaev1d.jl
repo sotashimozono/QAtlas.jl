@@ -259,18 +259,15 @@ end
 end
 
 @testset "Kitaev1D — the sweet spot the half-spectrum used to mis-count" begin
-    # At μ = 0, t = Δ the chain is N−1 quasiparticle modes at 2t plus one EXACT Majorana
-    # zero mode, doubly degenerate in the BdG spectrum. That makes N+1 non-negative
-    # eigenvalues, and `_kitaev1d_bdg_spectrum` used to return the lowest N of them —
-    # [0,0,2,2] where the branch is [0,2,2,2]. The comment above that line was written to
-    # protect the zero mode, and the miscount happened at exactly the point it protects.
+    # μ = 0, t = Δ is N−1 modes at 2t plus one exact Majorana zero — so the branch is
+    # [0, 2t, …] and the zero appears ONCE, which is what the old code got wrong.
     for (N, t) in ((4, 1.0), (6, 0.5), (10, 2.0))
         half = fetch(Kitaev1D(; μ=0.0, t=t, Δ=t), ExactSpectrum(), OBC(N))
         @test length(half) == N
         @test half ≈ vcat(0.0, fill(2 * t, N - 1)) atol = 1.0e-10
         @test count(x -> abs(x) < 1.0e-10, half) == 1        # the zero mode, once
     end
-    # Trivial phase: no zero mode, N distinct positive levels, nothing was wrong there.
+    # Trivial phase: no zero mode. The control.
     half = fetch(Kitaev1D(; μ=3.0, t=1.0, Δ=1.0), ExactSpectrum(), OBC(6))
     @test all(>(0.5), half)
     @test issorted(half)

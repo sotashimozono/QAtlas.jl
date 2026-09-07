@@ -295,24 +295,16 @@ end
 end
 
 @testset "SSH — the sweet spot the half-spectrum used to mis-count" begin
-    # At v = 0 the chain is N−1 decoupled dimers (±w) plus two isolated end sites (0), so
-    # the OBC spectrum carries a TWO-fold exact zero and therefore N+1 non-negative
-    # eigenvalues, not N. `_ssh_obc_spectrum` used to return the lowest N of them, which
-    # kept both zeros and dropped a particle level: [0,0,1,1] where the branch is [0,1,1,1].
-    #
-    # Nothing caught it. The existing ED cross-checks all use non-degenerate hoppings, and
-    # their tolerance (atol=1e-2 at N=200) is four times the defect (1/2N = 2.5e-3).
+    # v = 0 is N−1 decoupled dimers plus two isolated end sites, so the branch is
+    # [0, |w|, …] and the energy density −(N−1)|w|/2N. Both closed forms, and both wrong
+    # under the old `filter(non-negative)[1:N]`.
     for (N, w) in ((4, 1.0), (7, 0.6), (12, 1.5))
         half = fetch(SSH(; v=0.0, w=w), ExactSpectrum(), OBC(N))
         @test length(half) == N
         @test half ≈ vcat(0.0, fill(abs(w), N - 1)) atol = 1.0e-12
-        # The contract the returned set exists to satisfy: ± it is the whole spectrum.
-        # Closed form for the half-filled OBC ground energy: N−1 filled dimer levels at
-        # −|w|, one at zero, over 2N sites.
         @test -sum(half) / (2N) ≈ -(N - 1) * abs(w) / (2N) atol = 1.0e-12
     end
-    # w = 0 is the trivial sweet spot: N dimers, no zero mode, and nothing was ever wrong
-    # there. Kept as the control that separates "degenerate" from "fully dimerised".
+    # w = 0: fully dimerised too, but no zero mode. The control.
     for N in (4, 9)
         half = fetch(SSH(; v=1.0, w=0.0), ExactSpectrum(), OBC(N))
         @test half ≈ fill(1.0, N) atol = 1.0e-12
