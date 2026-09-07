@@ -261,14 +261,30 @@ end
     end
 end
 
-@testset "Kitaev1D — the sweet spot the half-spectrum used to mis-count" begin
+@testset "Kitaev1D — the zero mode the half-spectrum used to double-count" begin
     # μ = 0, t = Δ is N−1 modes at 2t plus one exact Majorana zero — so the branch is
     # [0, 2t, …] and the zero appears ONCE, which is what the old code got wrong.
-    for (N, t) in ((4, 1.0), (6, 0.5), (10, 2.0))
-        half = fetch(Kitaev1D(; μ=0.0, t=t, Δ=t), ExactSpectrum(), OBC(N))
+    # |t| = |Δ| is the sweet spot for every sign combination, and the branch is 2|t| — a
+    # `2t` here would assert a negative spectrum for t < 0.
+    for (N, t, Δ) in (
+        (4, 1.0, 1.0),
+        (6, 0.5, 0.5),
+        (10, 2.0, 2.0),
+        (5, -1.0, -1.0),
+        (5, 1.0, -1.0),
+        (5, -1.0, 1.0),
+    )
+        half = fetch(Kitaev1D(; μ=0.0, t=t, Δ=Δ), ExactSpectrum(), OBC(N))
         @test length(half) == N
-        @test half ≈ vcat(0.0, fill(2 * t, N - 1)) atol = 1.0e-10
+        @test half ≈ vcat(0.0, fill(2 * abs(t), N - 1)) atol = 1.0e-10
         @test count(x -> abs(x) < 1.0e-10, half) == 1        # the zero mode, once
+    end
+    # And away from the sweet spot: the edge splitting is exponentially small, so ordinary
+    # parameters reach the same defect from system size alone.
+    for N in (15, 20, 30)
+        half = fetch(Kitaev1D(; μ=0.2, t=1.0, Δ=1.0), ExactSpectrum(), OBC(N))
+        @test length(half) == N
+        @test count(x -> abs(x) < 1.0e-9, half) == 1
     end
     # Trivial phase: no zero mode. The control.
     half = fetch(Kitaev1D(; μ=3.0, t=1.0, Δ=1.0), ExactSpectrum(), OBC(6))
